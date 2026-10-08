@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Alumnos" android:textSize="20sp" android:textStyle="bold" />
+            <Button android:id="@+id/btnTabDocentes" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ver docentes" />
+            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Buscar nombre o matrícula" />
+            <Button android:id="@+id/btnNuevoAlumno" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="+ Nuevo alumno" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="María Hernández - Matrícula 2024021" />
+            <Button android:id="@+id/btnEditarAlumno" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Editar" />
+            <Button android:id="@+id/btnEliminarAlumno" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Eliminar" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="José Martínez - Matrícula 2024022" />
+            <Button android:id="@+id/btnEditarAlumno2" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Editar" />
+            <Button android:id="@+id/btnEliminarAlumno2" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Eliminar" />
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/barra_admin" />
+</LinearLayout>

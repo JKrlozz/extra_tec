@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reportes" android:textSize="20sp" android:textStyle="bold" />
+            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Tipo de reporte (Por actividad, Por alumno, Por docente)" />
+            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Fecha inicial (YYYY-MM-DD)" />
+            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Fecha final (YYYY-MM-DD)" />
+            <Button android:id="@+id/btnGenerarReporte" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Generar reporte" />
+            <Button android:id="@+id/btnExportarPdf" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Exportar PDF" />
+            <TextView android:id="@+id/tvResultadoReporte" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="" />
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/barra_admin" />
+</LinearLayout>

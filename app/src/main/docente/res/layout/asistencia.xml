@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pase de lista - Fútbol · Miércoles" android:textSize="18sp" android:textStyle="bold" />
+
+            <CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="María Hernández - Matrícula 2024021" android:checked="true" />
+            <CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="José Martínez - Matrícula 2024022" android:checked="true" />
+            <CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Diana Sánchez - Matrícula 2024023" android:checked="true" />
+            <CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pedro García - Matrícula 2024024" />
+
+            <Button android:id="@+id/btnGuardarAsistencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Guardar asistencia" />
+            <Button android:id="@+id/btnCancelar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cancelar" />
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/barra_docente" />
+</LinearLayout>
