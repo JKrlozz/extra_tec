@@ -1,21 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Bienvenido," />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:layout_marginTop="0dp"
+            android:text="Administrador" />
+        <TextView
+            style="@style/Itsm.Text.Secondary"
+            android:textColor="#B8C4DA"
+            android:text="Panel de gestión institucional" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bienvenido," />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Administrador" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:text="Accesos rápidos" android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-            <Button android:id="@+id/btnIrActividades" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Actividades" />
-            <Button android:id="@+id/btnIrDocentes" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Docentes" />
-            <Button android:id="@+id/btnIrAlumnos" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Alumnos" />
-            <Button android:id="@+id/btnIrReportes" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Reportes" />
-            <Button android:id="@+id/btnCerrarSesion" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cerrar sesión" />
+        <LinearLayout style="@style/Itsm.Content">
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Accesos rápidos" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrActividades"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginBottom="10dp"
+                android:text="Actividades" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrDocentes"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="10dp"
+                android:text="Docentes" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrAlumnos"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="10dp"
+                android:text="Alumnos" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrReportes"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="10dp"
+                android:text="Reportes" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCerrarSesion"
+                style="@style/Itsm.Button.Text"
+                android:layout_marginTop="12dp"
+                android:text="Cerrar sesión" />
         </LinearLayout>
     </ScrollView>
 

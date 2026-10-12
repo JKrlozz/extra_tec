@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center"
-    android:padding="8dp">
+    style="@style/Itsm.NavBar">
 
-    <Button android:id="@+id/nav1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Inicio" />
-    <Button android:id="@+id/nav2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Actividades" />
-    <Button android:id="@+id/nav3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Horario" />
-    <Button android:id="@+id/nav4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Constancia" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav1" style="@style/Itsm.NavButton" android:text="Inicio" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav2" style="@style/Itsm.NavButton" android:text="Actividades" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav3" style="@style/Itsm.NavButton" android:text="Horario" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav4" style="@style/Itsm.NavButton" android:text="Constancia" />
 </LinearLayout>

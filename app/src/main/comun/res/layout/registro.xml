@@ -1,40 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Itsm.Screen">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Registro de alumno"
-            android:textSize="22sp"
-            android:layout_marginBottom="16dp" />
-
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nombre completo" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Correo" android:inputType="textEmailAddress" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Contraseña" android:inputType="textPassword" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Carrera (Ing. en Sistemas...)" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Semestre (1°, 3°, 5°, 7°)" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Matrícula" />
-
-        <Button
-            android:id="@+id/btnRegistrarse"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Guardar" />
-
-        <Button
-            android:id="@+id/btnCancelar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Cancelar" />
+            style="@style/Itsm.HeaderTitle"
+            android:text="Registro de alumno" />
     </LinearLayout>
-</ScrollView>
+    <View style="@style/Itsm.AccentBar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            style="@style/Itsm.Content"
+            android:padding="20dp">
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Datos personales" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Nombre completo">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Correo">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Contraseña"
+                app:endIconMode="password_toggle">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Datos académicos" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Carrera (Ing. en Sistemas...)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Semestre (1°, 3°, 5°, 7°)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Matrícula">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRegistrarse"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginTop="8dp"
+                android:text="Guardar" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelar"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="Cancelar" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

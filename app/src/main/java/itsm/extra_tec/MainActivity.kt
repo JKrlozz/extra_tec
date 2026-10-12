@@ -1,6 +1,7 @@
 package itsm.extra_tec
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
@@ -8,6 +9,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +20,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         mostrarInicio()
+    }
+
+    // Respeta las barras del sistema (modo edge-to-edge); el fondo azul de la ventana las rellena.
+    override fun setContentView(layoutResID: Int) {
+        super.setContentView(layoutResID)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById<View>(android.R.id.content)) { vista, insets ->
+            val barras = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            vista.setPadding(barras.left, barras.top, barras.right, barras.bottom)
+            insets
+        }
     }
 
     private fun conectarNavegacion(rolDestino: String) {

@@ -1,17 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Itsm.Screen">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nueva / editar actividad" android:textSize="20sp" android:textStyle="bold" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nombre" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Horario" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Cupo" android:inputType="number" />
-        <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Docente" />
-        <Button android:id="@+id/btnGuardar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Guardar" />
-        <Button android:id="@+id/btnCancelar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cancelar" />
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Nueva / editar actividad" />
     </LinearLayout>
-</ScrollView>
+    <View style="@style/Itsm.AccentBar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            style="@style/Itsm.Content"
+            android:padding="20dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Nombre">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Horario">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Cupo">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Docente">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardar"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginTop="8dp"
+                android:text="Guardar" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelar"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="Cancelar" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

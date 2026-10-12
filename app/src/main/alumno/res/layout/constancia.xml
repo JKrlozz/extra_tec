@@ -1,18 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Constancia" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Constancia" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Actividad: Fútbol — Ene/Jun 2025" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Constancia disponible" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Asistencia: 85%" />
-            <ProgressBar android:layout_width="match_parent" android:layout_height="wrap_content" style="?android:attr/progressBarStyleHorizontal" android:progress="85" />
-            <Button android:id="@+id/btnDescargar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Descargar PDF" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout style="@style/Itsm.Content">
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Section" android:layout_marginTop="0dp" android:text="Actividad" />
+                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Periodo Ene/Jun 2025" />
+
+                    <TextView
+                        style="@style/Itsm.Text.Body"
+                        android:layout_marginTop="16dp"
+                        android:text="Constancia disponible"
+                        android:textColor="@color/itsm_success"
+                        android:textStyle="bold" />
+
+                    <TextView style="@style/Itsm.Text.Secondary" android:layout_marginTop="12dp" android:text="Asistencia: 85%" />
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:progress="85"
+                        android:progressTint="@color/itsm_primary"
+                        android:progressBackgroundTint="@color/itsm_divider" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDescargar"
+                style="@style/Itsm.Button.Primary"
+                android:text="Descargar PDF" />
         </LinearLayout>
     </ScrollView>
 

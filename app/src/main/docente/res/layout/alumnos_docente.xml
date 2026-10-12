@@ -1,19 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Alumnos inscritos" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Alumnos inscritos" android:textSize="20sp" android:textStyle="bold" />
-            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Buscar alumno" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="María Hernández - Matrícula 2024021" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="José Martínez - Matrícula 2024022" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Diana Sánchez - Matrícula 2024023" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pedro García - Matrícula 2024024" />
-            <Button android:id="@+id/btnCancelar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Regresar" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout style="@style/Itsm.Content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Buscar alumno">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="María Hernández" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024021" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="José Martínez" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024022" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Diana Sánchez" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024023" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Pedro García" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024024" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelar"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginTop="4dp"
+                android:text="Regresar" />
         </LinearLayout>
     </ScrollView>
 

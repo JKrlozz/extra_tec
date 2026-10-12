@@ -1,17 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Subir evidencia" />
+        <TextView
+            style="@style/Itsm.Text.Secondary"
+            android:textColor="#B8C4DA"
+            android:text="Actividad: Fútbol" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Subir evidencia" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Actividad: Fútbol" />
-            <EditText android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Descripción" />
-            <Button android:id="@+id/btnElegirFoto" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Seleccionar fotografía" />
-            <Button android:id="@+id/btnGuardarEvidencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Guardar evidencia" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout style="@style/Itsm.Content">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Descripción">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minLines="3" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnElegirFoto"
+                style="@style/Itsm.Button.Secondary"
+                android:text="Seleccionar fotografía" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardarEvidencia"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginTop="8dp"
+                android:text="Guardar evidencia" />
         </LinearLayout>
     </ScrollView>
 

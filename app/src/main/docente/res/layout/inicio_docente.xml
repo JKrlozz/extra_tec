@@ -1,23 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Buen día," />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:layout_marginTop="0dp"
+            android:text="Prof. Carlos Pérez" />
+        <TextView
+            style="@style/Itsm.Text.Secondary"
+            android:textColor="#B8C4DA"
+            android:text="Docente · Actividades extraescolares" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Buen día," />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Prof. Carlos Pérez" android:textSize="20sp" android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:text="Mis clases" android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fútbol - Lun. y Mié. 16:00 - 25 alumnos" />
-            <Button android:id="@+id/btnPaseLista" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Pase de lista" />
-            <Button android:id="@+id/btnVerAlumnos" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ver alumnos" />
+        <LinearLayout style="@style/Itsm.Content">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Baloncesto - Viernes 17:00 - 18 alumnos" />
-            <Button android:id="@+id/btnPaseLista2" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Pase de lista" />
-            <Button android:id="@+id/btnCerrarSesion" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cerrar sesión" />
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Mis clases" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Lun. y Mié. 16:00 · 25 alumnos" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPaseLista"
+                        style="@style/Itsm.Button.Primary"
+                        android:layout_marginTop="12dp"
+                        android:text="Pase de lista" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnVerAlumnos"
+                        style="@style/Itsm.Button.Secondary"
+                        android:layout_marginTop="8dp"
+                        android:text="Ver alumnos" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Baloncesto" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Viernes 17:00 · 18 alumnos" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPaseLista2"
+                        style="@style/Itsm.Button.Primary"
+                        android:layout_marginTop="12dp"
+                        android:text="Pase de lista" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCerrarSesion"
+                style="@style/Itsm.Button.Text"
+                android:layout_marginTop="4dp"
+                android:text="Cerrar sesión" />
         </LinearLayout>
     </ScrollView>
 

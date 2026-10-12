@@ -1,22 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
 
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Actividades disponibles" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Actividades" android:textSize="20sp" android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Fútbol - Lun. y Mié. 16:00 - Prof. Carlos Pérez - Cupo 18/25" />
-            <Button android:id="@+id/btnInscribir1" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Inscribirme" />
+        <LinearLayout style="@style/Itsm.Content">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Ajedrez - Martes 15:00 - Prof. Ana López - Cupo 12/20" />
-            <Button android:id="@+id/btnInscribir2" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Inscribirme" />
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Lun. y Mié. 16:00 · Prof. Carlos Pérez" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Cupo 18/25" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnInscribir1"
+                        style="@style/Itsm.Button.Primary"
+                        android:layout_marginTop="12dp"
+                        android:text="Inscribirme" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Voleibol - Jueves 17:00 - Prof. Luis Gómez - Cupo 16/25" />
-            <Button android:id="@+id/btnInscribir3" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Inscribirme" />
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Ajedrez" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Martes 15:00 · Prof. Ana López" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Cupo 12/20" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnInscribir2"
+                        style="@style/Itsm.Button.Primary"
+                        android:layout_marginTop="12dp"
+                        android:text="Inscribirme" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                <LinearLayout style="@style/Itsm.CardBody">
+                    <TextView style="@style/Itsm.Text.Title" android:text="Voleibol" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Jueves 17:00 · Prof. Luis Gómez" />
+                    <TextView style="@style/Itsm.Text.Secondary" android:text="Cupo 16/25" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnInscribir3"
+                        style="@style/Itsm.Button.Primary"
+                        android:layout_marginTop="12dp"
+                        android:text="Inscribirme" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 

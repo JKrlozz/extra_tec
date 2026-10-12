@@ -2,4 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta institucional ITSM -->
+    <color name="itsm_primary">#1B396A</color>
+    <color name="itsm_primary_dark">#12284B</color>
+    <color name="itsm_primary_light">#E4EAF4</color>
+    <color name="itsm_accent">#C9A227</color>
+    <color name="itsm_background">#F3F5F9</color>
+    <color name="itsm_surface">#FFFFFF</color>
+    <color name="itsm_text">#1F2937</color>
+    <color name="itsm_text_secondary">#5B6577</color>
+    <color name="itsm_divider">#D9DEE8</color>
+    <color name="itsm_danger">#B3261E</color>
+    <color name="itsm_success">#2E7D32</color>
 </resources>

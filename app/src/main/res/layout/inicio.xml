@@ -2,34 +2,55 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@color/itsm_primary_dark"
     android:gravity="center"
-    android:padding="24dp">
+    android:orientation="vertical"
+    android:padding="32dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ITSM"
-        android:textSize="48sp"
-        android:textStyle="bold" />
+        android:textColor="@color/white"
+        android:textSize="56sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.15" />
+
+    <View
+        android:layout_width="64dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="20dp"
+        android:background="@color/itsm_accent" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Actividades Extraescolares"
-        android:textSize="22sp"
-        android:layout_marginTop="8dp" />
+        android:textColor="@color/white"
+        android:textSize="22sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
         android:text="Instituto Tecnológico Superior de Misantla"
-        android:layout_marginTop="4dp" />
+        android:textColor="#B8C4DA"
+        android:textSize="14sp" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnEntrar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="Entrar" />
+        android:layout_marginTop="48dp"
+        android:minHeight="52dp"
+        android:text="Entrar"
+        android:textAllCaps="false"
+        android:textColor="@color/itsm_primary_dark"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:backgroundTint="@color/itsm_accent"
+        app:cornerRadius="8dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
 </LinearLayout>

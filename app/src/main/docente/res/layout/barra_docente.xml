@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center"
-    android:padding="8dp">
+    style="@style/Itsm.NavBar">
 
-    <Button android:id="@+id/nav1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Inicio" />
-    <Button android:id="@+id/nav2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Lista" />
-    <Button android:id="@+id/nav3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Evidencia" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav1" style="@style/Itsm.NavButton" android:text="Inicio" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav2" style="@style/Itsm.NavButton" android:text="Lista" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/nav3" style="@style/Itsm.NavButton" android:text="Evidencia" />
 </LinearLayout>

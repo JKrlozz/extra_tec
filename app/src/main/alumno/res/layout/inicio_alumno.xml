@@ -1,29 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    style="@style/Itsm.Screen">
+
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Hola," />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:layout_marginTop="0dp"
+            android:text="María Hernández" />
+        <TextView
+            style="@style/Itsm.Text.Secondary"
+            android:textColor="#B8C4DA"
+            android:text="Alumna · Matrícula 2024021" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+        <LinearLayout style="@style/Itsm.Content">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hola," />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="María Hernández" android:textSize="20sp" android:textStyle="bold" />
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Accesos rápidos" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:text="Accesos rápidos" android:textStyle="bold" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrActividades"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginBottom="10dp"
+                android:text="Inscribirme a una actividad" />
 
-            <Button android:id="@+id/btnIrActividades" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Inscribirme a una actividad" />
-            <Button android:id="@+id/btnIrHorario" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ver mi horario" />
-            <Button android:id="@+id/btnIrConstancia" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Consultar constancia" />
-            <Button android:id="@+id/btnCerrarSesion" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cerrar sesión" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrHorario"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="10dp"
+                android:text="Ver mi horario" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIrConstancia"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="10dp"
+                android:text="Consultar constancia" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCerrarSesion"
+                style="@style/Itsm.Button.Text"
+                android:layout_marginTop="12dp"
+                android:text="Cerrar sesión" />
         </LinearLayout>
     </ScrollView>
 
