@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
+            android:id="@+id/tvTituloForm"
             style="@style/Itsm.HeaderTitle"
             android:text="Nueva / editar actividad" />
     </LinearLayout>
@@ -24,46 +26,60 @@
                 style="@style/Itsm.Field"
                 android:hint="Nombre">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNombre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Horario">
+                android:hint="Descripción (opcional)">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDescripcion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Horario (Lunes 16:00-18:00, Miércoles 16:00-18:00)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etHorario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Cupo">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCupo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Itsm.Field"
-                android:hint="Docente">
-                <com.google.android.material.textfield.TextInputEditText
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:layout_marginTop="0dp"
+                android:text="Docente" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Itsm.Card"
+                android:layout_marginBottom="16dp">
+                <Spinner
+                    android:id="@+id/spinnerDocente"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
+                    android:layout_height="52dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+            </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardar"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginTop="8dp"
                 android:text="Guardar" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelar"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginTop="8dp"
                 android:text="Cancelar" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

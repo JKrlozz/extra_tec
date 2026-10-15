@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
+            android:id="@+id/tvTituloForm"
             style="@style/Itsm.HeaderTitle"
             android:text="Registrar / editar docente" />
     </LinearLayout>
@@ -24,47 +26,58 @@
                 style="@style/Itsm.Field"
                 android:hint="Nombre">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNombre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Correo">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCorreo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Especialidad">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEspecialidad"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Teléfono">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTelefono"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
-
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContrasena"
+                style="@style/Itsm.Field"
+                android:hint="Contraseña inicial (si se deja vacía se genera una)"
+                app:endIconMode="password_toggle">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContrasena"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardar"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginTop="8dp"
                 android:text="Guardar" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelar"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginTop="8dp"
                 android:text="Cancelar" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

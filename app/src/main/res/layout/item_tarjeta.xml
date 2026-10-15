@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Itsm.Card">
+
+    <LinearLayout style="@style/Itsm.CardBody">
+        <TextView
+            android:id="@+id/tvTitulo"
+            style="@style/Itsm.Text.Title" />
+        <TextView
+            android:id="@+id/tvLinea1"
+            style="@style/Itsm.Text.Secondary"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/tvLinea2"
+            style="@style/Itsm.Text.Secondary"
+            android:visibility="gone" />
+        <ProgressBar
+            android:id="@+id/pbProgreso"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:progressTint="@color/itsm_primary"
+            android:progressBackgroundTint="@color/itsm_divider"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/filaBotones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnA"
+                style="@style/Itsm.Button.Primary"
+                android:layout_width="0dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnB"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnC"
+                style="@style/Itsm.Button.Danger"
+                android:layout_width="0dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

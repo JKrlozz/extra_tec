@@ -76,6 +76,11 @@
                 style="@style/Itsm.Button.Text"
                 android:layout_marginTop="8dp"
                 android:text="¿No tienes cuenta? Regístrate" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnServidor"
+                style="@style/Itsm.Button.Text"
+                android:text="Configurar servidor" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

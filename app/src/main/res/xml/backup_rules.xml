@@ -6,8 +6,6 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- El token de sesión no debe salir del teléfono -->
+    <exclude domain="sharedpref" path="sesion.xml"/>
 </full-backup-content>
