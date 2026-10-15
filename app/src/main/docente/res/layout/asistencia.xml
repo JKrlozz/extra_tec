@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -8,9 +9,10 @@
             style="@style/Itsm.HeaderTitle"
             android:text="Pase de lista" />
         <TextView
+            android:id="@+id/tvSubtitulo"
             style="@style/Itsm.Text.Secondary"
             android:textColor="#B8C4DA"
-            android:text="Fútbol · Miércoles" />
+            android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
 
@@ -19,61 +21,31 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
             <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
                 <LinearLayout
+                    android:id="@+id/listaContenido"
                     style="@style/Itsm.CardBody"
                     android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
-
-                    <CheckBox
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:buttonTint="@color/itsm_primary"
-                        android:checked="true"
-                        android:minHeight="48dp"
-                        android:text="María Hernández · Matrícula 2024021"
-                        android:textColor="@color/itsm_text" />
-
-                    <CheckBox
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:buttonTint="@color/itsm_primary"
-                        android:checked="true"
-                        android:minHeight="48dp"
-                        android:text="José Martínez · Matrícula 2024022"
-                        android:textColor="@color/itsm_text" />
-
-                    <CheckBox
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:buttonTint="@color/itsm_primary"
-                        android:checked="true"
-                        android:minHeight="48dp"
-                        android:text="Diana Sánchez · Matrícula 2024023"
-                        android:textColor="@color/itsm_text" />
-
-                    <CheckBox
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:buttonTint="@color/itsm_primary"
-                        android:minHeight="48dp"
-                        android:text="Pedro García · Matrícula 2024024"
-                        android:textColor="@color/itsm_text" />
-                </LinearLayout>
+                    android:paddingBottom="8dp" />
             </com.google.android.material.card.MaterialCardView>
-
+            <TextView
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardarAsistencia"
                 style="@style/Itsm.Button.Primary"
                 android:text="Guardar asistencia" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelar"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginTop="8dp"
                 android:text="Cancelar" />
+
         </LinearLayout>
     </ScrollView>
 

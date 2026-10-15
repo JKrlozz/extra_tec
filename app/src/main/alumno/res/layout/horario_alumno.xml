@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -15,25 +16,26 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
+            <TextView style="@style/Itsm.Text.Section" android:text="Actividades inscritas" />
+            <LinearLayout
+                android:id="@+id/listaContenido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
             <TextView
-                style="@style/Itsm.Text.Section"
-                android:text="Actividades inscritas" />
-
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="Banda de guerra" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Lunes y miércoles · 16:00" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="ITSM" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAgregarActividad"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginTop="4dp"
                 android:text="Agregar otra actividad" />
+
         </LinearLayout>
     </ScrollView>
 

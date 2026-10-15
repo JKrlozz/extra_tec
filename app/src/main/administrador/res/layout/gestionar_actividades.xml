@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -15,67 +16,25 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNuevaActividad"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginBottom="16dp"
                 android:text="+ Nueva actividad" />
+            <LinearLayout
+                android:id="@+id/listaContenido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Lun. y Mié. 16:00 · Cupo 18/25" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEditarActividad"
-                            style="@style/Itsm.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Editar" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEliminarActividad"
-                            style="@style/Itsm.Button.Danger"
-                            android:layout_width="0dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="Eliminar" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="Ajedrez" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Martes 15:00 · Cupo 12/20" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEditarActividad2"
-                            style="@style/Itsm.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Editar" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEliminarActividad2"
-                            style="@style/Itsm.Button.Danger"
-                            android:layout_width="0dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="Eliminar" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 

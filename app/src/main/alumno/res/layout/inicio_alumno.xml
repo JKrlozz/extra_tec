@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -8,13 +9,15 @@
             style="@style/Itsm.HeaderTitle"
             android:text="Hola," />
         <TextView
+            android:id="@+id/tvNombre"
             style="@style/Itsm.HeaderTitle"
             android:layout_marginTop="0dp"
-            android:text="María Hernández" />
+            android:text="" />
         <TextView
+            android:id="@+id/tvDetalle"
             style="@style/Itsm.Text.Secondary"
             android:textColor="#B8C4DA"
-            android:text="Alumna · Matrícula 2024021" />
+            android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
 
@@ -23,35 +26,31 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
-            <TextView
-                style="@style/Itsm.Text.Section"
-                android:text="Accesos rápidos" />
-
+            <TextView style="@style/Itsm.Text.Section" android:text="Accesos rápidos" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIrActividades"
                 style="@style/Itsm.Button.Primary"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:text="Inscribirme a una actividad" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIrHorario"
                 style="@style/Itsm.Button.Secondary"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:text="Ver mi horario" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIrConstancia"
                 style="@style/Itsm.Button.Secondary"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:text="Consultar constancia" />
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCerrarSesion"
                 style="@style/Itsm.Button.Text"
                 android:layout_marginTop="12dp"
                 android:text="Cerrar sesión" />
+
         </LinearLayout>
     </ScrollView>
 

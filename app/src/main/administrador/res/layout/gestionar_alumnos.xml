@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -15,81 +16,38 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTabDocentes"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginBottom="12dp"
                 android:text="Ver docentes" />
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Buscar nombre o matrícula">
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etBuscar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNuevoAlumno"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginBottom="16dp"
                 android:text="+ Nuevo alumno" />
+            <LinearLayout
+                android:id="@+id/listaContenido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="María Hernández" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024021" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEditarAlumno"
-                            style="@style/Itsm.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Editar" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEliminarAlumno"
-                            style="@style/Itsm.Button.Danger"
-                            android:layout_width="0dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="Eliminar" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="José Martínez" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Matrícula 2024022" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEditarAlumno2"
-                            style="@style/Itsm.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Editar" />
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEliminarAlumno2"
-                            style="@style/Itsm.Button.Danger"
-                            android:layout_width="0dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="Eliminar" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 

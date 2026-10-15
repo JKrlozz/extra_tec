@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -8,9 +9,10 @@
             style="@style/Itsm.HeaderTitle"
             android:text="Buen día," />
         <TextView
+            android:id="@+id/tvNombre"
             style="@style/Itsm.HeaderTitle"
             android:layout_marginTop="0dp"
-            android:text="Prof. Carlos Pérez" />
+            android:text="" />
         <TextView
             style="@style/Itsm.Text.Secondary"
             android:textColor="#B8C4DA"
@@ -23,46 +25,26 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
+            <TextView style="@style/Itsm.Text.Section" android:text="Mis clases" />
+            <LinearLayout
+                android:id="@+id/listaContenido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
             <TextView
-                style="@style/Itsm.Text.Section"
-                android:text="Mis clases" />
-
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Lun. y Mié. 16:00 · 25 alumnos" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPaseLista"
-                        style="@style/Itsm.Button.Primary"
-                        android:layout_marginTop="12dp"
-                        android:text="Pase de lista" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnVerAlumnos"
-                        style="@style/Itsm.Button.Secondary"
-                        android:layout_marginTop="8dp"
-                        android:text="Ver alumnos" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Title" android:text="Baloncesto" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Viernes 17:00 · 18 alumnos" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPaseLista2"
-                        style="@style/Itsm.Button.Primary"
-                        android:layout_marginTop="12dp"
-                        android:text="Pase de lista" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCerrarSesion"
                 style="@style/Itsm.Button.Text"
                 android:layout_marginTop="4dp"
                 android:text="Cerrar sesión" />
+
         </LinearLayout>
     </ScrollView>
 

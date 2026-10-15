@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Itsm.Screen">
 
     <LinearLayout style="@style/Itsm.Header">
@@ -15,37 +16,20 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <LinearLayout style="@style/Itsm.Content">
+        <LinearLayout
+            style="@style/Itsm.Content">
 
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout style="@style/Itsm.CardBody">
-                    <TextView style="@style/Itsm.Text.Section" android:layout_marginTop="0dp" android:text="Actividad" />
-                    <TextView style="@style/Itsm.Text.Title" android:text="Fútbol" />
-                    <TextView style="@style/Itsm.Text.Secondary" android:text="Periodo Ene/Jun 2025" />
+            <LinearLayout
+                android:id="@+id/listaContenido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <TextView
+                android:id="@+id/tvVacio"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
-                    <TextView
-                        style="@style/Itsm.Text.Body"
-                        android:layout_marginTop="16dp"
-                        android:text="Constancia disponible"
-                        android:textColor="@color/itsm_success"
-                        android:textStyle="bold" />
-
-                    <TextView style="@style/Itsm.Text.Secondary" android:layout_marginTop="12dp" android:text="Asistencia: 85%" />
-                    <ProgressBar
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:progress="85"
-                        android:progressTint="@color/itsm_primary"
-                        android:progressBackgroundTint="@color/itsm_divider" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDescargar"
-                style="@style/Itsm.Button.Primary"
-                android:text="Descargar PDF" />
         </LinearLayout>
     </ScrollView>
 
