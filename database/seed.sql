@@ -1,5 +1,5 @@
--- Datos de prueba (los mismos que muestran las pantallas). Contraseña demo: itsm1234
--- OJO: SHA2 es solo para pruebas; la API debe guardar hashes bcrypt/argon2.
+-- Datos de prueba de las pantallas. Contraseña demo: itsm1234
+-- SHA2 es solo de prueba; la API guarda bcrypt.
 USE extra_tec;
 
 INSERT INTO carreras (nombre) VALUES ('Ing. en Sistemas'),('Ing. Industrial'),('Ing. en Gestión');
@@ -45,14 +45,14 @@ JOIN (SELECT 'Fútbol' AS n, 'Lunes' AS d, '16:00' AS i, '18:00' AS f
       UNION ALL SELECT 'Baloncesto', 'Viernes', '17:00', '19:00'
       UNION ALL SELECT 'Banda de guerra', 'Lunes', '18:00', '20:00') h ON h.n = a.nombre;
 
--- Inscripciones: todos en Fútbol; María además en Banda de guerra
+-- Todos en Fútbol; María además en Banda de guerra
 INSERT INTO inscripciones (id_alumno, id_actividad)
 SELECT al.id_usuario, a.id FROM alumnos al JOIN actividades a ON a.nombre = 'Fútbol';
 INSERT INTO inscripciones (id_alumno, id_actividad)
 SELECT u.id, a.id FROM usuarios u JOIN actividades a ON a.nombre = 'Banda de guerra'
 WHERE u.correo = 'mhernandez@itsm.edu.mx';
 
--- Asistencia de ejemplo: 2 sesiones de Fútbol; Pedro faltó a la segunda
+-- 2 sesiones de Fútbol; Pedro faltó a la segunda
 INSERT INTO sesiones (id_actividad, fecha)
 SELECT id, '2025-03-03' FROM actividades WHERE nombre = 'Fútbol';
 INSERT INTO sesiones (id_actividad, fecha)

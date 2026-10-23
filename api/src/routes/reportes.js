@@ -3,7 +3,7 @@ const db = require('../db');
 const { wrap, HttpError, auth } = require('../util');
 
 // GET /api/reportes?tipo=actividad|alumno|docente&desde=YYYY-MM-DD&hasta=YYYY-MM-DD
-// El rango filtra por fecha de las sesiones (asistencia); sin rango se toma todo el historial.
+// El rango filtra por fecha de sesión; sin rango se usa todo el historial.
 router.get('/reportes', auth('admin'), wrap(async (req, res) => {
   const { tipo = 'actividad' } = req.query;
   const desde = req.query.desde || '1000-01-01';

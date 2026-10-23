@@ -47,7 +47,7 @@ router.post('/registro', wrap(async (req, res) => {
   }
 }));
 
-// GET /api/carreras  (público: lo necesita la pantalla de registro)
+// GET /api/carreras (público, lo usa el registro)
 router.get('/carreras', wrap(async (req, res) => {
   const [rows] = await db.query('SELECT id, nombre FROM carreras ORDER BY nombre');
   res.json(rows);

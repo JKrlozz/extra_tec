@@ -17,7 +17,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploads));
 
-app.get('/api/salud', (req, res) => res.json({ ok: true }));
+// La app Android reconoce el servidor por este nombre al buscarlo en la red
+app.get('/api/salud', (req, res) => res.json({ ok: true, servicio: 'extra_tec' }));
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/personas'));
 app.use('/api', require('./routes/actividades'));

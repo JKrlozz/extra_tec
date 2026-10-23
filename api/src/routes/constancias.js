@@ -5,7 +5,7 @@ const { wrap, HttpError, auth } = require('../util');
 
 const minimo = () => Number(process.env.ASISTENCIA_MINIMA || 80);
 
-// GET /api/constancias — actividades del alumno con su % de asistencia y si ya puede descargar
+// GET /api/constancias: actividades del alumno con su asistencia y disponibilidad
 router.get('/constancias', auth('alumno'), wrap(async (req, res) => {
   const [rows] = await db.query(
     `SELECT v.id_inscripcion, a.id AS id_actividad, a.nombre, p.nombre AS periodo,
@@ -17,7 +17,7 @@ router.get('/constancias', auth('alumno'), wrap(async (req, res) => {
   res.json(rows.map((r) => ({ ...r, porcentaje: Number(r.porcentaje), disponible: Number(r.porcentaje) >= minimo() })));
 }));
 
-// GET /api/constancias/:idActividad/pdf — emite (una sola vez, con folio fijo) y descarga el PDF
+// GET /api/constancias/:idActividad/pdf: emite la constancia una vez, con folio fijo, y devuelve el PDF
 router.get('/constancias/:idActividad/pdf', auth('alumno'), wrap(async (req, res) => {
   const [[d]] = await db.query(
     `SELECT v.id_inscripcion, COALESCE(v.porcentaje, 0) AS porcentaje, a.nombre AS actividad, p.nombre AS periodo,

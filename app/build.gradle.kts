@@ -10,8 +10,8 @@ android {
 
     defaultConfig {
         applicationId = "itsm.extra_tec"
-        minSdk = 24
-        targetSdk = 37
+        minSdk = 23
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -30,14 +30,19 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     sourceSets {
         getByName("main") {
-            res.srcDirs(
-                "src/main/res",
-                "src/main/comun/res",
-                "src/main/alumno/res",
-                "src/main/docente/res",
-                "src/main/administrador/res"
+            res.directories.addAll(
+                listOf(
+                    "src/main/vistas/Comun/res",
+                    "src/main/vistas/Alumno/res",
+                    "src/main/vistas/Docente/res",
+                    "src/main/vistas/Administrador/res",
+                )
             )
         }
     }
@@ -48,6 +53,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

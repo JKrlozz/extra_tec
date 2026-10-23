@@ -1,4 +1,4 @@
-// seed.sql guarda SHA2 de prueba; este script los cambia por bcrypt (contraseña demo: itsm1234)
+// Reemplaza los hashes SHA2 de seed.sql por bcrypt (contraseña demo: itsm1234)
 const bcrypt = require('bcryptjs');
 const db = require('../src/db');
 

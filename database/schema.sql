@@ -1,12 +1,9 @@
--- =====================================================================
--- extra_tec · Actividades Extraescolares ITSM
--- Esquema MySQL 8.0  (ejecutar primero; después seed.sql)
--- =====================================================================
+-- Esquema MySQL 8.0 de extra_tec. Ejecutar antes de seed.sql.
 DROP DATABASE IF EXISTS extra_tec;
 CREATE DATABASE extra_tec CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE extra_tec;
 
--- ---------- Catálogos ------------------------------------------------
+-- Catálogos
 CREATE TABLE carreras (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(80) NOT NULL UNIQUE
@@ -21,8 +18,8 @@ CREATE TABLE periodos (
   CHECK (fin > inicio)
 ) ENGINE=InnoDB;
 
--- ---------- Usuarios y roles ----------------------------------------
--- Cuenta única para login (pantalla inicio_sesion: correo + contraseña + rol)
+-- Usuarios y roles
+-- Cuenta única de acceso: correo, contraseña y rol
 CREATE TABLE usuarios (
   id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre           VARCHAR(100) NOT NULL,
@@ -51,7 +48,7 @@ CREATE TABLE docentes (
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------- Actividades ---------------------------------------------
+-- Actividades
 CREATE TABLE actividades (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre      VARCHAR(80) NOT NULL,
@@ -66,7 +63,7 @@ CREATE TABLE actividades (
   FOREIGN KEY (id_periodo) REFERENCES periodos(id)
 ) ENGINE=InnoDB;
 
--- Una actividad puede tener varios días (Lun. y Mié. 16:00)
+-- Una actividad puede tener varios días
 CREATE TABLE horarios (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -90,7 +87,7 @@ CREATE TABLE inscripciones (
   FOREIGN KEY (id_actividad) REFERENCES actividades(id)     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------- Asistencia y evidencias ---------------------------------
+-- Asistencia y evidencias
 CREATE TABLE sesiones (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -120,7 +117,7 @@ CREATE TABLE evidencias (
   FOREIGN KEY (id_docente)   REFERENCES docentes(id_usuario) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ---------- Constancias ---------------------------------------------
+-- Constancias
 CREATE TABLE constancias (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_inscripcion  INT UNSIGNED NOT NULL UNIQUE,
@@ -130,8 +127,8 @@ CREATE TABLE constancias (
   FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ---------- Vistas (alimentan pantallas y reportes) -----------------
--- "Cupo 18/25", horario resumido y docente
+-- Vistas para pantallas y reportes
+-- Cupo inscritos/total, horario resumido y docente
 CREATE VIEW v_actividades AS
 SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa, p.nombre AS periodo,
        u.nombre AS docente, a.id_docente,
@@ -145,7 +142,7 @@ FROM actividades a
 JOIN periodos p ON p.id = a.id_periodo
 LEFT JOIN usuarios u ON u.id = a.id_docente;
 
--- "Asistencia: 85%"
+-- Porcentaje de asistencia por inscripción
 CREATE VIEW v_asistencia_alumno AS
 SELECT i.id AS id_inscripcion, i.id_alumno, i.id_actividad,
        COUNT(s.id) AS sesiones,
@@ -157,7 +154,7 @@ LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = i.id_alumn
 WHERE i.estado = 'activa'
 GROUP BY i.id, i.id_alumno, i.id_actividad;
 
--- ---------- Regla de negocio: no exceder el cupo --------------------
+-- Bloquea inscripciones cuando el cupo está lleno
 DELIMITER $$
 CREATE TRIGGER trg_inscripcion_cupo BEFORE INSERT ON inscripciones
 FOR EACH ROW

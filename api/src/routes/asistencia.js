@@ -17,7 +17,7 @@ async function exigirTitular(user, idActividad) {
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 // GET /api/asistencia/:idActividad?fecha=YYYY-MM-DD
-// Lista de inscritos con su marca de esa fecha (presente=true por defecto si aún no hay lista guardada)
+// Inscritos con su marca de la fecha; presente por defecto si no hay lista guardada
 router.get('/asistencia/:idActividad', auth('docente', 'admin'), wrap(async (req, res) => {
   await exigirTitular(req.user, req.params.idActividad);
   const fecha = req.query.fecha || hoy();
@@ -64,7 +64,7 @@ router.post('/asistencia', auth('docente', 'admin'), wrap(async (req, res) => {
   }
 }));
 
-// ---------- Evidencias ----------
+// Evidencias
 const subir = multer({
   storage: multer.diskStorage({
     destination: path.join(__dirname, '..', '..', 'uploads'),

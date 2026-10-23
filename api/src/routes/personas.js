@@ -28,7 +28,7 @@ async function enTransaccion(fn) {
   }
 }
 
-// ---------- Alumnos ----------
+// Alumnos
 router.get('/alumnos', admin, wrap(async (req, res) => {
   const q = `%${req.query.q || ''}%`;
   const [rows] = await db.query(
@@ -72,7 +72,7 @@ router.put('/alumnos/:id', admin, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// ---------- Docentes ----------
+// Docentes
 router.get('/docentes', auth('admin', 'alumno', 'docente'), wrap(async (req, res) => {
   const [rows] = await db.query(
     `SELECT u.id, u.nombre, u.correo, d.especialidad, d.telefono

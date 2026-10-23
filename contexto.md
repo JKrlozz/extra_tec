@@ -40,6 +40,13 @@ _Pendiente de definir._
   - App: `Api.kt` (HttpURLConnection + org.json, sin dependencias nuevas), `Archivos.kt` (PDF a Descargas), `MainActivity.kt` reescrita para usar la API; layouts con listas dinámicas (`item_tarjeta.xml`) y `id` en los formularios.
   - Probado en el emulador Pixel_8a con la alumna María: login, actividades, inscripción/baja, constancia y descarga de PDF. Docente y admin verificados solo contra la API (falta probar sus pantallas en el emulador).
   - Red: desde el emulador `10.0.2.2:3000` no conectó (probable Firewall de Windows). Se resolvió con `adb reverse tcp:3000 tcp:3000` y poniendo `http://localhost:3000` en "Configurar servidor" del login. Hay que repetir el `adb reverse` cada vez que se reinicie el emulador. En teléfono real: usar la IP del PC y permitir el puerto 3000 en el firewall.
+- 2026-10-19: Reestructura a MVVM (rama `refactor/mvvm`), una Activity y un Fragment por pantalla, con ViewBinding.
+  - `vistas/<Rol>` (Comun, Alumno, Docente, Administrador): clases `*_Vista` en `java/itsm/extra_tec/vistas` y layouts `*_vista.xml` en `src/main/vistas/<Rol>/res/layout`. Los layouts van en minúsculas porque Android no admite mayúsculas en nombres de recursos.
+  - `ModeloVista`: un ViewModel `*_ModeloVista` por pantalla, más `Sesion_ModeloVista` compartido, con LiveData y eventos de un solo uso.
+  - `Modelo`: `*_Modelo` con el acceso a la API, la sesión guardada, los PDF y las entidades.
+  - `Principal_Vista` es la única Activity: aloja el fragmento actual y las barras de navegación. `Pantalla_Vista` define cada pantalla y su barra.
+  - Comentarios sin decoraciones en Kotlin, API, SQL y scripts.
+  - Compila; falta probarlo en emulador.
 ## Cómo levantar todo
 1. Crear BD: ejecutar `database/schema.sql` y luego `database/seed.sql` (con root).
 2. Editar la clave en `database/usuario_app.sql` y ejecutarlo.

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Itsm.Screen">
+
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Reportes" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            style="@style/Itsm.Content">
+
+            <TextView style="@style/Itsm.Text.Section" android:text="Parámetros" />
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:layout_marginTop="0dp"
+                android:text="Tipo de reporte" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Itsm.Card"
+                android:layout_marginBottom="16dp">
+                <Spinner
+                    android:id="@+id/spinnerTipo"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Fecha inicial (YYYY-MM-DD, opcional)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDesde"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Fecha final (YYYY-MM-DD, opcional)">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etHasta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGenerarReporte"
+                style="@style/Itsm.Button.Primary"
+                android:text="Generar reporte" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportarPdf"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="Exportar PDF" />
+            <TextView
+                android:id="@+id/tvResultadoReporte"
+                style="@style/Itsm.Text.Body"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/itsm_primary_dark"
+                android:textIsSelectable="true" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

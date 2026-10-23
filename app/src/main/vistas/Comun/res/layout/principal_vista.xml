@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/contenedor"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <include
+        android:id="@+id/barraAlumno"
+        layout="@layout/barra_alumno_vista"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/barraDocente"
+        layout="@layout/barra_docente_vista"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/barraAdmin"
+        layout="@layout/barra_admin_vista"
+        android:visibility="gone" />
+</LinearLayout>
