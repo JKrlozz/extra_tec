@@ -12,7 +12,7 @@ import itsm.extra_tec.Modelo.Api_Modelo
 import itsm.extra_tec.ModeloVista.Sesion_ModeloVista
 import itsm.extra_tec.databinding.PrincipalVistaBinding
 
-// Activity única: aloja el fragmento de la pantalla actual y las barras de navegación
+// activity única: aloja el fragmento actual y las barras de navegación
 class Principal_Vista : AppCompatActivity(), Navegador_Vista {
     private lateinit var binding: PrincipalVistaBinding
     private val sesion: Sesion_ModeloVista by viewModels()
@@ -44,7 +44,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
             sesion.buscarServidor()
             if (restaurada) irAlInicio() else ir(Pantalla_Vista.BIENVENIDA)
         } else {
-            // Los fragmentos los restaura el sistema; solo se recupera la barra
+            // el sistema restaura los fragmentos; solo se recupera la barra
             pantallaActual = Pantalla_Vista.valueOf(savedInstanceState.getString(CLAVE_PANTALLA) ?: pantallaActual.name)
             mostrarBarra(pantallaActual.barra)
         }

@@ -27,7 +27,7 @@ class Asistencia_Vista : Base_Vista<AsistenciaVistaBinding>() {
 
         modelo.lista.observe(viewLifecycleOwner) { lista ->
             estadoLista(binding.tvVacio, lista?.alumnos, "No hay alumnos inscritos.")
-            // Las casillas se crean una vez; los cambios posteriores solo actualizan el ViewModel
+            // las casillas se crean una vez; los cambios actualizan el viewmodel
             if (lista == null || binding.listaContenido.childCount > 0) return@observe
             binding.tvSubtitulo.text = "${sesion.claseNombre} · ${lista.fecha}"
             lista.alumnos.forEach { alumno ->

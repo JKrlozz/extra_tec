@@ -31,7 +31,7 @@ class InicioSesion_Vista : Base_Vista<InicioSesionVistaBinding>() {
         binding.btnIrRegistro.setOnClickListener { navegador.ir(Pantalla_Vista.REGISTRO) }
         binding.btnServidor.setOnClickListener { configurarServidor() }
 
-        // El estado de la búsqueda automática; al tocarlo se vuelve a buscar
+        // estado de la búsqueda automática; al tocarlo se repite
         sesion.servidor.observe(viewLifecycleOwner) { binding.tvEstadoServidor.text = it }
         binding.tvEstadoServidor.setOnClickListener { sesion.buscarServidor() }
 

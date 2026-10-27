@@ -18,7 +18,7 @@ import itsm.extra_tec.vistas.Docente.Asistencia_Vista
 import itsm.extra_tec.vistas.Docente.Evidencia_Vista
 import itsm.extra_tec.vistas.Docente.InicioDocente_Vista
 
-// Barra de navegación inferior que acompaña a cada pantalla
+// barra de navegación inferior de cada pantalla
 enum class Barra_Vista { NINGUNA, ALUMNO, DOCENTE, ADMIN }
 
 enum class Pantalla_Vista(val barra: Barra_Vista, val crear: () -> Fragment) {

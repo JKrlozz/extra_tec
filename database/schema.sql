@@ -1,9 +1,9 @@
--- Esquema MySQL 8.0 de extra_tec. Ejecutar antes de seed.sql.
+-- esquema mysql 8.0 de extra_tec; ejecutar antes de seed.sql
 DROP DATABASE IF EXISTS extra_tec;
 CREATE DATABASE extra_tec CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE extra_tec;
 
--- Catálogos
+-- catálogos
 CREATE TABLE carreras (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(80) NOT NULL UNIQUE
@@ -11,20 +11,20 @@ CREATE TABLE carreras (
 
 CREATE TABLE periodos (
   id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  nombre  VARCHAR(40) NOT NULL UNIQUE,          -- 'Ene/Jun 2025'
+  nombre  VARCHAR(40) NOT NULL UNIQUE,          -- ejemplo: ene/jun 2025
   inicio  DATE NOT NULL,
   fin     DATE NOT NULL,
   activo  TINYINT(1) NOT NULL DEFAULT 0,
   CHECK (fin > inicio)
 ) ENGINE=InnoDB;
 
--- Usuarios y roles
--- Cuenta única de acceso: correo, contraseña y rol
+-- usuarios y roles
+-- cuenta única de acceso: correo, contraseña y rol
 CREATE TABLE usuarios (
   id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre           VARCHAR(100) NOT NULL,
   correo           VARCHAR(120) NOT NULL UNIQUE,
-  contrasena_hash  VARCHAR(255) NOT NULL,        -- bcrypt/argon2 generado por la API
+  contrasena_hash  VARCHAR(255) NOT NULL,        -- hash bcrypt generado por la api
   rol              ENUM('alumno','docente','admin') NOT NULL,
   activo           TINYINT(1) NOT NULL DEFAULT 1,
   creado_en        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,7 +48,7 @@ CREATE TABLE docentes (
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Actividades
+-- actividades
 CREATE TABLE actividades (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre      VARCHAR(80) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE actividades (
   FOREIGN KEY (id_periodo) REFERENCES periodos(id)
 ) ENGINE=InnoDB;
 
--- Una actividad puede tener varios días
+-- una actividad puede tener varios días
 CREATE TABLE horarios (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE inscripciones (
   FOREIGN KEY (id_actividad) REFERENCES actividades(id)     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Asistencia y evidencias
+-- asistencia y evidencias
 CREATE TABLE sesiones (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -111,13 +111,13 @@ CREATE TABLE evidencias (
   id_actividad  INT UNSIGNED NOT NULL,
   id_docente    INT UNSIGNED NULL,
   descripcion   VARCHAR(255),
-  ruta_foto     VARCHAR(255) NOT NULL,           -- la imagen se guarda en disco; aquí solo la ruta
+  ruta_foto     VARCHAR(255) NOT NULL,           -- la imagen va en disco; aquí solo la ruta
   subida_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_actividad) REFERENCES actividades(id) ON DELETE CASCADE,
   FOREIGN KEY (id_docente)   REFERENCES docentes(id_usuario) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- Constancias
+-- constancias
 CREATE TABLE constancias (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_inscripcion  INT UNSIGNED NOT NULL UNIQUE,
@@ -127,8 +127,8 @@ CREATE TABLE constancias (
   FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Vistas para pantallas y reportes
--- Cupo inscritos/total, horario resumido y docente
+-- vistas para pantallas y reportes
+-- cupo ocupado/total, horario resumido y docente
 CREATE VIEW v_actividades AS
 SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa, p.nombre AS periodo,
        u.nombre AS docente, a.id_docente,
@@ -142,7 +142,7 @@ FROM actividades a
 JOIN periodos p ON p.id = a.id_periodo
 LEFT JOIN usuarios u ON u.id = a.id_docente;
 
--- Porcentaje de asistencia por inscripción
+-- porcentaje de asistencia por inscripción
 CREATE VIEW v_asistencia_alumno AS
 SELECT i.id AS id_inscripcion, i.id_alumno, i.id_actividad,
        COUNT(s.id) AS sesiones,
@@ -154,7 +154,7 @@ LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = i.id_alumn
 WHERE i.estado = 'activa'
 GROUP BY i.id, i.id_alumno, i.id_actividad;
 
--- Bloquea inscripciones cuando el cupo está lleno
+-- bloquea inscripciones con cupo lleno
 DELIMITER $$
 CREATE TRIGGER trg_inscripcion_cupo BEFORE INSERT ON inscripciones
 FOR EACH ROW

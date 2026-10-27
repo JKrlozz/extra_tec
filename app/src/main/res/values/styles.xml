@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Estilos base (padres implícitos de Itsm.* e Itsm.Text.*) -->
+    <!-- estilos base -->
     <style name="Itsm" />
     <style name="Itsm.Text" />
 
-    <!-- Contenedores -->
+    <!-- contenedores -->
     <style name="Itsm.Screen">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
@@ -73,7 +73,7 @@
         <item name="android:padding">16dp</item>
     </style>
 
-    <!-- Texto -->
+    <!-- texto -->
     <style name="Itsm.Text.Title">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -109,7 +109,7 @@
         <item name="android:textAllCaps">true</item>
     </style>
 
-    <!-- Campos de formulario -->
+    <!-- campos de formulario -->
     <style name="Itsm.Field" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -123,7 +123,7 @@
         <item name="boxBackgroundColor">@color/itsm_surface</item>
     </style>
 
-    <!-- Botones -->
+    <!-- botones -->
     <style name="Itsm.Button.Primary" parent="Widget.Material3.Button">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -166,7 +166,7 @@
         <item name="android:textColor">@color/itsm_primary</item>
     </style>
 
-    <!-- Barra de navegación inferior -->
+    <!-- barra de navegación inferior -->
     <style name="Itsm.NavBar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

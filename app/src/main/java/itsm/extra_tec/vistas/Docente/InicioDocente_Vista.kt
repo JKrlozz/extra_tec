@@ -34,7 +34,7 @@ class InicioDocente_Vista : Base_Vista<InicioDocenteVistaBinding>() {
         }
     }
 
-    // La clase elegida queda en la sesión para la barra de navegación
+    // la clase elegida se guarda en la sesión para la barra
     private fun abrir(clase: Actividad, destino: Pantalla_Vista) {
         sesion.claseId = clase.id
         sesion.claseNombre = clase.nombre

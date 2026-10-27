@@ -1,4 +1,3 @@
-// CRUD de alumnos y docentes (solo administrador)
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -7,7 +6,6 @@ const { wrap, HttpError, auth, requireFields } = require('../util');
 
 const admin = auth('admin');
 
-// Contraseña inicial aleatoria si el admin no manda una; se devuelve una sola vez
 async function claveInicial(body) {
   const plana = body.contrasena || crypto.randomBytes(5).toString('hex');
   return { plana, hash: await bcrypt.hash(plana, 10), generada: !body.contrasena };
@@ -28,7 +26,6 @@ async function enTransaccion(fn) {
   }
 }
 
-// Alumnos
 router.get('/alumnos', admin, wrap(async (req, res) => {
   const q = `%${req.query.q || ''}%`;
   const [rows] = await db.query(
@@ -72,7 +69,6 @@ router.put('/alumnos/:id', admin, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Docentes
 router.get('/docentes', auth('admin', 'alumno', 'docente'), wrap(async (req, res) => {
   const [rows] = await db.query(
     `SELECT u.id, u.nombre, u.correo, d.especialidad, d.telefono
@@ -112,7 +108,6 @@ router.put('/docentes/:id', admin, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Baja lógica compartida: conserva historial de asistencias y constancias
 router.delete('/alumnos/:id', admin, wrap(bajaUsuario('alumno')));
 router.delete('/docentes/:id', admin, wrap(bajaUsuario('docente')));
 

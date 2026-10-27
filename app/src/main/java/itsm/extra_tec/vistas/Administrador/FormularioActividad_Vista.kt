@@ -14,7 +14,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() {
     private val modelo: FormularioActividad_ModeloVista by viewModels()
 
-    // Sin argumento id el formulario crea una actividad nueva
+    // sin id, el formulario crea una actividad nueva
     private val idActividad: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =

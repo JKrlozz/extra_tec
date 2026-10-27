@@ -48,11 +48,9 @@ _Pendiente de definir._
   - Comentarios sin decoraciones en Kotlin, API, SQL y scripts.
   - Compila; falta probarlo en emulador.
 ## Cómo levantar todo
-1. Crear BD: ejecutar `database/schema.sql` y luego `database/seed.sql` (con root).
-2. Editar la clave en `database/usuario_app.sql` y ejecutarlo.
-3. `cd api`, copiar `.env.example` a `.env` y poner `DB_PASSWORD` y un `JWT_SECRET` largo.
-4. `npm run demo-passwords` (cambia las contraseñas de prueba a bcrypt; clave `itsm1234`).
-5. `npm start` → `http://localhost:3000/api/salud`.
+1. Ejecutar `instalar.bat`: crea la base, carga los datos de prueba, genera `api/.env` e instala las dependencias (pide la contraseña de root de MySQL).
+2. Ejecutar `iniciar-api.bat` y comprobar `http://localhost:3000/api/salud`.
+3. Para usar un celular en la misma red: ejecutar `api/permitir-red.ps1` como administrador, una sola vez.
 
 ## Siguiente paso
 - Ejecutar los pasos anteriores y probar los endpoints.

@@ -39,7 +39,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         super.onDestroyView()
     }
 
-    // Muestra los mensajes que emite el ViewModel
+    // muestra los mensajes del viewmodel
     protected fun escuchar(modelo: Base_ModeloVista) {
         modelo.mensaje.observe(viewLifecycleOwner) { evento -> evento.obtener()?.let { aviso(it) } }
     }
@@ -73,7 +73,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         })
     }
 
-    // Texto de estado de una lista: carga, vacía o con elementos (null oculta el texto)
+    // estado de una lista: cargando, vacía o con elementos
     protected fun estadoLista(texto: TextView, elementos: List<*>?, vacio: String) {
         val mensaje = when {
             elementos == null -> "Cargando…"
@@ -84,7 +84,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         texto.text = mensaje
     }
 
-    // El servidor entrega la contraseña inicial una sola vez
+    // el servidor entrega la contraseña inicial una sola vez
     protected fun mostrarClaveInicial(clave: String?, alCerrar: () -> Unit) {
         if (clave == null) return alCerrar()
         AlertDialog.Builder(requireContext())

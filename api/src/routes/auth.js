@@ -9,19 +9,16 @@ const firmar = (u) =>
     expiresIn: process.env.JWT_EXPIRA || '30d',
   });
 
-// POST /api/login  { correo, contrasena, rol }
 router.post('/login', wrap(async (req, res) => {
   requireFields(req.body, ['correo', 'contrasena', 'rol']);
   const { correo, contrasena, rol } = req.body;
   const [[u]] = await db.query('SELECT * FROM usuarios WHERE correo = ? AND activo = 1', [correo]);
-  // Mismo mensaje en todos los fallos para no revelar qué cuentas existen
   if (!u || u.rol !== rol || !(await bcrypt.compare(contrasena, u.contrasena_hash))) {
     throw new HttpError(401, 'Correo, contraseña o tipo de usuario incorrectos');
   }
   res.json({ token: firmar(u), usuario: { id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol } });
 }));
 
-// POST /api/registro  (solo alumnos)  { nombre, correo, contrasena, matricula, id_carrera, semestre }
 router.post('/registro', wrap(async (req, res) => {
   requireFields(req.body, ['nombre', 'correo', 'contrasena', 'matricula', 'id_carrera', 'semestre']);
   const { nombre, correo, contrasena, matricula, id_carrera, semestre } = req.body;
@@ -47,7 +44,6 @@ router.post('/registro', wrap(async (req, res) => {
   }
 }));
 
-// GET /api/carreras (público, lo usa el registro)
 router.get('/carreras', wrap(async (req, res) => {
   const [rows] = await db.query('SELECT id, nombre FROM carreras ORDER BY nombre');
   res.json(rows);

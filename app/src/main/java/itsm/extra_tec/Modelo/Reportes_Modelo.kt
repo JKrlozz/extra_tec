@@ -4,7 +4,7 @@ import org.json.JSONObject
 
 object Reportes_Modelo {
 
-    // Cada fila es un mapa de columna a valor en texto
+    // cada fila es un mapa de columna a valor
     fun generar(
         tipo: String,
         desde: String,

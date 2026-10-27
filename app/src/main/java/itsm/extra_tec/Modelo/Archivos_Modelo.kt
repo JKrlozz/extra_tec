@@ -12,7 +12,7 @@ import java.io.File
 
 object Archivos_Modelo {
 
-    // Devuelve la ubicación del archivo guardado
+    // devuelve la ubicación del archivo guardado
     fun guardarEnDescargas(contexto: Context, nombre: String, mime: String, bytes: ByteArray): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val valores = ContentValues().apply {
@@ -25,7 +25,7 @@ object Archivos_Modelo {
             contexto.contentResolver.openOutputStream(uri)!!.use { it.write(bytes) }
             return "Descargas/$nombre"
         }
-        // Android 9 o anterior: carpeta propia de la app, sin permisos
+        // android 9 o anterior: carpeta propia de la app
         val carpeta = contexto.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: contexto.filesDir
         File(carpeta, nombre).writeBytes(bytes)
         return File(carpeta, nombre).absolutePath

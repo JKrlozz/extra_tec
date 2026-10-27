@@ -3,7 +3,7 @@ package itsm.extra_tec.Modelo
 import android.content.Context
 import org.json.JSONObject
 
-// El archivo "sesion" está excluido de los respaldos en res/xml
+// el archivo sesion se excluye de los respaldos (res/xml)
 class Sesion_Modelo(contexto: Context) {
     private val sesion = contexto.getSharedPreferences("sesion", Context.MODE_PRIVATE)
     private val config = contexto.getSharedPreferences("config", Context.MODE_PRIVATE)

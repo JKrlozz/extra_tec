@@ -15,7 +15,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioDocente_Vista : Base_Vista<FormularioDocenteVistaBinding>() {
     private val modelo: FormularioDocente_ModeloVista by viewModels()
 
-    // Sin argumento id el formulario registra un docente nuevo
+    // sin id, el formulario registra un docente nuevo
     private val idDocente: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =

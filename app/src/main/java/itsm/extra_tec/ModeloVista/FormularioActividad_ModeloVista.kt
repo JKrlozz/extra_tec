@@ -57,7 +57,7 @@ class FormularioActividad_ModeloVista : Base_ModeloVista() {
         }
     }
 
-    // Convierte "Lunes 16:00-18:00, Miércoles 16:00-18:00" a horarios; null si el texto es inválido
+    // convierte "lunes 16:00-18:00" en horarios; null si el texto es inválido
     private fun parsearHorarios(texto: String): List<HorarioDia>? {
         val patron = Regex("(\\p{L}+)\\s+(\\d{1,2}:\\d{2})\\s*-\\s*(\\d{1,2}:\\d{2})")
         val horarios = mutableListOf<HorarioDia>()

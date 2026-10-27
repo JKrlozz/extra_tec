@@ -11,15 +11,15 @@ import java.util.UUID
 import java.util.concurrent.Executors
 
 object Api_Modelo {
-    // 10.0.2.2 es el equipo anfitrión visto desde el emulador
+    // 10.0.2.2 es la computadora vista desde el emulador
     const val URL_EMULADOR = "http://10.0.2.2:3000"
     var baseUrl: String = URL_EMULADOR
     var token: String? = null
 
-    // Se invoca cuando la API responde 401 con una sesión abierta
+    // se invoca cuando la api responde 401 con sesión abierta
     var alExpirarSesion: (() -> Unit)? = null
 
-    // Se invoca cuando no hay conexión con el servidor, para volver a buscarlo en la red
+    // se invoca al perder la conexión, para buscar de nuevo el servidor
     var alPerderConexion: (() -> Unit)? = null
 
     private val hilos = Executors.newFixedThreadPool(4)
@@ -27,7 +27,7 @@ object Api_Modelo {
 
     private class ErrorApi(val codigo: Int, mensaje: String) : Exception(mensaje)
 
-    // Devuelve JSONObject, JSONArray o null si el cuerpo está vacío
+    // devuelve un objeto, una lista o null si el cuerpo está vacío
     fun pedir(
         metodo: String,
         ruta: String,
@@ -50,7 +50,7 @@ object Api_Modelo {
         ui.post { alExito(json) }
     }
 
-    // Convierte la respuesta con "convertir"; un fallo de conversión se reporta como error
+    // convierte la respuesta; si falla, se reporta como error
     fun <T> consultar(
         metodo: String,
         ruta: String,
@@ -114,7 +114,7 @@ object Api_Modelo {
         return con
     }
 
-    // Lanza ErrorApi con el mensaje del servidor si el código no es 2xx
+    // lanza error con el mensaje del servidor si el código no es 2xx
     private fun leer(con: HttpURLConnection): ByteArray {
         val codigo = con.responseCode
         if (codigo in 200..299) return con.inputStream.use { it.readBytes() }

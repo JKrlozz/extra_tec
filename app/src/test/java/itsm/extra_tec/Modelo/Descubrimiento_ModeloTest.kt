@@ -53,7 +53,7 @@ class Descubrimiento_ModeloTest {
 
     @Test
     fun redDeLaEscuelaCubreTodaLaSubredYNoSoloUnBloque() {
-        // La red ITSM-WiFi es 192.168.202.157/21: de 192.168.200.0 a 192.168.207.255
+        // itsm-wifi es 192.168.202.157/21: de 192.168.200.0 a 192.168.207.255
         val hosts = Descubrimiento_Modelo.hostsDeLaSubred(ip(192, 168, 203, 45), 21)
         assertEquals(2045, hosts.size)
         assertTrue(hosts.contains("192.168.202.157"))

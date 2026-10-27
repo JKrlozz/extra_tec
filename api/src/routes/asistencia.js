@@ -1,4 +1,3 @@
-// Pase de lista y evidencias (docente titular de la actividad)
 const router = require('express').Router();
 const path = require('path');
 const crypto = require('crypto');
@@ -16,8 +15,6 @@ async function exigirTitular(user, idActividad) {
 
 const hoy = () => new Date().toISOString().slice(0, 10);
 
-// GET /api/asistencia/:idActividad?fecha=YYYY-MM-DD
-// Inscritos con su marca de la fecha; presente por defecto si no hay lista guardada
 router.get('/asistencia/:idActividad', auth('docente', 'admin'), wrap(async (req, res) => {
   await exigirTitular(req.user, req.params.idActividad);
   const fecha = req.query.fecha || hoy();
@@ -32,7 +29,6 @@ router.get('/asistencia/:idActividad', auth('docente', 'admin'), wrap(async (req
   res.json({ fecha, alumnos: rows.map((r) => ({ ...r, presente: r.presente === null ? true : !!r.presente })) });
 }));
 
-// POST /api/asistencia  { id_actividad, fecha?, asistencias:[{id_alumno, presente}] }
 router.post('/asistencia', auth('docente', 'admin'), wrap(async (req, res) => {
   requireFields(req.body, ['id_actividad', 'asistencias']);
   const { id_actividad, asistencias } = req.body;
@@ -46,7 +42,6 @@ router.post('/asistencia', auth('docente', 'admin'), wrap(async (req, res) => {
     await conn.query('INSERT IGNORE INTO sesiones (id_actividad, fecha) VALUES (?,?)', [id_actividad, fecha]);
     const [[s]] = await conn.query('SELECT id FROM sesiones WHERE id_actividad = ? AND fecha = ?', [id_actividad, fecha]);
     for (const a of asistencias) {
-      // Solo alumnos realmente inscritos: ignora ids ajenos a la actividad
       await conn.query(
         `INSERT INTO asistencias (id_sesion, id_alumno, presente)
          SELECT ?, i.id_alumno, ? FROM inscripciones i
@@ -64,11 +59,9 @@ router.post('/asistencia', auth('docente', 'admin'), wrap(async (req, res) => {
   }
 }));
 
-// Evidencias
 const subir = multer({
   storage: multer.diskStorage({
     destination: path.join(__dirname, '..', '..', 'uploads'),
-    // Nombre aleatorio: nunca se usa el nombre que envía el cliente
     filename: (req, file, cb) => cb(null, crypto.randomUUID() + path.extname(file.originalname).toLowerCase()),
   }),
   limits: { fileSize: 8 * 1024 * 1024 },
@@ -77,7 +70,6 @@ const subir = multer({
       /^image\/(jpeg|png|webp)$/.test(file.mimetype)),
 });
 
-// POST /api/evidencias  (multipart: id_actividad, descripcion, foto)
 router.post('/evidencias', auth('docente'), subir.single('foto'), wrap(async (req, res) => {
   requireFields(req.body, ['id_actividad']);
   if (!req.file) throw new HttpError(400, 'Falta la fotografía');

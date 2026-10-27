@@ -1,7 +1,6 @@
-# Instala la base de datos extra_tec, crea el usuario de la API y genera api/.env.
-# Uso desde la carpeta extra_tec:  powershell -ExecutionPolicy Bypass -File database\instalar.ps1
-# Con -SoloComprobar solo revisa los requisitos y no toca la base.
-# La contrasena de root se pide en pantalla y no se guarda en ningun archivo.
+# instala la base de datos y genera api/.env
+# con -solocomprobar solo revisa requisitos, sin modificar nada
+# la contrasena de root no se guarda en ningun archivo
 param([switch]$SoloComprobar)
 
 $ErrorActionPreference = 'Stop'
@@ -22,10 +21,10 @@ function Nuevo-Secreto($largo) {
     -join ((48..57 + 65..90 + 97..122) | Get-Random -Count $largo | ForEach-Object { [char]$_ })
 }
 
-# ---------- Requisitos ----------
+# requisitos
 Titulo 'Revisando requisitos'
 
-# Busca mysql.exe en cualquier version instalada de MySQL Server
+# busca mysql.exe en cualquier version instalada
 $candidatos = @(Get-ChildItem 'C:\Program Files\MySQL' -Directory -ErrorAction SilentlyContinue |
     Sort-Object Name -Descending |
     ForEach-Object { Join-Path $_.FullName 'bin\mysql.exe' } |
@@ -65,7 +64,7 @@ if ($SoloComprobar) {
     exit 0
 }
 
-# ---------- Contrasena de root ----------
+# contrasena de root
 Titulo 'Conexion con MySQL'
 $conectado = $false
 for ($intento = 1; $intento -le 3 -and -not $conectado; $intento++) {
@@ -81,7 +80,7 @@ if (-not $conectado) {
 }
 Write-Host 'Conexion correcta.' -ForegroundColor Green
 
-# ---------- Aviso si la base ya existe ----------
+# aviso si la base ya existe
 $existe = cmd /c "`"$mysql`" -u root -N -B -e `"SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name='extra_tec'`" 2>nul"
 if (($existe | Select-Object -First 1) -eq '1') {
     Write-Host ''
@@ -94,7 +93,7 @@ if (($existe | Select-Object -First 1) -eq '1') {
     }
 }
 
-# ---------- Base de datos ----------
+# base de datos
 Titulo 'Creando la base de datos'
 $claveApp = Nuevo-Secreto 24
 $jwt = Nuevo-Secreto 48
@@ -107,7 +106,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON extra_tec.* TO 'extra_tec_app'@'localhos
 FLUSH PRIVILEGES;
 "@ | Set-Content -Path $usuarioSql -Encoding ASCII
 
-# Ejecuta un .sql redirigiendo el archivo, para conservar los acentos del seed
+# ejecuta un .sql por redireccion para conservar acentos
 function Ejecutar-Sql($archivo) {
     Write-Host "Ejecutando $(Split-Path -Leaf $archivo)..."
     cmd /c "`"$mysql`" -u root --default-character-set=utf8mb4 < `"$archivo`""
@@ -129,7 +128,7 @@ Pop-Location
 Remove-Item $usuarioSql -ErrorAction SilentlyContinue
 Remove-Item Env:\MYSQL_PWD -ErrorAction SilentlyContinue
 
-# ---------- Configuracion de la API ----------
+# configuracion de la api
 Titulo 'Configurando la API'
 @"
 PORT=3000
@@ -158,7 +157,7 @@ try {
 }
 Pop-Location
 
-# ---------- Final ----------
+# final
 Titulo 'Listo'
 Write-Host 'La base de datos y la API quedaron instaladas.' -ForegroundColor Green
 Write-Host ''

@@ -18,7 +18,7 @@ object Personas_Modelo {
             alTerminar = alTerminar)
     }
 
-    // Devuelve la contraseña inicial si el servidor la generó
+    // devuelve la contraseña inicial si el servidor la generó
     fun guardarAlumno(
         id: Int?,
         nombre: String,

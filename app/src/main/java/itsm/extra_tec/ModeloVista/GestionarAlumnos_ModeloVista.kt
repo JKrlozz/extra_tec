@@ -23,7 +23,7 @@ class GestionarAlumnos_ModeloVista : Base_ModeloVista() {
         Personas_Modelo.alumnos(filtro) { resultado -> atender(resultado) { _alumnos.value = it } }
     }
 
-    // Espera 300 ms tras la última tecla para no consultar en cada letra
+    // espera 300 ms tras la última tecla antes de consultar
     fun buscar(texto: String) {
         if (texto == filtro) return
         filtro = texto

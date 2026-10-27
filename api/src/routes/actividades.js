@@ -22,7 +22,6 @@ async function guardarHorarios(conn, idActividad, horarios) {
   }
 }
 
-// GET /api/actividades: catálogo con cupo y horario, e inscripción del alumno
 router.get('/actividades', auth(), wrap(async (req, res) => {
   const [rows] = await db.query(
     `SELECT v.*, EXISTS(SELECT 1 FROM inscripciones i
@@ -39,7 +38,6 @@ router.get('/actividades/:id', auth(), wrap(async (req, res) => {
   res.json({ ...act, horarios });
 }));
 
-// POST /api/actividades  { nombre, descripcion?, cupo, id_docente, horarios:[{dia_semana,hora_inicio,hora_fin}] }
 router.post('/actividades', auth('admin'), wrap(async (req, res) => {
   requireFields(req.body, ['nombre', 'cupo']);
   validarHorarios(req.body.horarios);
@@ -87,22 +85,18 @@ router.put('/actividades/:id', auth('admin'), wrap(async (req, res) => {
   }
 }));
 
-// Baja lógica: no se pierden asistencias ni constancias ya emitidas
 router.delete('/actividades/:id', auth('admin'), wrap(async (req, res) => {
   const [r] = await db.query('UPDATE actividades SET activa = 0 WHERE id = ?', [req.params.id]);
   if (!r.affectedRows) throw new HttpError(404, 'Actividad no encontrada');
   res.json({ ok: true });
 }));
 
-// Docente
-// GET /api/mis-actividades: clases del docente
 router.get('/mis-actividades', auth('docente'), wrap(async (req, res) => {
   const [rows] = await db.query(
     'SELECT * FROM v_actividades WHERE id_docente = ? AND activa = 1 ORDER BY nombre', [req.user.id]);
   res.json(rows);
 }));
 
-// GET /api/actividades/:id/alumnos: inscritos (docente titular o admin)
 router.get('/actividades/:id/alumnos', auth('docente', 'admin'), wrap(async (req, res) => {
   if (req.user.rol === 'docente') {
     const [[own]] = await db.query('SELECT 1 AS ok FROM actividades WHERE id = ? AND id_docente = ?',
@@ -116,13 +110,10 @@ router.get('/actividades/:id/alumnos', auth('docente', 'admin'), wrap(async (req
   res.json(rows);
 }));
 
-// Alumno
-// POST /api/inscripciones  { id_actividad }
 router.post('/inscripciones', auth('alumno'), wrap(async (req, res) => {
   requireFields(req.body, ['id_actividad']);
   const [[act]] = await db.query('SELECT id FROM actividades WHERE id = ? AND activa = 1', [req.body.id_actividad]);
   if (!act) throw new HttpError(404, 'Actividad no disponible');
-  // Reactiva una baja previa; el trigger solo corre en INSERT, por eso el cupo se valida aquí
   const [[prev]] = await db.query(
     'SELECT id, estado FROM inscripciones WHERE id_alumno = ? AND id_actividad = ?', [req.user.id, act.id]);
   if (prev && prev.estado === 'activa') throw new HttpError(409, 'Ya estás inscrito en esta actividad');
@@ -145,7 +136,6 @@ router.delete('/inscripciones/:idActividad', auth('alumno'), wrap(async (req, re
   res.json({ ok: true });
 }));
 
-// GET /api/mi-horario: actividades inscritas con sus horarios
 router.get('/mi-horario', auth('alumno'), wrap(async (req, res) => {
   const [rows] = await db.query(
     `SELECT a.id AS id_actividad, a.nombre, h.dia_semana, h.hora_inicio, h.hora_fin, h.lugar

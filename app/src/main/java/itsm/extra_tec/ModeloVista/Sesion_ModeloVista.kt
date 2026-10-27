@@ -11,7 +11,7 @@ import itsm.extra_tec.Modelo.SesionIniciada
 import itsm.extra_tec.Modelo.Sesion_Modelo
 import itsm.extra_tec.Modelo.Usuario
 
-// Compartido por toda la app: usuario actual y clase seleccionada por el docente
+// usuario actual y clase elegida, compartidos por toda la app
 class Sesion_ModeloVista(aplicacion: Application) : AndroidViewModel(aplicacion) {
     private val almacen = Sesion_Modelo(aplicacion)
 
@@ -30,7 +30,7 @@ class Sesion_ModeloVista(aplicacion: Application) : AndroidViewModel(aplicacion)
         almacen.urlServidor()?.let { Api_Modelo.baseUrl = it }
     }
 
-    // Busca la API en la red y guarda la dirección encontrada; ignora la llamada si ya hay una búsqueda
+    // busca la api en la red y guarda su dirección; ignora la llamada si ya busca
     fun buscarServidor() {
         if (buscando) return
         buscando = true

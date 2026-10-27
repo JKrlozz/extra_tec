@@ -7,7 +7,7 @@ import itsm.extra_tec.Modelo.Archivos_Modelo
 import itsm.extra_tec.Modelo.Reportes_Modelo
 
 class Reportes_ModeloVista : Base_ModeloVista() {
-    // Pares de clave de la API y etiqueta para mostrar
+    // pares de clave de la api y etiqueta
     val tipos = listOf("actividad" to "Por actividad", "alumno" to "Por alumno", "docente" to "Por docente")
 
     private val _texto = MutableLiveData("")

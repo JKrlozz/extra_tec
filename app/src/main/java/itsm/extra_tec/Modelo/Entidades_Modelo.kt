@@ -3,7 +3,7 @@ package itsm.extra_tec.Modelo
 import org.json.JSONArray
 import org.json.JSONObject
 
-// org.json devuelve "null" con optString si el valor es null; estas funciones devuelven vacío
+// org.json devuelve "null" en optstring si el valor es null; aquí devuelve vacío
 fun JSONObject.texto(clave: String): String = if (isNull(clave)) "" else get(clave).toString()
 
 fun JSONObject.enteroONulo(clave: String): Int? = if (isNull(clave)) null else optInt(clave)

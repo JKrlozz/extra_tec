@@ -5,7 +5,7 @@ const express = require('express');
 const cors = require('cors');
 
 if (!process.env.JWT_SECRET) {
-  console.error('Falta JWT_SECRET en .env (copia .env.example a .env)');
+  console.error('Falta JWT_SECRET en api/.env. Ejecuta instalar.bat para generarlo');
   process.exit(1);
 }
 
@@ -17,7 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploads));
 
-// La app Android reconoce el servidor por este nombre al buscarlo en la red
 app.get('/api/salud', (req, res) => res.json({ ok: true, servicio: 'extra_tec' }));
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/personas'));
@@ -28,7 +27,6 @@ app.use('/api', require('./routes/reportes'));
 
 app.use((req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
 
-// Manejador global de errores
 app.use((err, req, res, next) => {
   if (err.status) return res.status(err.status).json({ error: err.message });
   if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Ya existe un registro con esos datos' });

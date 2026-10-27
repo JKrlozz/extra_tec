@@ -3,7 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Paleta institucional ITSM -->
+    <!-- paleta institucional -->
     <color name="itsm_primary">#1B396A</color>
     <color name="itsm_primary_dark">#12284B</color>
     <color name="itsm_primary_light">#E4EAF4</color>

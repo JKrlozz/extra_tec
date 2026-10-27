@@ -14,13 +14,13 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-// Busca la API en la red Wi-Fi sin que el usuario configure direcciones ni puertos
+// busca la api en la red wi-fi sin configurar direcciones
 object Descubrimiento_Modelo {
     const val PUERTO = 3000
     private const val SERVICIO = "extra_tec"
 
     private val hilo = Executors.newSingleThreadExecutor()
-    // Perezoso para que las pruebas de la JVM no necesiten Android
+    // perezoso para que las pruebas no necesiten android
     private val ui by lazy { Handler(Looper.getMainLooper()) }
 
     fun buscar(contexto: Context, urlActual: String?, alTerminar: (Resultado_Modelo<String>) -> Unit) {
@@ -38,16 +38,16 @@ object Descubrimiento_Modelo {
         }
     }
 
-    // El detalle explica qué se revisó, para saber por qué falló la búsqueda
+    // explica qué se revisó cuando falla la búsqueda
     private class Busqueda(val url: String?, val detalle: String)
 
     private fun buscarSincrono(contexto: Context, urlActual: String?): Busqueda {
         val gestor = contexto.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val wifi = redWifi(gestor)
-        // Con Wi-Fi sin internet, Android enruta por datos móviles; se fuerza la red local
+        // con wi-fi sin internet, android usa datos móviles; se fuerza la red local
         if (wifi != null) gestor.bindProcessToNetwork(wifi)
 
-        // Direcciones conocidas: la última que funcionó, el túnel USB y el emulador
+        // direcciones conocidas: la última, el túnel usb y el emulador
         val conocidas = listOfNotNull(urlActual, "http://localhost:$PUERTO") +
             (if (esEmulador()) listOf("http://10.0.2.2:$PUERTO") else emptyList())
         conocidas.distinct().firstOrNull { responde(it) }?.let { return Busqueda(it, "") }
@@ -83,7 +83,7 @@ object Descubrimiento_Modelo {
         Build.FINGERPRINT.startsWith("generic") || Build.FINGERPRINT.contains("emulator") ||
             Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish") || Build.MODEL.contains("Emulator")
 
-    // La API se reconoce por su respuesta, no solo por el puerto abierto
+    // la api se reconoce por su respuesta, no solo por el puerto
     internal fun responde(base: String, esperaMs: Int = 700): Boolean {
         return try {
             val conexion = URL(base.trimEnd('/') + "/api/salud").openConnection() as HttpURLConnection
@@ -98,7 +98,7 @@ object Descubrimiento_Modelo {
         }
     }
 
-    // Prueba todos los hosts en paralelo y devuelve la primera API que responda
+    // prueba los hosts en paralelo y devuelve la primera api
     internal fun encontrarEnHosts(hosts: List<String>, puerto: Int, esperaMs: Int = 400): String? {
         if (hosts.isEmpty()) return null
         val hilos = Executors.newFixedThreadPool(minOf(128, hosts.size))
@@ -117,7 +117,7 @@ object Descubrimiento_Modelo {
         }
     }
 
-    // Direcciones de la subred sin la propia, las más cercanas primero; el límite es una /20 (4094 hosts)
+    // subred sin la propia, las más cercanas primero; máximo una /20
     internal fun hostsDeLaSubred(ip: ByteArray, prefijo: Int): List<String> {
         val bits = prefijo.coerceIn(20, 30)
         val propia = ip.fold(0L) { acumulado, byte -> (acumulado shl 8) or (byte.toLong() and 0xFF) }

@@ -15,7 +15,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
     private val modelo: FormularioAlumno_ModeloVista by viewModels()
 
-    // Sin argumento id el formulario agrega un alumno nuevo
+    // sin id, el formulario agrega un alumno nuevo
     private val idAlumno: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =

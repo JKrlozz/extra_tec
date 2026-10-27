@@ -1,5 +1,5 @@
 @echo off
-rem Enciende la API. Dejar esta ventana abierta mientras se use la aplicacion.
+rem enciende la api; dejar abierta la ventana mientras se use la app
 title API extra_tec
 cd /d "%~dp0api"
 if not exist ".env" (
