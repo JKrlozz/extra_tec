@@ -11,26 +11,34 @@ import itsm.extra_tec.databinding.RegistroVistaBinding
 class Registro_Vista : Base_Vista<RegistroVistaBinding>() {
     private val modelo: Registro_ModeloVista by viewModels()
 
+    private val semestres = listOf(
+        "Primero", "Segundo", "Tercero", "Cuarto", "Quinto",
+        "Sexto", "Séptimo", "Octavo", "Noveno",
+    )
+
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
         RegistroVistaBinding.inflate(inflador, contenedor, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
         modelo.carreras.observe(viewLifecycleOwner) { llenarSpinner(binding.spinnerCarrera, it) { carrera -> carrera.nombre } }
+        llenarSpinner(binding.spinnerSemestre, semestres) { it }
         modelo.registrado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.ir(Pantalla_Vista.INICIO_SESION) }
+            evento.obtener()?.let { navegador.irRaiz(Pantalla_Vista.INICIO_SESION) }
         }
 
         binding.btnRegistrarse.setOnClickListener {
             modelo.registrar(
-                nombre = binding.etNombre.texto(),
+                nombres = binding.etNombres.texto(),
+                apellidoPaterno = binding.etApellidoPaterno.texto(),
+                apellidoMaterno = binding.etApellidoMaterno.texto(),
                 correo = binding.etCorreo.texto(),
                 contrasena = binding.etContrasena.text.toString(),
                 matricula = binding.etMatricula.texto(),
-                semestreTexto = binding.etSemestre.texto(),
+                posicionSemestre = binding.spinnerSemestre.selectedItemPosition,
                 posicionCarrera = binding.spinnerCarrera.selectedItemPosition,
             )
         }
-        binding.btnCancelar.setOnClickListener { navegador.ir(Pantalla_Vista.INICIO_SESION) }
+        binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 }

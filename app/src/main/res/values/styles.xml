@@ -30,7 +30,7 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.12</item>
-        <item name="android:text">ITSM · EXTRAESCOLARES</item>
+        <item name="android:text">ITSM EXTRAESCOLARES</item>
     </style>
 
     <style name="Itsm.HeaderTitle">

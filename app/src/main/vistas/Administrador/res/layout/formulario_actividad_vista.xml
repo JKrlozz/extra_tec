@@ -8,7 +8,7 @@
         <TextView
             android:id="@+id/tvTituloForm"
             style="@style/Itsm.HeaderTitle"
-            android:text="Nueva / editar actividad" />
+            android:text="Registrar actividad" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
 
@@ -38,14 +38,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Itsm.Field"
-                android:hint="Horario (Lunes 16:00-18:00, Miércoles 16:00-18:00)">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etHorario"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Horarios" />
+            <LinearLayout
+                android:id="@+id/contenedorHorarios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarHorario"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginTop="4dp"
+                android:text="Agregar horario" />
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Cupo">

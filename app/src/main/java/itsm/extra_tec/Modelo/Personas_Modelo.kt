@@ -21,7 +21,9 @@ object Personas_Modelo {
     // devuelve la contraseña inicial si el servidor la generó
     fun guardarAlumno(
         id: Int?,
-        nombre: String,
+        nombres: String,
+        apellidoPaterno: String,
+        apellidoMaterno: String,
         correo: String,
         matricula: String,
         idCarrera: Int,
@@ -30,7 +32,10 @@ object Personas_Modelo {
         alTerminar: (Resultado_Modelo<String?>) -> Unit,
     ) {
         val cuerpo = JSONObject()
-            .put("nombre", nombre).put("correo", correo).put("matricula", matricula)
+            .put("nombres", nombres)
+            .put("apellido_paterno", apellidoPaterno)
+            .put("apellido_materno", apellidoMaterno)
+            .put("correo", correo).put("matricula", matricula)
             .put("id_carrera", idCarrera).put("semestre", semestre)
         if (id == null && !contrasena.isNullOrEmpty()) cuerpo.put("contrasena", contrasena)
         Api_Modelo.consultar(if (id == null) "POST" else "PUT", if (id == null) "/alumnos" else "/alumnos/$id", cuerpo,
@@ -39,7 +44,9 @@ object Personas_Modelo {
 
     fun guardarDocente(
         id: Int?,
-        nombre: String,
+        nombres: String,
+        apellidoPaterno: String,
+        apellidoMaterno: String,
         correo: String,
         especialidad: String,
         telefono: String,
@@ -47,7 +54,10 @@ object Personas_Modelo {
         alTerminar: (Resultado_Modelo<String?>) -> Unit,
     ) {
         val cuerpo = JSONObject()
-            .put("nombre", nombre).put("correo", correo)
+            .put("nombres", nombres)
+            .put("apellido_paterno", apellidoPaterno)
+            .put("apellido_materno", apellidoMaterno)
+            .put("correo", correo)
             .put("especialidad", especialidad).put("telefono", telefono)
         if (id == null && !contrasena.isNullOrEmpty()) cuerpo.put("contrasena", contrasena)
         Api_Modelo.consultar(if (id == null) "POST" else "PUT", if (id == null) "/docentes" else "/docentes/$id", cuerpo,

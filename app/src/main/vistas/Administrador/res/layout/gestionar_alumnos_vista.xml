@@ -36,7 +36,7 @@
                 android:id="@+id/btnNuevoAlumno"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginBottom="16dp"
-                android:text="+ Nuevo alumno" />
+                android:text="Nuevo alumno" />
             <LinearLayout
                 android:id="@+id/listaContenido"
                 android:layout_width="match_parent"

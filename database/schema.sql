@@ -1,34 +1,61 @@
--- esquema mysql 8.0 de extra_tec; ejecutar antes de seed.sql
+-- Esquema MySQL 8.0 de extra_tec en tercera forma normal (3FN)
+-- Ejecutar antes de seed.sql
 DROP DATABASE IF EXISTS extra_tec;
 CREATE DATABASE extra_tec CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE extra_tec;
 
--- catálogos
+-- ============================================================
+-- Catálogos
+-- ============================================================
+
 CREATE TABLE carreras (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(80) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
+-- El nombre del periodo no se almacena: se deriva de las fechas en v_periodos.
 CREATE TABLE periodos (
   id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  nombre  VARCHAR(40) NOT NULL UNIQUE,          -- ejemplo: ene/jun 2025
   inicio  DATE NOT NULL,
   fin     DATE NOT NULL,
   activo  TINYINT(1) NOT NULL DEFAULT 0,
   CHECK (fin > inicio)
 ) ENGINE=InnoDB;
 
--- usuarios y roles
--- cuenta única de acceso: correo, contraseña y rol
+-- Catálogo de días: evita repetir el texto y conserva el orden de la semana.
+CREATE TABLE dias_semana (
+  id     TINYINT UNSIGNED PRIMARY KEY,
+  nombre VARCHAR(10) NOT NULL UNIQUE,
+  orden  TINYINT UNSIGNED NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Catálogo de lugares donde se imparten las actividades.
+CREATE TABLE lugares (
+  id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(60) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Personas
+-- ============================================================
+
+-- El nombre se guarda en columnas atómicas (1FN).
+-- nombre_completo es una columna generada: se calcula, no se captura.
 CREATE TABLE usuarios (
-  id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  nombre           VARCHAR(100) NOT NULL,
-  correo           VARCHAR(120) NOT NULL UNIQUE,
-  contrasena_hash  VARCHAR(255) NOT NULL,        -- hash bcrypt generado por la api
-  rol              ENUM('alumno','docente','admin') NOT NULL,
-  activo           TINYINT(1) NOT NULL DEFAULT 1,
-  creado_en        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_usuarios_rol (rol)
+  id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombres           VARCHAR(60) NOT NULL,
+  apellido_paterno  VARCHAR(40) NOT NULL,
+  apellido_materno  VARCHAR(40) NULL,
+  nombre_completo   VARCHAR(150) GENERATED ALWAYS AS (
+                      CONCAT_WS(' ', nombres, apellido_paterno, apellido_materno)
+                    ) STORED,
+  correo            VARCHAR(120) NOT NULL UNIQUE,
+  contrasena_hash   VARCHAR(255) NOT NULL,        -- hash bcrypt generado por la api
+  rol               ENUM('alumno','docente','admin') NOT NULL,
+  activo            TINYINT(1) NOT NULL DEFAULT 1,
+  creado_en         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_usuarios_rol (rol),
+  INDEX idx_usuarios_nombre (apellido_paterno, apellido_materno, nombres)
 ) ENGINE=InnoDB;
 
 CREATE TABLE alumnos (
@@ -48,7 +75,10 @@ CREATE TABLE docentes (
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- actividades
+-- ============================================================
+-- Actividades y horarios
+-- ============================================================
+
 CREATE TABLE actividades (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre      VARCHAR(80) NOT NULL,
@@ -63,18 +93,25 @@ CREATE TABLE actividades (
   FOREIGN KEY (id_periodo) REFERENCES periodos(id)
 ) ENGINE=InnoDB;
 
--- una actividad puede tener varios días
+-- Cada fila es un bloque de horario. Día y lugar se referencian por clave
+-- foránea a sus catálogos, no se repiten como texto libre.
 CREATE TABLE horarios (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
-  dia_semana    ENUM('Lunes','Martes','Miércoles','Jueves','Viernes','Sábado') NOT NULL,
+  id_dia        TINYINT UNSIGNED NOT NULL,
   hora_inicio   TIME NOT NULL,
   hora_fin      TIME NOT NULL,
-  lugar         VARCHAR(60) DEFAULT 'ITSM',
-  UNIQUE KEY uq_horario (id_actividad, dia_semana, hora_inicio),
+  id_lugar      INT UNSIGNED NOT NULL,
+  UNIQUE KEY uq_horario (id_actividad, id_dia, hora_inicio),
   CHECK (hora_fin > hora_inicio),
-  FOREIGN KEY (id_actividad) REFERENCES actividades(id) ON DELETE CASCADE
+  FOREIGN KEY (id_actividad) REFERENCES actividades(id) ON DELETE CASCADE,
+  FOREIGN KEY (id_dia)       REFERENCES dias_semana(id),
+  FOREIGN KEY (id_lugar)     REFERENCES lugares(id)
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- Inscripciones, asistencia y evidencias
+-- ============================================================
 
 CREATE TABLE inscripciones (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -87,7 +124,6 @@ CREATE TABLE inscripciones (
   FOREIGN KEY (id_actividad) REFERENCES actividades(id)     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- asistencia y evidencias
 CREATE TABLE sesiones (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -106,6 +142,8 @@ CREATE TABLE asistencias (
   FOREIGN KEY (id_alumno) REFERENCES alumnos(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- id_docente es el autor de la subida (hecho histórico), no un dato
+-- derivable de la actividad, porque el titular puede cambiar después.
 CREATE TABLE evidencias (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -117,32 +155,47 @@ CREATE TABLE evidencias (
   FOREIGN KEY (id_docente)   REFERENCES docentes(id_usuario) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- constancias
+-- ============================================================
+-- Constancias
+-- ============================================================
+
+-- El porcentaje no se almacena: se calcula con v_asistencia_alumno.
 CREATE TABLE constancias (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_inscripcion  INT UNSIGNED NOT NULL UNIQUE,
   folio           VARCHAR(30) NOT NULL UNIQUE,
-  porcentaje      DECIMAL(5,2) NOT NULL,
   emitida_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- vistas para pantallas y reportes
--- cupo ocupado/total, horario resumido y docente
+-- ============================================================
+-- Vistas: datos derivados y resúmenes para la API
+-- ============================================================
+
+-- Nombre legible del periodo calculado a partir de las fechas.
+CREATE VIEW v_periodos AS
+SELECT id, inicio, fin, activo,
+       CONCAT(ELT(MONTH(inicio),'Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'),
+              '/',
+              ELT(MONTH(fin),'Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'),
+              ' ', YEAR(inicio)) AS nombre
+FROM periodos;
+
+-- Cupo ocupado, horario resumido y docente de cada actividad.
 CREATE VIEW v_actividades AS
 SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa, p.nombre AS periodo,
-       u.nombre AS docente, a.id_docente,
+       u.nombre_completo AS docente, a.id_docente,
        (SELECT COUNT(*) FROM inscripciones i
          WHERE i.id_actividad = a.id AND i.estado = 'activa') AS inscritos,
-       (SELECT GROUP_CONCAT(CONCAT(LEFT(h.dia_semana,3),' ',TIME_FORMAT(h.hora_inicio,'%H:%i'))
-                            ORDER BY FIELD(h.dia_semana,'Lunes','Martes','Miércoles','Jueves','Viernes','Sábado')
-                            SEPARATOR ', ')
-          FROM horarios h WHERE h.id_actividad = a.id) AS horario
+       (SELECT GROUP_CONCAT(CONCAT(LEFT(d.nombre,3),' ',TIME_FORMAT(h.hora_inicio,'%H:%i'))
+                            ORDER BY d.orden SEPARATOR ', ')
+          FROM horarios h JOIN dias_semana d ON d.id = h.id_dia
+         WHERE h.id_actividad = a.id) AS horario
 FROM actividades a
-JOIN periodos p ON p.id = a.id_periodo
+JOIN v_periodos p ON p.id = a.id_periodo
 LEFT JOIN usuarios u ON u.id = a.id_docente;
 
--- porcentaje de asistencia por inscripción
+-- Porcentaje de asistencia por inscripción (dato calculado, no almacenado).
 CREATE VIEW v_asistencia_alumno AS
 SELECT i.id AS id_inscripcion, i.id_alumno, i.id_actividad,
        COUNT(s.id) AS sesiones,
@@ -154,7 +207,7 @@ LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = i.id_alumn
 WHERE i.estado = 'activa'
 GROUP BY i.id, i.id_alumno, i.id_actividad;
 
--- bloquea inscripciones con cupo lleno
+-- Bloquea inscripciones con cupo lleno
 DELIMITER $$
 CREATE TRIGGER trg_inscripcion_cupo BEFORE INSERT ON inscripciones
 FOR EACH ROW

@@ -26,7 +26,9 @@ class FormularioDocente_Vista : Base_Vista<FormularioDocenteVistaBinding>() {
         binding.tvTituloForm.text = if (idDocente == null) "Registrar docente" else "Editar docente"
         if (idDocente != null && savedInstanceState == null) {
             arguments?.let {
-                binding.etNombre.setText(it.getString(ARG_NOMBRE))
+                binding.etNombres.setText(it.getString(ARG_NOMBRES))
+                binding.etApellidoPaterno.setText(it.getString(ARG_PATERNO))
+                binding.etApellidoMaterno.setText(it.getString(ARG_MATERNO))
                 binding.etCorreo.setText(it.getString(ARG_CORREO))
                 binding.etEspecialidad.setText(it.getString(ARG_ESPECIALIDAD))
                 binding.etTelefono.setText(it.getString(ARG_TELEFONO))
@@ -35,31 +37,37 @@ class FormularioDocente_Vista : Base_Vista<FormularioDocenteVistaBinding>() {
         if (idDocente != null) binding.tilContrasena.visibility = View.GONE
 
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.ir(Pantalla_Vista.GESTIONAR_DOCENTES) } }
+            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.irRaiz(Pantalla_Vista.GESTIONAR_DOCENTES) } }
         }
         binding.btnGuardar.setOnClickListener {
             modelo.guardar(
                 idDocente,
-                binding.etNombre.texto(),
+                binding.etNombres.texto(),
+                binding.etApellidoPaterno.texto(),
+                binding.etApellidoMaterno.texto(),
                 binding.etCorreo.texto(),
                 binding.etEspecialidad.texto(),
                 binding.etTelefono.texto(),
                 binding.etContrasena.text.toString(),
             )
         }
-        binding.btnCancelar.setOnClickListener { navegador.ir(Pantalla_Vista.GESTIONAR_DOCENTES) }
+        binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 
     companion object {
         private const val ARG_ID = "id"
-        private const val ARG_NOMBRE = "nombre"
+        private const val ARG_NOMBRES = "nombres"
+        private const val ARG_PATERNO = "apellido_paterno"
+        private const val ARG_MATERNO = "apellido_materno"
         private const val ARG_CORREO = "correo"
         private const val ARG_ESPECIALIDAD = "especialidad"
         private const val ARG_TELEFONO = "telefono"
 
         fun argumentos(d: Docente) = Bundle().apply {
             putInt(ARG_ID, d.id)
-            putString(ARG_NOMBRE, d.nombre)
+            putString(ARG_NOMBRES, d.nombres)
+            putString(ARG_PATERNO, d.apellidoPaterno)
+            putString(ARG_MATERNO, d.apellidoMaterno)
             putString(ARG_CORREO, d.correo)
             putString(ARG_ESPECIALIDAD, d.especialidad)
             putString(ARG_TELEFONO, d.telefono)

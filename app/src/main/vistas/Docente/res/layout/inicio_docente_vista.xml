@@ -16,7 +16,7 @@
         <TextView
             style="@style/Itsm.Text.Secondary"
             android:textColor="#B8C4DA"
-            android:text="Docente · Actividades extraescolares" />
+            android:text="Docente de actividades extraescolares" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
 

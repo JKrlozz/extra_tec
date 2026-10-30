@@ -11,18 +11,24 @@ router.get('/constancias', auth('alumno'), wrap(async (req, res) => {
             v.sesiones, v.asistencias, COALESCE(v.porcentaje, 0) AS porcentaje
        FROM v_asistencia_alumno v
        JOIN actividades a ON a.id = v.id_actividad
-       JOIN periodos p ON p.id = a.id_periodo
+       JOIN v_periodos p ON p.id = a.id_periodo
       WHERE v.id_alumno = ? ORDER BY a.nombre`, [req.user.id]);
-  res.json(rows.map((r) => ({ ...r, porcentaje: Number(r.porcentaje), disponible: Number(r.porcentaje) >= minimo() })));
+  res.json(rows.map((r) => ({
+    ...r,
+    sesiones: Number(r.sesiones),
+    asistencias: Number(r.asistencias),
+    porcentaje: Number(r.porcentaje),
+    disponible: Number(r.porcentaje) >= minimo(),
+  })));
 }));
 
 router.get('/constancias/:idActividad/pdf', auth('alumno'), wrap(async (req, res) => {
   const [[d]] = await db.query(
     `SELECT v.id_inscripcion, COALESCE(v.porcentaje, 0) AS porcentaje, a.nombre AS actividad, p.nombre AS periodo,
-            u.nombre AS alumno, al.matricula, c.nombre AS carrera
+            u.nombre_completo AS alumno, al.matricula, c.nombre AS carrera
        FROM v_asistencia_alumno v
        JOIN actividades a ON a.id = v.id_actividad
-       JOIN periodos p ON p.id = a.id_periodo
+       JOIN v_periodos p ON p.id = a.id_periodo
        JOIN usuarios u ON u.id = v.id_alumno
        JOIN alumnos al ON al.id_usuario = v.id_alumno
        JOIN carreras c ON c.id = al.id_carrera
@@ -35,8 +41,8 @@ router.get('/constancias/:idActividad/pdf', auth('alumno'), wrap(async (req, res
   let [[c]] = await db.query('SELECT folio, emitida_en FROM constancias WHERE id_inscripcion = ?', [d.id_inscripcion]);
   if (!c) {
     const folio = `ITSM-${new Date().getFullYear()}-${String(d.id_inscripcion).padStart(5, '0')}`;
-    await db.query('INSERT INTO constancias (id_inscripcion, folio, porcentaje) VALUES (?,?,?)',
-      [d.id_inscripcion, folio, d.porcentaje]);
+    await db.query('INSERT INTO constancias (id_inscripcion, folio) VALUES (?,?)',
+      [d.id_inscripcion, folio]);
     [[c]] = await db.query('SELECT folio, emitida_en FROM constancias WHERE id_inscripcion = ?', [d.id_inscripcion]);
   }
 

@@ -28,7 +28,7 @@ class GestionarAlumnos_Vista : Base_Vista<GestionarAlumnosVistaBinding>() {
             binding.listaContenido.removeAllViews()
             alumnos?.forEach { al ->
                 agregarTarjeta(binding.listaContenido, al.nombre,
-                    "Matrícula ${al.matricula} · ${al.carrera} · ${al.semestre}° semestre",
+                    "Matrícula ${al.matricula}, ${al.carrera}, semestre ${al.semestre}",
                     al.correo,
                     b = Accion_Vista("Editar") {
                         navegador.ir(Pantalla_Vista.FORMULARIO_ALUMNO, FormularioAlumno_Vista.argumentos(al))

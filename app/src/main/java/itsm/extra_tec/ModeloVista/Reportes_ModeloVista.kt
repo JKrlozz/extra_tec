@@ -45,10 +45,10 @@ class Reportes_ModeloVista : Base_ModeloVista() {
         fun dato(clave: String) = fila[clave].orEmpty()
         val asistencia = dato("asistencia_pct").let { if (it.isEmpty()) "sin datos" else "$it %" }
         return when (tipo) {
-            "actividad" -> "• ${dato("actividad")} (${dato("docente").ifEmpty { "sin docente" }}): " +
+            "actividad" -> "${dato("actividad")} (${dato("docente").ifEmpty { "sin docente" }}): " +
                 "${dato("inscritos")}/${dato("cupo")} inscritos, ${dato("sesiones")} sesiones, asistencia $asistencia"
-            "alumno" -> "• ${dato("alumno")} (${dato("matricula")}): ${dato("actividades")} actividades, asistencia $asistencia"
-            else -> "• ${dato("docente")}: ${dato("actividades")} actividades, ${dato("sesiones_impartidas")} sesiones, ${dato("evidencias")} evidencias"
+            "alumno" -> "${dato("alumno")} (${dato("matricula")}): ${dato("actividades")} actividades, asistencia $asistencia"
+            else -> "${dato("docente")}: ${dato("actividades")} actividades, ${dato("sesiones_impartidas")} sesiones, ${dato("evidencias")} evidencias"
         }
     }
 }

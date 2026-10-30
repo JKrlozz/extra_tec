@@ -17,22 +17,27 @@ class Registro_ModeloVista : Base_ModeloVista() {
     }
 
     fun registrar(
-        nombre: String,
+        nombres: String,
+        apellidoPaterno: String,
+        apellidoMaterno: String,
         correo: String,
         contrasena: String,
         matricula: String,
-        semestreTexto: String,
+        posicionSemestre: Int,
         posicionCarrera: Int,
     ) {
-        val semestre = semestreTexto.toIntOrNull()
+        val semestre = posicionSemestre + 1
         val carrera = _carreras.value.orEmpty().getOrNull(posicionCarrera)
         when {
-            nombre.isEmpty() || correo.isEmpty() || matricula.isEmpty() -> return avisar("Completa nombre, correo y matrícula.")
+            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || matricula.isEmpty() ->
+                return avisar("Completa nombres, apellido paterno, correo y número de control.")
             contrasena.length < 8 -> return avisar("La contraseña debe tener al menos 8 caracteres.")
-            semestre == null || semestre !in 1..12 -> return avisar("El semestre debe ser de 1 a 12.")
+            semestre !in 1..9 -> return avisar("Elige un semestre de primero a noveno.")
             carrera == null -> return avisar("Aún no se cargan las carreras.")
         }
-        Autenticacion_Modelo.registrar(nombre, correo, contrasena, matricula, carrera!!.id, semestre!!) { resultado ->
+        Autenticacion_Modelo.registrar(
+            nombres, apellidoPaterno, apellidoMaterno, correo, contrasena, matricula, carrera!!.id, semestre,
+        ) { resultado ->
             atender(resultado) {
                 avisar("Registro realizado. Ya puedes iniciar sesión.")
                 _registrado.value = Evento_ModeloVista(Unit)

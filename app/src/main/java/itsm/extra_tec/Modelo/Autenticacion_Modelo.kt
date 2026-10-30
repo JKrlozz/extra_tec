@@ -21,7 +21,9 @@ object Autenticacion_Modelo {
     }
 
     fun registrar(
-        nombre: String,
+        nombres: String,
+        apellidoPaterno: String,
+        apellidoMaterno: String,
         correo: String,
         contrasena: String,
         matricula: String,
@@ -30,7 +32,10 @@ object Autenticacion_Modelo {
         alTerminar: (Resultado_Modelo<Unit>) -> Unit,
     ) {
         val cuerpo = JSONObject()
-            .put("nombre", nombre).put("correo", correo).put("contrasena", contrasena)
+            .put("nombres", nombres)
+            .put("apellido_paterno", apellidoPaterno)
+            .put("apellido_materno", apellidoMaterno)
+            .put("correo", correo).put("contrasena", contrasena)
             .put("matricula", matricula).put("id_carrera", idCarrera).put("semestre", semestre)
         Api_Modelo.consultar("POST", "/registro", cuerpo, convertir = { }, alTerminar = alTerminar)
     }

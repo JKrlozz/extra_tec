@@ -19,13 +19,13 @@ router.get('/asistencia/:idActividad', auth('docente', 'admin'), wrap(async (req
   await exigirTitular(req.user, req.params.idActividad);
   const fecha = req.query.fecha || hoy();
   const [rows] = await db.query(
-    `SELECT u.id, u.nombre, a.matricula, asi.presente
+    `SELECT u.id, u.nombre_completo AS nombre, a.matricula, asi.presente
        FROM inscripciones i
        JOIN alumnos a ON a.id_usuario = i.id_alumno
        JOIN usuarios u ON u.id = a.id_usuario
        LEFT JOIN sesiones s ON s.id_actividad = i.id_actividad AND s.fecha = ?
        LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = i.id_alumno
-      WHERE i.id_actividad = ? AND i.estado = 'activa' ORDER BY u.nombre`, [fecha, req.params.idActividad]);
+      WHERE i.id_actividad = ? AND i.estado = 'activa' ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres`, [fecha, req.params.idActividad]);
   res.json({ fecha, alumnos: rows.map((r) => ({ ...r, presente: r.presente === null ? true : !!r.presente })) });
 }));
 

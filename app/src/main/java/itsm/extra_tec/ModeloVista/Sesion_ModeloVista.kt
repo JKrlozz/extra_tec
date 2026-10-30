@@ -34,7 +34,7 @@ class Sesion_ModeloVista(aplicacion: Application) : AndroidViewModel(aplicacion)
     fun buscarServidor() {
         if (buscando) return
         buscando = true
-        _servidor.value = "Buscando el servidor en la red…"
+        _servidor.value = "Buscando el servidor en la red"
         Descubrimiento_Modelo.buscar(getApplication(), Api_Modelo.baseUrl) { resultado ->
             buscando = false
             when (resultado) {

@@ -28,7 +28,7 @@ class GestionarDocentes_Vista : Base_Vista<GestionarDocentesVistaBinding>() {
             binding.listaContenido.removeAllViews()
             docentes?.forEach { d ->
                 agregarTarjeta(binding.listaContenido, d.nombre,
-                    listOf(d.especialidad, d.telefono).filter { it.isNotEmpty() }.joinToString(" · "),
+                    listOf(d.especialidad, d.telefono).filter { it.isNotEmpty() }.joinToString(", "),
                     d.correo,
                     b = Accion_Vista("Editar") {
                         navegador.ir(Pantalla_Vista.FORMULARIO_DOCENTE, FormularioDocente_Vista.argumentos(d))

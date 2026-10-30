@@ -1,4 +1,4 @@
-# Contexto del proyecto – extra_tec
+# Contexto del proyecto: extra_tec
 
 **Materia:** DB de Aplicaciones Móviles (Séptimo semestre)
 **Creado:** 2026-10-09
@@ -21,7 +21,7 @@ _Pendiente de definir._
   - Vistas `v_actividades` (cupo inscritos/total, horario, docente) y `v_asistencia_alumno` (% de asistencia para la constancia).
   - Trigger `trg_inscripcion_cupo`: bloquea inscripciones cuando el cupo está lleno.
   - `seed.sql`: datos de prueba iguales a los de las pantallas (usuarios con contraseña demo `itsm1234`, 5 actividades, inscripciones y asistencia de ejemplo).
-  - Cada pantalla se mapea así: login/registro → `usuarios`+`alumnos`; actividades/horario → `v_actividades`+`horarios`+`inscripciones`; pase de lista → `sesiones`+`asistencias`; evidencia → `evidencias`; constancia → `v_asistencia_alumno`+`constancias`; reportes → consultas sobre las anteriores.
+  - Cada pantalla se mapea así: login/registro usa `usuarios`+`alumnos`; actividades/horario usa `v_actividades`+`horarios`+`inscripciones`; pase de lista usa `sesiones`+`asistencias`; evidencia usa `evidencias`; constancia usa `v_asistencia_alumno`+`constancias`; reportes son consultas sobre las anteriores.
   - Pendiente: ejecutar los scripts en MySQL (servicio `MySQL80` ya corre en el equipo) y verificar.
 
 - 2026-10-12: API REST en Node.js (carpeta `api/`, Express + mysql2 + JWT + bcrypt + multer + pdfkit). La app Android no se conecta directo a MySQL (expondría credenciales); consume esta API por HTTP.
@@ -47,14 +47,29 @@ _Pendiente de definir._
   - `Principal_Vista` es la única Activity: aloja el fragmento actual y las barras de navegación. `Pantalla_Vista` define cada pantalla y su barra.
   - Comentarios sin decoraciones en Kotlin, API, SQL y scripts.
   - Compila; falta probarlo en emulador.
+
+- 2026-10-30: Base de datos en 3FN y pantallas adaptadas (rama actual).
+  - `usuarios.nombre` se dividió en `nombres`, `apellido_paterno` y `apellido_materno`; `nombre_completo` es una columna generada para mostrar y buscar. Los formularios de alumno, docente y registro público ya piden las tres partes.
+  - Catálogos nuevos `dias_semana` (con orden) y `lugares`. `horarios` usa `id_dia` e `id_lugar` en vez del `ENUM` y del texto libre.
+  - Se quitaron datos derivados: `periodos.nombre` se calcula en `v_periodos` y `constancias.porcentaje` en `v_asistencia_alumno`.
+  - `evidencias.id_docente` se conserva como autor histórico de la subida.
+  - La API devuelve el nombre completo y sus partes; el editor de actividades usa filas dinámicas con día, hora de inicio, hora de fin y lugar, y rechaza horarios traslapados.
+  - Navegación: `Principal_Vista` guarda un historial; el botón Volver y el botón físico Atrás regresan a la pantalla anterior, y las barras inferiores reinician el historial.
+  - Se quitaron símbolos decorativos de títulos y etiquetas en toda la app.
+  - `database/NORMALIZACION.md` documenta la revisión 3FN tabla por tabla.
+  - Verificado con una instancia temporal de MySQL y pruebas de la API: esquema, seed, login, altas y cambios con nombres separados, horarios, inscripciones, cupo, asistencia, evidencias, constancias y reportes.
+  - Probado en el emulador: login con nombre completo, actividades, horario con día y lugar, botón Volver, botón físico Atrás, editor de actividad con horarios dinámicos y registro con nombres separados.
+  - Aplicado en la base real `extra_tec` con `instalar.bat` y verificado contra ella: API (login, catálogos, actividades, horarios, inscripciones, cupo, asistencia, constancias, PDF y reportes) y pantallas del emulador.
+  - Registro de alumno: el semestre ahora es una lista de Primero a Noveno, el apellido materno ya no dice "opcional" y la matrícula se muestra como "Número de control".
+
 ## Cómo levantar todo
 1. Ejecutar `instalar.bat`: crea la base, carga los datos de prueba, genera `api/.env` e instala las dependencias (pide la contraseña de root de MySQL).
 2. Ejecutar `iniciar-api.bat` y comprobar `http://localhost:3000/api/salud`.
 3. Para usar un celular en la misma red: ejecutar `api/permitir-red.ps1` como administrador, una sola vez.
 
 ## Siguiente paso
-- Ejecutar los pasos anteriores y probar los endpoints.
-- Conectar la app Android a la API (Retrofit/HttpURLConnection; el emulador accede al PC en `http://10.0.2.2:3000`; requiere permiso `INTERNET` y `usesCleartextTraffic` en desarrollo).
+- Probar en el emulador el flujo del docente (pase de lista y evidencias) contra la base real.
+- Revisar el commit del refactor 3FN antes de subirlo.
 
 ## Notas
 -

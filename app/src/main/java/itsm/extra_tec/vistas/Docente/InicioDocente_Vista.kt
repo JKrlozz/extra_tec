@@ -27,7 +27,7 @@ class InicioDocente_Vista : Base_Vista<InicioDocenteVistaBinding>() {
             estadoLista(binding.tvVacio, clases, "Aún no tienes clases asignadas.")
             binding.listaContenido.removeAllViews()
             clases?.forEach { clase ->
-                agregarTarjeta(binding.listaContenido, clase.nombre, "${clase.horario} · ${clase.inscritos} alumnos",
+                agregarTarjeta(binding.listaContenido, clase.nombre, "${clase.horario}, ${clase.inscritos} alumnos",
                     a = Accion_Vista("Pase de lista") { abrir(clase, Pantalla_Vista.ASISTENCIA) },
                     b = Accion_Vista("Ver alumnos") { abrir(clase, Pantalla_Vista.ALUMNOS_DOCENTE) })
             }

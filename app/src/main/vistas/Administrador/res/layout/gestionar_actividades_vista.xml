@@ -23,7 +23,7 @@
                 android:id="@+id/btnNuevaActividad"
                 style="@style/Itsm.Button.Primary"
                 android:layout_marginBottom="16dp"
-                android:text="+ Nueva actividad" />
+                android:text="Nueva actividad" />
             <LinearLayout
                 android:id="@+id/listaContenido"
                 android:layout_width="match_parent"

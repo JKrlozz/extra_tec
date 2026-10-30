@@ -4,6 +4,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAtras"
+        style="@style/Itsm.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:minHeight="40dp"
+        android:text="Volver"
+        android:visibility="gone" />
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/contenedor"
         android:layout_width="match_parent"

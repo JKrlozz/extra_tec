@@ -2,25 +2,59 @@ const router = require('express').Router();
 const db = require('../db');
 const { wrap, HttpError, auth, requireFields } = require('../util');
 
-const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-function validarHorarios(horarios) {
+// Valida que el día exista en el catálogo, que las horas sean correctas y
+// que dos bloques del mismo día no se traslapen.
+async function validarHorarios(horarios) {
   if (!Array.isArray(horarios) || !horarios.length) throw new HttpError(400, 'Indica al menos un horario');
+  const [dias] = await db.query('SELECT id FROM dias_semana');
+  const idsDia = new Set(dias.map((d) => d.id));
+  const revisados = [];
   for (const h of horarios) {
-    if (!DIAS.includes(h.dia_semana) || !h.hora_inicio || !h.hora_fin || h.hora_fin <= h.hora_inicio) {
-      throw new HttpError(400, 'Horario inválido (día, hora_inicio y hora_fin)');
+    const idDia = Number(h.id_dia);
+    if (!idsDia.has(idDia) || !HORA.test(h.hora_inicio || '') || !HORA.test(h.hora_fin || '')) {
+      throw new HttpError(400, 'Horario inválido: revisa el día y las horas');
     }
+    if (h.hora_fin <= h.hora_inicio) {
+      throw new HttpError(400, 'La hora de fin debe ser posterior a la de inicio');
+    }
+    const choque = revisados.find((r) =>
+      r.idDia === idDia && h.hora_inicio < r.fin && r.inicio < h.hora_fin);
+    if (choque) throw new HttpError(400, 'Hay dos horarios traslapados el mismo día');
+    revisados.push({ idDia, inicio: h.hora_inicio, fin: h.hora_fin });
   }
+}
+
+// Devuelve el id del lugar; si el nombre no existe lo registra en el catálogo.
+async function resolverLugar(conn, h) {
+  if (h.id_lugar) {
+    const [[porId]] = await conn.query('SELECT id FROM lugares WHERE id = ?', [h.id_lugar]);
+    if (porId) return porId.id;
+  }
+  const nombre = String(h.lugar || 'ITSM').trim() || 'ITSM';
+  const [[porNombre]] = await conn.query('SELECT id FROM lugares WHERE nombre = ?', [nombre]);
+  if (porNombre) return porNombre.id;
+  const [r] = await conn.query('INSERT INTO lugares (nombre) VALUES (?)', [nombre]);
+  return r.insertId;
 }
 
 async function guardarHorarios(conn, idActividad, horarios) {
   await conn.query('DELETE FROM horarios WHERE id_actividad = ?', [idActividad]);
   for (const h of horarios) {
+    const idLugar = await resolverLugar(conn, h);
     await conn.query(
-      'INSERT INTO horarios (id_actividad, dia_semana, hora_inicio, hora_fin, lugar) VALUES (?,?,?,?,?)',
-      [idActividad, h.dia_semana, h.hora_inicio, h.hora_fin, h.lugar || 'ITSM']);
+      'INSERT INTO horarios (id_actividad, id_dia, hora_inicio, hora_fin, id_lugar) VALUES (?,?,?,?,?)',
+      [idActividad, h.id_dia, h.hora_inicio, h.hora_fin, idLugar]);
   }
 }
+
+// Días y lugares para el editor de horarios de la app.
+router.get('/catalogos-horario', auth(), wrap(async (req, res) => {
+  const [dias] = await db.query('SELECT id, nombre, orden FROM dias_semana ORDER BY orden');
+  const [lugares] = await db.query('SELECT id, nombre FROM lugares ORDER BY nombre');
+  res.json({ dias, lugares });
+}));
 
 router.get('/actividades', auth(), wrap(async (req, res) => {
   const [rows] = await db.query(
@@ -34,13 +68,19 @@ router.get('/actividades/:id', auth(), wrap(async (req, res) => {
   const [[act]] = await db.query('SELECT * FROM v_actividades WHERE id = ?', [req.params.id]);
   if (!act) throw new HttpError(404, 'Actividad no encontrada');
   const [horarios] = await db.query(
-    'SELECT id, dia_semana, hora_inicio, hora_fin, lugar FROM horarios WHERE id_actividad = ?', [req.params.id]);
+    `SELECT h.id, h.id_dia, d.nombre AS dia_semana, h.hora_inicio, h.hora_fin,
+            h.id_lugar, l.nombre AS lugar
+       FROM horarios h
+       JOIN dias_semana d ON d.id = h.id_dia
+       JOIN lugares l ON l.id = h.id_lugar
+      WHERE h.id_actividad = ?
+      ORDER BY d.orden, h.hora_inicio`, [req.params.id]);
   res.json({ ...act, horarios });
 }));
 
 router.post('/actividades', auth('admin'), wrap(async (req, res) => {
   requireFields(req.body, ['nombre', 'cupo']);
-  validarHorarios(req.body.horarios);
+  await validarHorarios(req.body.horarios);
   const { nombre, descripcion, cupo, id_docente, horarios } = req.body;
   const [[periodo]] = await db.query('SELECT id FROM periodos WHERE activo = 1 ORDER BY inicio DESC LIMIT 1');
   if (!periodo) throw new HttpError(409, 'No hay un periodo activo');
@@ -64,7 +104,7 @@ router.post('/actividades', auth('admin'), wrap(async (req, res) => {
 
 router.put('/actividades/:id', auth('admin'), wrap(async (req, res) => {
   const { nombre, descripcion, cupo, id_docente, horarios } = req.body;
-  if (horarios !== undefined) validarHorarios(horarios);
+  if (horarios !== undefined) await validarHorarios(horarios);
 
   const conn = await db.getConnection();
   try {
@@ -104,9 +144,12 @@ router.get('/actividades/:id/alumnos', auth('docente', 'admin'), wrap(async (req
     if (!own) throw new HttpError(403, 'No eres el docente de esta actividad');
   }
   const [rows] = await db.query(
-    `SELECT u.id, u.nombre, a.matricula FROM inscripciones i
+    `SELECT u.id, u.nombres, u.apellido_paterno, u.apellido_materno,
+            u.nombre_completo AS nombre, a.matricula
+       FROM inscripciones i
        JOIN alumnos a ON a.id_usuario = i.id_alumno JOIN usuarios u ON u.id = a.id_usuario
-      WHERE i.id_actividad = ? AND i.estado = 'activa' ORDER BY u.nombre`, [req.params.id]);
+      WHERE i.id_actividad = ? AND i.estado = 'activa'
+      ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres`, [req.params.id]);
   res.json(rows);
 }));
 
@@ -138,12 +181,14 @@ router.delete('/inscripciones/:idActividad', auth('alumno'), wrap(async (req, re
 
 router.get('/mi-horario', auth('alumno'), wrap(async (req, res) => {
   const [rows] = await db.query(
-    `SELECT a.id AS id_actividad, a.nombre, h.dia_semana, h.hora_inicio, h.hora_fin, h.lugar
+    `SELECT a.id AS id_actividad, a.nombre, h.id_dia, d.nombre AS dia_semana,
+            h.hora_inicio, h.hora_fin, h.id_lugar, l.nombre AS lugar
        FROM inscripciones i JOIN actividades a ON a.id = i.id_actividad
        JOIN horarios h ON h.id_actividad = a.id
+       JOIN dias_semana d ON d.id = h.id_dia
+       JOIN lugares l ON l.id = h.id_lugar
       WHERE i.id_alumno = ? AND i.estado = 'activa' AND a.activa = 1
-      ORDER BY FIELD(h.dia_semana,'Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'), h.hora_inicio`,
-    [req.user.id]);
+      ORDER BY d.orden, h.hora_inicio`, [req.user.id]);
   res.json(rows);
 }));
 

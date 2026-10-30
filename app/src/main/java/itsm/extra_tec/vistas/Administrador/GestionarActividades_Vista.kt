@@ -26,7 +26,7 @@ class GestionarActividades_Vista : Base_Vista<GestionarActividadesVistaBinding>(
             binding.listaContenido.removeAllViews()
             actividades?.forEach { a ->
                 agregarTarjeta(binding.listaContenido, a.nombre,
-                    "${a.horario} · Prof. ${a.docente.ifEmpty { "Por asignar" }}",
+                    "${a.horario}, Prof. ${a.docente.ifEmpty { "Por asignar" }}",
                     "Cupo ${a.inscritos}/${a.cupo}",
                     b = Accion_Vista("Editar") {
                         navegador.ir(Pantalla_Vista.FORMULARIO_ACTIVIDAD, FormularioActividad_Vista.argumentos(a.id))

@@ -10,7 +10,7 @@ router.get('/reportes', auth('admin'), wrap(async (req, res) => {
 
   const consultas = {
     actividad: `
-      SELECT a.id, a.nombre AS actividad, d.nombre AS docente, a.cupo,
+      SELECT a.id, a.nombre AS actividad, d.nombre_completo AS docente, a.cupo,
              (SELECT COUNT(*) FROM inscripciones i WHERE i.id_actividad = a.id AND i.estado = 'activa') AS inscritos,
              COUNT(DISTINCT s.id) AS sesiones,
              ROUND(100 * COALESCE(SUM(asi.presente), 0) / NULLIF(COUNT(asi.id), 0), 1) AS asistencia_pct
@@ -18,25 +18,25 @@ router.get('/reportes', auth('admin'), wrap(async (req, res) => {
         LEFT JOIN usuarios d ON d.id = a.id_docente
         LEFT JOIN sesiones s ON s.id_actividad = a.id AND s.fecha BETWEEN ? AND ?
         LEFT JOIN asistencias asi ON asi.id_sesion = s.id
-       WHERE a.activa = 1 GROUP BY a.id, d.nombre ORDER BY a.nombre`,
+       WHERE a.activa = 1 GROUP BY a.id, d.nombre_completo ORDER BY a.nombre`,
     alumno: `
-      SELECT u.id, u.nombre AS alumno, al.matricula,
+      SELECT u.id, u.nombre_completo AS alumno, al.matricula,
              COUNT(DISTINCT i.id_actividad) AS actividades,
              ROUND(100 * COALESCE(SUM(asi.presente), 0) / NULLIF(COUNT(asi.id), 0), 1) AS asistencia_pct
         FROM alumnos al JOIN usuarios u ON u.id = al.id_usuario
         LEFT JOIN inscripciones i ON i.id_alumno = al.id_usuario AND i.estado = 'activa'
         LEFT JOIN sesiones s ON s.id_actividad = i.id_actividad AND s.fecha BETWEEN ? AND ?
         LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = al.id_usuario
-       WHERE u.activo = 1 GROUP BY u.id, al.matricula ORDER BY u.nombre`,
+       WHERE u.activo = 1 GROUP BY u.id, al.matricula ORDER BY u.nombre_completo`,
     docente: `
-      SELECT u.id, u.nombre AS docente, COUNT(DISTINCT a.id) AS actividades,
+      SELECT u.id, u.nombre_completo AS docente, COUNT(DISTINCT a.id) AS actividades,
              COUNT(DISTINCT s.id) AS sesiones_impartidas,
              (SELECT COUNT(*) FROM evidencias e WHERE e.id_docente = u.id
                  AND DATE(e.subida_en) BETWEEN ? AND ?) AS evidencias
         FROM docentes d JOIN usuarios u ON u.id = d.id_usuario
         LEFT JOIN actividades a ON a.id_docente = d.id_usuario AND a.activa = 1
         LEFT JOIN sesiones s ON s.id_actividad = a.id AND s.fecha BETWEEN ? AND ?
-       WHERE u.activo = 1 GROUP BY u.id ORDER BY u.nombre`,
+       WHERE u.activo = 1 GROUP BY u.id ORDER BY u.nombre_completo`,
   };
   if (!consultas[tipo]) throw new HttpError(400, 'tipo debe ser actividad, alumno o docente');
 

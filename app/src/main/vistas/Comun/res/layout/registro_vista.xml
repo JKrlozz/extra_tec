@@ -24,9 +24,27 @@
             <TextView style="@style/Itsm.Text.Section" android:text="Datos personales" />
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Nombre completo">
+                android:hint="Nombre(s)">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etNombre"
+                    android:id="@+id/etNombres"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Apellido paterno">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etApellidoPaterno"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Itsm.Field"
+                android:hint="Apellido materno">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etApellidoMaterno"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName" />
@@ -65,18 +83,23 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Itsm.Field"
-                android:hint="Semestre (1 a 12)">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSemestre"
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:layout_marginTop="0dp"
+                android:text="Semestre" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Itsm.Card"
+                android:layout_marginBottom="16dp">
+                <Spinner
+                    android:id="@+id/spinnerSemestre"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_height="52dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+            </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Matrícula">
+                android:hint="Número de control">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etMatricula"
                     android:layout_width="match_parent"

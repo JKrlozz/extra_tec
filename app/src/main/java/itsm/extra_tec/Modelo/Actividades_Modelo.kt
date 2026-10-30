@@ -23,6 +23,19 @@ object Actividades_Modelo {
             alTerminar = alTerminar)
     }
 
+    // días y lugares para el editor de horarios
+    fun catalogosHorario(alTerminar: (Resultado_Modelo<CatalogosHorario>) -> Unit) {
+        Api_Modelo.consultar("GET", "/catalogos-horario",
+            convertir = { r ->
+                val j = r as JSONObject
+                CatalogosHorario(
+                    j.getJSONArray("dias").objetos().map(DiaSemana::desdeJson),
+                    j.getJSONArray("lugares").objetos().map(Lugar::desdeJson),
+                )
+            },
+            alTerminar = alTerminar)
+    }
+
     fun guardar(
         id: Int?,
         nombre: String,

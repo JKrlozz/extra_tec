@@ -19,7 +19,7 @@ class AlumnosDocente_Vista : Base_Vista<AlumnosDocenteVistaBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        val idClase = sesion.claseId ?: return navegador.ir(Pantalla_Vista.INICIO_DOCENTE)
+        val idClase = sesion.claseId ?: return navegador.irRaiz(Pantalla_Vista.INICIO_DOCENTE)
         binding.tvSubtitulo.text = sesion.claseNombre
         modelo.cargar(idClase)
 
@@ -29,6 +29,6 @@ class AlumnosDocente_Vista : Base_Vista<AlumnosDocenteVistaBinding>() {
             alumnos?.forEach { agregarTarjeta(binding.listaContenido, it.nombre, "Matrícula ${it.matricula}") }
         }
         alEscribir(binding.etBuscar) { modelo.buscar(it) }
-        binding.btnCancelar.setOnClickListener { navegador.ir(Pantalla_Vista.INICIO_DOCENTE) }
+        binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 }

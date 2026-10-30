@@ -16,7 +16,7 @@ class HorarioAlumno_ModeloVista : Base_ModeloVista() {
                 _horario.value = filas.groupBy { it.idActividad }.values.map { grupo ->
                     HorarioTarjeta(
                         nombre = grupo[0].nombre,
-                        dias = grupo.joinToString("\n") { "${it.dia.diaSemana} · ${it.dia.horaInicio}–${it.dia.horaFin}" },
+                        dias = grupo.joinToString("\n") { "${it.dia.diaSemana} de ${it.dia.horaInicio} a ${it.dia.horaFin}" },
                         lugar = grupo[0].dia.lugar,
                     )
                 }

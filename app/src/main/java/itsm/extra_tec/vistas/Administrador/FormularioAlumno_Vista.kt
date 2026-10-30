@@ -26,7 +26,9 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
         binding.tvTituloForm.text = if (idAlumno == null) "Agregar alumno" else "Editar alumno"
         if (idAlumno != null && savedInstanceState == null) {
             arguments?.let {
-                binding.etNombre.setText(it.getString(ARG_NOMBRE))
+                binding.etNombres.setText(it.getString(ARG_NOMBRES))
+                binding.etApellidoPaterno.setText(it.getString(ARG_PATERNO))
+                binding.etApellidoMaterno.setText(it.getString(ARG_MATERNO))
                 binding.etCorreo.setText(it.getString(ARG_CORREO))
                 binding.etMatricula.setText(it.getString(ARG_MATRICULA))
                 binding.etSemestre.setText(it.getInt(ARG_SEMESTRE).toString())
@@ -40,13 +42,15 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
             if (posicion >= 0) binding.spinnerCarrera.setSelection(posicion)
         }
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.ir(Pantalla_Vista.GESTIONAR_ALUMNOS) } }
+            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.irRaiz(Pantalla_Vista.GESTIONAR_ALUMNOS) } }
         }
 
         binding.btnGuardar.setOnClickListener {
             modelo.guardar(
                 idAlumno,
-                binding.etNombre.texto(),
+                binding.etNombres.texto(),
+                binding.etApellidoPaterno.texto(),
+                binding.etApellidoMaterno.texto(),
                 binding.etCorreo.texto(),
                 binding.etMatricula.texto(),
                 binding.etSemestre.texto(),
@@ -54,12 +58,14 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
                 binding.etContrasena.text.toString(),
             )
         }
-        binding.btnCancelar.setOnClickListener { navegador.ir(Pantalla_Vista.GESTIONAR_ALUMNOS) }
+        binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 
     companion object {
         private const val ARG_ID = "id"
-        private const val ARG_NOMBRE = "nombre"
+        private const val ARG_NOMBRES = "nombres"
+        private const val ARG_PATERNO = "apellido_paterno"
+        private const val ARG_MATERNO = "apellido_materno"
         private const val ARG_CORREO = "correo"
         private const val ARG_MATRICULA = "matricula"
         private const val ARG_SEMESTRE = "semestre"
@@ -67,7 +73,9 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
 
         fun argumentos(a: Alumno) = Bundle().apply {
             putInt(ARG_ID, a.id)
-            putString(ARG_NOMBRE, a.nombre)
+            putString(ARG_NOMBRES, a.nombres)
+            putString(ARG_PATERNO, a.apellidoPaterno)
+            putString(ARG_MATERNO, a.apellidoMaterno)
             putString(ARG_CORREO, a.correo)
             putString(ARG_MATRICULA, a.matricula)
             putInt(ARG_SEMESTRE, a.semestre)

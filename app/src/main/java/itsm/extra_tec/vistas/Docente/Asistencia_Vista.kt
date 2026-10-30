@@ -22,20 +22,20 @@ class Asistencia_Vista : Base_Vista<AsistenciaVistaBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        val idClase = sesion.claseId ?: return navegador.ir(Pantalla_Vista.INICIO_DOCENTE)
+        val idClase = sesion.claseId ?: return navegador.irRaiz(Pantalla_Vista.INICIO_DOCENTE)
         modelo.cargar(idClase)
 
         modelo.lista.observe(viewLifecycleOwner) { lista ->
             estadoLista(binding.tvVacio, lista?.alumnos, "No hay alumnos inscritos.")
             // las casillas se crean una vez; los cambios actualizan el viewmodel
             if (lista == null || binding.listaContenido.childCount > 0) return@observe
-            binding.tvSubtitulo.text = "${sesion.claseNombre} · ${lista.fecha}"
+            binding.tvSubtitulo.text = "${sesion.claseNombre}, ${lista.fecha}"
             lista.alumnos.forEach { alumno ->
                 val casilla = CheckBox(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     buttonTintList = ContextCompat.getColorStateList(context, R.color.itsm_primary)
                     minHeight = (48 * resources.displayMetrics.density).toInt()
-                    text = "${alumno.nombre} · Matrícula ${alumno.matricula}"
+                    text = "${alumno.nombre}, matrícula ${alumno.matricula}"
                     setTextColor(ContextCompat.getColor(context, R.color.itsm_text))
                     isChecked = alumno.presente
                     setOnCheckedChangeListener { _, marcada -> modelo.marcar(alumno.idAlumno, marcada) }
@@ -44,10 +44,10 @@ class Asistencia_Vista : Base_Vista<AsistenciaVistaBinding>() {
             }
         }
         modelo.guardada.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.ir(Pantalla_Vista.INICIO_DOCENTE) }
+            evento.obtener()?.let { navegador.atras() }
         }
 
         binding.btnGuardarAsistencia.setOnClickListener { modelo.guardar() }
-        binding.btnCancelar.setOnClickListener { navegador.ir(Pantalla_Vista.INICIO_DOCENTE) }
+        binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 }

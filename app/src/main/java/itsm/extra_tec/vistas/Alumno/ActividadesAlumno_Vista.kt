@@ -26,12 +26,12 @@ class ActividadesAlumno_Vista : Base_Vista<ActividadesAlumnoVistaBinding>() {
                 val docente = a.docente.ifEmpty { "Por asignar" }
                 val cupo = "Cupo ${a.inscritos}/${a.cupo}"
                 if (a.inscrito) {
-                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario} · Prof. $docente", "Inscrito · $cupo",
+                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario}, Prof. $docente", "Inscrito, $cupo",
                         c = Accion_Vista("Darme de baja") {
                             confirmar("¿Darte de baja de ${a.nombre}?") { modelo.darDeBaja(a.id) }
                         })
                 } else {
-                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario} · Prof. $docente", cupo,
+                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario}, Prof. $docente", cupo,
                         a = Accion_Vista(if (a.lleno) "Cupo lleno" else "Inscribirme", !a.lleno) { modelo.inscribir(a.id) })
                 }
             }

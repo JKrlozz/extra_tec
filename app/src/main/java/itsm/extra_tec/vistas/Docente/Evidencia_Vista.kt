@@ -38,7 +38,7 @@ class Evidencia_Vista : Base_Vista<EvidenciaVistaBinding>() {
             }
         }
         modelo.guardada.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.ir(Pantalla_Vista.INICIO_DOCENTE) }
+            evento.obtener()?.let { navegador.irRaiz(Pantalla_Vista.INICIO_DOCENTE) }
         }
 
         binding.btnElegirFoto.setOnClickListener { elegirFoto.launch("image/*") }

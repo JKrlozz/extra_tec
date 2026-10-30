@@ -50,7 +50,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
 
     protected fun cerrarSesion() {
         sesion.cerrar()
-        navegador.ir(Pantalla_Vista.INICIO_SESION)
+        navegador.irRaiz(Pantalla_Vista.INICIO_SESION)
     }
 
     protected fun confirmar(mensaje: String, alAceptar: () -> Unit) {
@@ -76,7 +76,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
     // estado de una lista: cargando, vacía o con elementos
     protected fun estadoLista(texto: TextView, elementos: List<*>?, vacio: String) {
         val mensaje = when {
-            elementos == null -> "Cargando…"
+            elementos == null -> "Cargando"
             elementos.isEmpty() -> vacio
             else -> null
         }

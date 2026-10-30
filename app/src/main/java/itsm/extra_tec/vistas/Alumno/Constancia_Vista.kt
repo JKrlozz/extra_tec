@@ -25,7 +25,7 @@ class Constancia_Vista : Base_Vista<ConstanciaVistaBinding>() {
             constancias?.forEach { c ->
                 val estado = if (c.disponible) "Constancia disponible" else "Constancia no disponible (se requiere 80 %)"
                 agregarTarjeta(binding.listaContenido, c.nombre,
-                    "${c.periodo} · $estado",
+                    "${c.periodo}, $estado",
                     "Asistencia: ${c.porcentaje.toInt()} % (${c.asistencias} de ${c.sesiones} sesiones)",
                     progreso = c.porcentaje.toInt(),
                     a = if (c.disponible) {

@@ -19,7 +19,9 @@ class FormularioAlumno_ModeloVista : Base_ModeloVista() {
 
     fun guardar(
         id: Int?,
-        nombre: String,
+        nombres: String,
+        apellidoPaterno: String,
+        apellidoMaterno: String,
         correo: String,
         matricula: String,
         semestreTexto: String,
@@ -29,11 +31,14 @@ class FormularioAlumno_ModeloVista : Base_ModeloVista() {
         val semestre = semestreTexto.toIntOrNull()
         val carrera = _carreras.value.orEmpty().getOrNull(posicionCarrera)
         when {
-            nombre.isEmpty() || correo.isEmpty() || matricula.isEmpty() -> return avisar("Completa nombre, correo y matrícula.")
+            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || matricula.isEmpty() ->
+                return avisar("Completa nombres, apellido paterno, correo y matrícula.")
             semestre == null || semestre !in 1..12 -> return avisar("El semestre debe ser de 1 a 12.")
             carrera == null -> return avisar("Aún no se cargan las carreras.")
         }
-        Personas_Modelo.guardarAlumno(id, nombre, correo, matricula, carrera!!.id, semestre!!, contrasena) { resultado ->
+        Personas_Modelo.guardarAlumno(
+            id, nombres, apellidoPaterno, apellidoMaterno, correo, matricula, carrera!!.id, semestre!!, contrasena,
+        ) { resultado ->
             atender(resultado) {
                 avisar("Alumno guardado.")
                 _guardado.value = Evento_ModeloVista(Guardado_ModeloVista(it))
