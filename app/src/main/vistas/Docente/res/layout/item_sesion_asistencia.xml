@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Itsm.Card">
+
+    <LinearLayout style="@style/Itsm.CardBody">
+
+        <TextView
+            android:id="@+id/tvFecha"
+            style="@style/Itsm.Text.Title" />
+
+        <TextView
+            android:id="@+id/tvResumen"
+            style="@style/Itsm.Text.Secondary" />
+
+        <ProgressBar
+            android:id="@+id/pbAsistencia"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:progressBackgroundTint="@color/itsm_divider"
+            android:progressTint="@color/itsm_primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDetalle"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="Expander" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditar"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="Editar" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/contenedorDetalle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvSinDetalle"
+                style="@style/Itsm.Text.Secondary"
+                android:text="Sin registros de alumnos"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

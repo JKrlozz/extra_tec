@@ -11,7 +11,7 @@
         <TextView
             android:id="@+id/tvSubtitulo"
             style="@style/Itsm.Text.Secondary"
-            android:textColor="#B8C4DA"
+            android:textColor="#E8C9D4"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />

@@ -1,7 +1,9 @@
 # Normalización de la base de datos
 
-El esquema `database/schema.sql` quedó en tercera forma normal (3FN). Este
-documento revisa cada tabla, indica qué se cambió y por qué.
+El esquema `database/schema.sql` (MySQL) y su equivalente local
+`database/schema.sqlite.sql` quedaron en tercera forma normal (3FN). Este
+documento revisa cada tabla, indica qué se cambió y por qué. La app usa el
+esquema SQLite; el de MySQL queda como referencia histórica.
 
 ## Criterios aplicados
 
@@ -71,13 +73,14 @@ administrador escribe uno que no existe.
 | `contrasena_hash` | depende de `id` |
 | `rol` | depende de `id` |
 | `activo`, `creado_en` | dependen de `id` |
-| `nombre_completo` | columna generada a partir de las tres partes |
+| `nombre_completo` | columna generada en MySQL; en SQLite se compone al consultar |
 
 **Cambio:** `nombre` guardaba el nombre completo en un solo campo, lo que
 rompía la 1FN. Se dividió en `nombres`, `apellido_paterno` y
-`apellido_materno`. `nombre_completo` es una columna `GENERATED ALWAYS AS ...
-STORED`: la calcula MySQL, no se captura ni se actualiza, y sirve para buscar y
-mostrar. Por eso no introduce una dependencia transitiva real.
+`apellido_materno`. En MySQL `nombre_completo` es una columna
+`GENERATED ALWAYS AS ... STORED`; en SQLite no se guarda y se compone con
+`TRIM` y `||` en las consultas. Por eso no introduce una dependencia transitiva
+real.
 
 ### `alumnos`
 
@@ -89,6 +92,9 @@ mostrar. Por eso no introduce una dependencia transitiva real.
 | `semestre` | depende de `id_usuario` |
 
 **Cambio:** el nombre de la carrera no se duplica; se obtiene con `JOIN`.
+`matricula` es `CHAR(8)` con `CHECK (matricula REGEXP '^[0-9]{3}T[0-9]{4}$')`
+para exigir el formato `000T0000` (por ejemplo `232T0182`), y `semestre` tiene
+`CHECK (semestre BETWEEN 1 AND 9)` porque los planes van de primero a noveno.
 
 ### `docentes`
 
@@ -137,6 +143,10 @@ rechaza bloques traslapados del mismo día.
 
 **Cambio:** `UNIQUE (id_alumno, id_actividad)` evita inscribir dos veces al
 mismo alumno. La baja es lógica (`estado = 'baja'`) para conservar historial.
+Además, los disparadores `trg_inscripcion_unica_alta` y
+`trg_inscripcion_unica_cambio` impiden que un alumno tenga dos inscripciones
+activas al mismo tiempo: solo puede pertenecer a una actividad y debe darse de
+baja antes de elegir otra.
 
 ### `sesiones`
 
@@ -167,11 +177,32 @@ y sesión.
 | `id` | llave primaria |
 | `id_actividad` | llave foránea a `actividades` |
 | `id_docente` | llave foránea a `docentes` |
-| `descripcion`, `ruta_foto`, `subida_en` | dependen de `id` |
+| `fecha`, `estado`, `descripcion`, `creada_en`, `actualizada_en` | dependen de `id` |
 
 **Decisión:** `id_docente` se conserva aunque la actividad ya tenga un titular.
-No es un dato derivable: registra quién subió la foto en ese momento, y el
-titular puede cambiar después. Es un hecho histórico, no una repetición.
+No es un dato derivable: registra quién subió la evidencia en ese momento, y el
+titular puede cambiar después. Es un hecho histórico, no una repetición. Cuando
+la evidencia la registra el administrador, se guarda el docente titular de la
+actividad, porque la columna solo puede referenciar a `docentes`; si la actividad
+no tiene titular, queda `NULL`. Así el reporte por docente sigue contando la
+evidencia sin inventar un usuario que no existe en `docentes`.
+
+**Cambio:** una evidencia representa un día de una actividad. `fecha` guarda el
+día de la actividad y `creada_en` la hora de registro; así se pueden registrar
+varias evidencias el mismo día. `estado` solo admite `realizada`, `suspendida`
+o `no_realizada`.
+
+### `evidencia_fotos`
+
+| Columna | Dependencia |
+| --- | --- |
+| `id` | llave primaria |
+| `id_evidencia` | llave foránea a `evidencias` |
+| `ruta_foto`, `orden` | dependen de la combinación evidencia y fotografía |
+
+**Cambio:** se separó la fotografía de la evidencia para permitir de una a diez
+fotos por registro sin repetir los datos de la evidencia. `orden` conserva el
+orden en que se eligieron las fotos.
 
 ### `constancias`
 
@@ -193,13 +224,13 @@ emitido y no debe cambiar aunque cambie la fórmula que lo genera.
 | Nombre del periodo | `v_periodos.nombre` |
 | Docente, inscritos y horario resumido | `v_actividades` |
 | Sesiones, asistencias y porcentaje | `v_asistencia_alumno` |
-| Nombre completo de la persona | `usuarios.nombre_completo` (columna generada) |
+| Nombre completo de la persona | `usuarios.nombre_completo` en MySQL; composición en Kotlin/SQL en SQLite |
 
-## Reglas de negocio que quedan en la API
+## Reglas de negocio que quedan en la app
 
-- Solo puede haber un periodo activo a la vez; la API toma el más reciente
+- Solo puede haber un periodo activo a la vez; la app toma el más reciente
   (`ORDER BY inicio DESC LIMIT 1`).
 - El cupo se valida con el trigger `trg_inscripcion_cupo` y también al
   reactivar una inscripción dada de baja.
 - Un docente solo consulta y modifica sus propias actividades.
-- La constancia exige el porcentaje mínimo configurado en `ASISTENCIA_MINIMA`.
+- La constancia exige el porcentaje mínimo de 80 % de asistencia.

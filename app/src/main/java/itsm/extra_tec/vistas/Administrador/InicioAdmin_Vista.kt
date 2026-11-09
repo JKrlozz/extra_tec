@@ -14,9 +14,11 @@ class InicioAdmin_Vista : Base_Vista<InicioAdminVistaBinding>() {
         InicioAdminVistaBinding.inflate(inflador, contenedor, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.tvDetalle.text = sesion.usuario?.correo.orEmpty()
         binding.btnIrActividades.setOnClickListener { navegador.ir(Pantalla_Vista.GESTIONAR_ACTIVIDADES) }
-        binding.btnIrDocentes.setOnClickListener { navegador.ir(Pantalla_Vista.GESTIONAR_DOCENTES) }
-        binding.btnIrAlumnos.setOnClickListener { navegador.ir(Pantalla_Vista.GESTIONAR_ALUMNOS) }
+        binding.btnIrDocentes.setOnClickListener {
+            navegador.ir(Pantalla_Vista.GESTIONAR_ALUMNOS, Personas_Vista.argumentos("alumno"))
+        }
         binding.btnIrReportes.setOnClickListener { navegador.ir(Pantalla_Vista.REPORTES) }
         binding.btnCerrarSesion.setOnClickListener { cerrarSesion() }
     }

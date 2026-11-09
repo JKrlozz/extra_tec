@@ -11,11 +11,6 @@ import itsm.extra_tec.databinding.RegistroVistaBinding
 class Registro_Vista : Base_Vista<RegistroVistaBinding>() {
     private val modelo: Registro_ModeloVista by viewModels()
 
-    private val semestres = listOf(
-        "Primero", "Segundo", "Tercero", "Cuarto", "Quinto",
-        "Sexto", "Séptimo", "Octavo", "Noveno",
-    )
-
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
         RegistroVistaBinding.inflate(inflador, contenedor, false)
 

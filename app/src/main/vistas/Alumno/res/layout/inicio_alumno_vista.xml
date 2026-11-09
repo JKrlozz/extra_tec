@@ -6,17 +6,13 @@
     <LinearLayout style="@style/Itsm.Header">
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
-            style="@style/Itsm.HeaderTitle"
-            android:text="Hola," />
-        <TextView
             android:id="@+id/tvNombre"
             style="@style/Itsm.HeaderTitle"
-            android:layout_marginTop="0dp"
             android:text="" />
         <TextView
             android:id="@+id/tvDetalle"
             style="@style/Itsm.Text.Secondary"
-            android:textColor="#B8C4DA"
+            android:textColor="#E8C9D4"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />

@@ -76,20 +76,6 @@
                 style="@style/Itsm.Button.Text"
                 android:layout_marginTop="8dp"
                 android:text="¿No tienes cuenta? Regístrate" />
-
-            <TextView
-                android:id="@+id/tvEstadoServidor"
-                style="@style/Itsm.Text.Secondary"
-                android:layout_width="match_parent"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:minHeight="48dp"
-                android:padding="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnServidor"
-                style="@style/Itsm.Button.Text"
-                android:text="Configurar servidor manualmente" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -2,14 +2,14 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
-const { wrap, HttpError, requireFields } = require('../util');
+const { wrap, HttpError, requireFields, requireMatricula, requireSemestre } = require('../util');
 
 const firmar = (u) =>
   jwt.sign({ id: u.id, rol: u.rol, nombre: u.nombre_completo }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRA || '30d',
   });
 
-// La API siempre entrega el nombre completo y sus partes por separado.
+// La API entrega el nombre completo y sus partes
 const datosUsuario = (u) => ({
   id: u.id,
   nombres: u.nombres,
@@ -32,7 +32,9 @@ router.post('/login', wrap(async (req, res) => {
 
 router.post('/registro', wrap(async (req, res) => {
   requireFields(req.body, ['nombres', 'apellido_paterno', 'correo', 'contrasena', 'matricula', 'id_carrera', 'semestre']);
-  const { nombres, apellido_paterno, apellido_materno, correo, contrasena, matricula, id_carrera, semestre } = req.body;
+  const { nombres, apellido_paterno, apellido_materno, correo, contrasena, id_carrera } = req.body;
+  const matricula = requireMatricula(req.body.matricula);
+  const semestre = requireSemestre(req.body.semestre);
   if (String(contrasena).length < 8) throw new HttpError(400, 'La contraseña debe tener al menos 8 caracteres');
   const hash = await bcrypt.hash(contrasena, 10);
 

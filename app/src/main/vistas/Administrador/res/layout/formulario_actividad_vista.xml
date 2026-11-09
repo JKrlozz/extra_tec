@@ -40,7 +40,11 @@
             </com.google.android.material.textfield.TextInputLayout>
             <TextView
                 style="@style/Itsm.Text.Section"
-                android:text="Horarios" />
+                android:text="Días y horarios" />
+            <TextView
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginBottom="8dp"
+                android:text="Toca la hora para elegirla con el reloj. Puedes agregar varios días." />
             <LinearLayout
                 android:id="@+id/contenedorHorarios"
                 android:layout_width="match_parent"

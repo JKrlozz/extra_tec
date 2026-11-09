@@ -2,25 +2,24 @@
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import itsm.extra_tec.Modelo.Api_Modelo
 import itsm.extra_tec.ModeloVista.Sesion_ModeloVista
 import itsm.extra_tec.databinding.PrincipalVistaBinding
+import itsm.extra_tec.vistas.Administrador.Personas_Vista
 
-// activity Ãºnica: aloja el fragmento actual y las barras de navegaciÃ³n
+// Activity unica que aloja el fragmento y las barras
 class Principal_Vista : AppCompatActivity(), Navegador_Vista {
     private lateinit var binding: PrincipalVistaBinding
     private val sesion: Sesion_ModeloVista by viewModels()
     private var pantallaActual = Pantalla_Vista.BIENVENIDA
     private var argumentosActuales: Bundle? = null
 
-    // historial de pantallas para el botÃ³n Volver y el botÃ³n fÃ­sico AtrÃ¡s
+    // Historial de pantallas para volver
     private val pila = ArrayDeque<Pair<Pantalla_Vista, Bundle?>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,20 +42,12 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
         })
 
         conectarBarras()
-        Api_Modelo.alExpirarSesion = {
-            Toast.makeText(this, "Tu sesiÃ³n expirÃ³. Inicia sesiÃ³n de nuevo.", Toast.LENGTH_LONG).show()
-            sesion.cerrar()
-            irRaiz(Pantalla_Vista.INICIO_SESION)
-        }
-
-        Api_Modelo.alPerderConexion = { sesion.buscarServidor() }
 
         val restaurada = sesion.restaurar()
         if (savedInstanceState == null) {
-            sesion.buscarServidor()
             if (restaurada) irAlInicio() else irRaiz(Pantalla_Vista.BIENVENIDA)
         } else {
-            // el sistema restaura los fragmentos; solo se recupera la barra
+            // Al restaurar solo se recupera la barra
             pantallaActual = Pantalla_Vista.valueOf(savedInstanceState.getString(CLAVE_PANTALLA) ?: pantallaActual.name)
             mostrarBarra(pantallaActual.barra)
             actualizarBotonAtras()
@@ -103,6 +94,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
         argumentosActuales = argumentos
         val fragmento = pantalla.crear().apply { arguments = argumentos }
         supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
             .replace(binding.contenedor.id, fragmento)
             .commitAllowingStateLoss()
         mostrarBarra(pantalla.barra)
@@ -110,7 +102,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
     }
 
     private fun actualizarBotonAtras() {
-        binding.btnAtras.visibility = if (pila.isEmpty()) View.GONE else View.VISIBLE
+        binding.contenedorVolver.visibility = if (pila.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun mostrarBarra(barra: Barra_Vista) {
@@ -128,20 +120,15 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
         }
         with(binding.barraDocente) {
             nav1.setOnClickListener { irRaiz(Pantalla_Vista.INICIO_DOCENTE) }
-            nav2.setOnClickListener {
-                if (sesion.claseId == null) {
-                    Toast.makeText(this@Principal_Vista, "Elige una clase y pulsa \"Pase de lista\".", Toast.LENGTH_LONG).show()
-                    irRaiz(Pantalla_Vista.INICIO_DOCENTE)
-                } else {
-                    irRaiz(Pantalla_Vista.ASISTENCIA)
-                }
-            }
+            nav2.setOnClickListener { irRaiz(Pantalla_Vista.ASISTENCIA) }
             nav3.setOnClickListener { irRaiz(Pantalla_Vista.EVIDENCIA) }
         }
         with(binding.barraAdmin) {
             nav1.setOnClickListener { irRaiz(Pantalla_Vista.INICIO_ADMIN) }
             nav2.setOnClickListener { irRaiz(Pantalla_Vista.GESTIONAR_ACTIVIDADES) }
-            nav3.setOnClickListener { irRaiz(Pantalla_Vista.GESTIONAR_DOCENTES) }
+            nav3.setOnClickListener {
+                irRaiz(Pantalla_Vista.GESTIONAR_ALUMNOS, Personas_Vista.argumentos("alumno"))
+            }
             nav4.setOnClickListener { irRaiz(Pantalla_Vista.REPORTES) }
         }
     }

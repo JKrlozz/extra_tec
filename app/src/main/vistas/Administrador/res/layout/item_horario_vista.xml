@@ -34,10 +34,13 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilHoraInicio"
                 style="@style/Itsm.Field"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:hint="Inicio">
+                android:hint="Hora de inicio"
+                app:endIconDrawable="@drawable/ic_reloj"
+                app:endIconMode="custom">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHoraInicio"
@@ -54,10 +57,13 @@
                 android:layout_height="1dp" />
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilHoraFin"
                 style="@style/Itsm.Field"
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:hint="Fin">
+                android:hint="Hora de fin"
+                app:endIconDrawable="@drawable/ic_reloj"
+                app:endIconMode="custom">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHoraFin"

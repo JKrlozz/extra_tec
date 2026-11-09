@@ -15,7 +15,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioDocente_Vista : Base_Vista<FormularioDocenteVistaBinding>() {
     private val modelo: FormularioDocente_ModeloVista by viewModels()
 
-    // sin id, el formulario registra un docente nuevo
+    // Sin id el formulario registra un docente nuevo
     private val idDocente: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
@@ -37,7 +37,14 @@ class FormularioDocente_Vista : Base_Vista<FormularioDocenteVistaBinding>() {
         if (idDocente != null) binding.tilContrasena.visibility = View.GONE
 
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.irRaiz(Pantalla_Vista.GESTIONAR_DOCENTES) } }
+            evento.obtener()?.let {
+                mostrarClaveInicial(it.claveInicial) {
+                    navegador.irRaiz(
+                        Pantalla_Vista.GESTIONAR_DOCENTES,
+                        Personas_Vista.argumentos("docente"),
+                    )
+                }
+            }
         }
         binding.btnGuardar.setOnClickListener {
             modelo.guardar(

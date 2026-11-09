@@ -23,10 +23,14 @@ class Constancia_Vista : Base_Vista<ConstanciaVistaBinding>() {
             estadoLista(binding.tvVacio, constancias, "Aún no estás inscrito en ninguna actividad.")
             binding.listaContenido.removeAllViews()
             constancias?.forEach { c ->
-                val estado = if (c.disponible) "Constancia disponible" else "Constancia no disponible (se requiere 80 %)"
+                val estado = if (c.disponible) "Disponible" else "No disponible, se requiere 80 % de asistencia"
                 agregarTarjeta(binding.listaContenido, c.nombre,
-                    "${c.periodo}, $estado",
-                    "Asistencia: ${c.porcentaje.toInt()} % (${c.asistencias} de ${c.sesiones} sesiones)",
+                    detalles = listOf(
+                        "Periodo" to c.periodo,
+                        "Estado" to estado,
+                        "Asistencia" to "${c.porcentaje.toInt()} %",
+                        "Sesiones" to "${c.asistencias} de ${c.sesiones}",
+                    ),
                     progreso = c.porcentaje.toInt(),
                     a = if (c.disponible) {
                         Accion_Vista("Descargar PDF") { modelo.descargar(c.idActividad, requireContext().applicationContext) }

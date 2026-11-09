@@ -15,6 +15,13 @@
             android:id="@+id/tvLinea2"
             style="@style/Itsm.Text.Secondary"
             android:visibility="gone" />
+        <LinearLayout
+            android:id="@+id/contenedorDetalles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="vertical"
+            android:visibility="gone" />
         <ProgressBar
             android:id="@+id/pbProgreso"
             style="?android:attr/progressBarStyleHorizontal"
@@ -26,7 +33,7 @@
             android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/filaBotones"
+            android:id="@+id/filaBotones1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -34,7 +41,7 @@
             android:visibility="gone">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnA"
-                style="@style/Itsm.Button.Primary"
+                style="@style/Itsm.Button.Secondary"
                 android:layout_width="0dp"
                 android:layout_marginEnd="3dp"
                 android:layout_marginStart="3dp"
@@ -48,9 +55,26 @@
                 android:layout_marginStart="3dp"
                 android:layout_weight="1"
                 android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/filaBotones2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnC"
-                style="@style/Itsm.Button.Danger"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnD"
+                style="@style/Itsm.Button.Secondary"
                 android:layout_width="0dp"
                 android:layout_marginEnd="3dp"
                 android:layout_marginStart="3dp"

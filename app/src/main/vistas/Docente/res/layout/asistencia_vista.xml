@@ -6,12 +6,13 @@
     <LinearLayout style="@style/Itsm.Header">
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
+            android:id="@+id/tvTituloAsistencia"
             style="@style/Itsm.HeaderTitle"
             android:text="Pase de lista" />
         <TextView
             android:id="@+id/tvSubtitulo"
             style="@style/Itsm.Text.Secondary"
-            android:textColor="#B8C4DA"
+            android:textColor="#E8C9D4"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
@@ -24,21 +25,67 @@
         <LinearLayout
             style="@style/Itsm.Content">
 
-            <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
-                <LinearLayout
-                    android:id="@+id/listaContenido"
-                    style="@style/Itsm.CardBody"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
-            </com.google.android.material.card.MaterialCardView>
-            <TextView
-                android:id="@+id/tvVacio"
-                style="@style/Itsm.Text.Secondary"
-                android:layout_marginTop="8dp"
-                android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/contenedorSeleccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Itsm.Text.Section"
+                    android:text="Actividad y fecha" />
+                <TextView
+                    style="@style/Itsm.Text.Secondary"
+                    android:layout_marginBottom="8dp"
+                    android:text="Elige la actividad y la fecha antes de marcar la lista." />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Itsm.Card"
+                    android:layout_marginBottom="10dp">
+                    <Spinner
+                        android:id="@+id/spinnerActividadAsistencia"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFechaAsistencia"
+                    style="@style/Itsm.Button.Secondary"
+                    android:layout_marginBottom="12dp"
+                    android:text="Fecha"
+                    app:icon="@drawable/ic_calendario"
+                    app:iconTint="@color/itsm_primary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/contenedorLista"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Itsm.Text.Section"
+                    android:text="Alumnos" />
+                <com.google.android.material.card.MaterialCardView style="@style/Itsm.Card">
+                    <LinearLayout
+                        android:id="@+id/listaContenido"
+                        style="@style/Itsm.CardBody"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp" />
+                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/tvVacio"
+                    style="@style/Itsm.Text.Secondary"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardarAsistencia"
                 style="@style/Itsm.Button.Primary"
+                android:layout_marginTop="8dp"
                 android:text="Guardar asistencia" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancelar"

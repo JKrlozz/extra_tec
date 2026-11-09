@@ -31,4 +31,29 @@ function requireFields(body, fields) {
   if (faltan.length) throw new HttpError(400, `Faltan campos: ${faltan.join(', ')}`);
 }
 
-module.exports = { wrap, HttpError, auth, requireFields };
+// Reglas del numero de control del alumno
+// Tiene tres digitos una T y cuatro digitos
+const MATRICULA = /^[0-9]{3}T[0-9]{4}$/;
+
+function normalizarMatricula(valor) {
+  return String(valor ?? '').trim().toUpperCase();
+}
+
+function requireMatricula(valor) {
+  if (!MATRICULA.test(normalizarMatricula(valor))) {
+    throw new HttpError(400, 'El número de control debe tener el formato 000T0000, por ejemplo 232T0182');
+  }
+  return normalizarMatricula(valor);
+}
+
+function requireSemestre(valor) {
+  const semestre = Number(valor);
+  if (!Number.isInteger(semestre) || semestre < 1 || semestre > 9) {
+    throw new HttpError(400, 'El semestre debe ser de primero a noveno');
+  }
+  return semestre;
+}
+
+module.exports = {
+  wrap, HttpError, auth, requireFields, requireMatricula, requireSemestre, normalizarMatricula,
+};

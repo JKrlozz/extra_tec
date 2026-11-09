@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import itsm.extra_tec.Modelo.Autenticacion_Modelo
 import itsm.extra_tec.Modelo.Carrera
+import itsm.extra_tec.Modelo.NumeroControl
 
 class Registro_ModeloVista : Base_ModeloVista() {
     private val _carreras = MutableLiveData<List<Carrera>>(emptyList())
@@ -28,15 +29,17 @@ class Registro_ModeloVista : Base_ModeloVista() {
     ) {
         val semestre = posicionSemestre + 1
         val carrera = _carreras.value.orEmpty().getOrNull(posicionCarrera)
+        val numeroControl = NumeroControl.normalizar(matricula)
         when {
-            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || matricula.isEmpty() ->
+            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || numeroControl.isEmpty() ->
                 return avisar("Completa nombres, apellido paterno, correo y número de control.")
+            !NumeroControl.esValido(numeroControl) -> return avisar(NumeroControl.MENSAJE)
             contrasena.length < 8 -> return avisar("La contraseña debe tener al menos 8 caracteres.")
             semestre !in 1..9 -> return avisar("Elige un semestre de primero a noveno.")
             carrera == null -> return avisar("Aún no se cargan las carreras.")
         }
         Autenticacion_Modelo.registrar(
-            nombres, apellidoPaterno, apellidoMaterno, correo, contrasena, matricula, carrera!!.id, semestre,
+            nombres, apellidoPaterno, apellidoMaterno, correo, contrasena, numeroControl, carrera!!.id, semestre,
         ) { resultado ->
             atender(resultado) {
                 avisar("Registro realizado. Ya puedes iniciar sesión.")

@@ -39,7 +39,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         super.onDestroyView()
     }
 
-    // muestra los mensajes del viewmodel
+    // Muestra los mensajes del viewmodel
     protected fun escuchar(modelo: Base_ModeloVista) {
         modelo.mensaje.observe(viewLifecycleOwner) { evento -> evento.obtener()?.let { aviso(it) } }
     }
@@ -61,6 +61,12 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
             .show()
     }
 
+    // Etiquetas de los semestres
+    protected val semestres = listOf(
+        "Primero", "Segundo", "Tercero", "Cuarto", "Quinto",
+        "Sexto", "Séptimo", "Octavo", "Noveno",
+    )
+
     protected fun <T> llenarSpinner(spinner: Spinner, elementos: List<T>, etiqueta: (T) -> String) {
         spinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, elementos.map(etiqueta))
     }
@@ -73,7 +79,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         })
     }
 
-    // estado de una lista: cargando, vacía o con elementos
+    // Estado de una lista cargando vacia o con elementos
     protected fun estadoLista(texto: TextView, elementos: List<*>?, vacio: String) {
         val mensaje = when {
             elementos == null -> "Cargando"
@@ -84,7 +90,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
         texto.text = mensaje
     }
 
-    // el servidor entrega la contraseña inicial una sola vez
+    // La contrasena inicial se muestra una sola vez
     protected fun mostrarClaveInicial(clave: String?, alCerrar: () -> Unit) {
         if (clave == null) return alCerrar()
         AlertDialog.Builder(requireContext())

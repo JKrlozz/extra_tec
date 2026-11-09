@@ -4,8 +4,8 @@ const { wrap, HttpError, auth, requireFields } = require('../util');
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-// Valida que el día exista en el catálogo, que las horas sean correctas y
-// que dos bloques del mismo día no se traslapen.
+// Valida el dia las horas y los choques de horario
+// Comprueba que dos bloques no se traslapen
 async function validarHorarios(horarios) {
   if (!Array.isArray(horarios) || !horarios.length) throw new HttpError(400, 'Indica al menos un horario');
   const [dias] = await db.query('SELECT id FROM dias_semana');
@@ -26,7 +26,7 @@ async function validarHorarios(horarios) {
   }
 }
 
-// Devuelve el id del lugar; si el nombre no existe lo registra en el catálogo.
+// Devuelve el lugar y lo registra si no existe
 async function resolverLugar(conn, h) {
   if (h.id_lugar) {
     const [[porId]] = await conn.query('SELECT id FROM lugares WHERE id = ?', [h.id_lugar]);
@@ -49,7 +49,7 @@ async function guardarHorarios(conn, idActividad, horarios) {
   }
 }
 
-// Días y lugares para el editor de horarios de la app.
+// Dias y lugares del editor de horarios
 router.get('/catalogos-horario', auth(), wrap(async (req, res) => {
   const [dias] = await db.query('SELECT id, nombre, orden FROM dias_semana ORDER BY orden');
   const [lugares] = await db.query('SELECT id, nombre FROM lugares ORDER BY nombre');
@@ -157,6 +157,17 @@ router.post('/inscripciones', auth('alumno'), wrap(async (req, res) => {
   requireFields(req.body, ['id_actividad']);
   const [[act]] = await db.query('SELECT id FROM actividades WHERE id = ? AND activa = 1', [req.body.id_actividad]);
   if (!act) throw new HttpError(404, 'Actividad no disponible');
+
+  // Un alumno solo puede tener una actividad
+  const [[actual]] = await db.query(
+    `SELECT a.nombre FROM inscripciones i JOIN actividades a ON a.id = i.id_actividad
+      WHERE i.id_alumno = ? AND i.estado = 'activa' AND i.id_actividad <> ?`,
+    [req.user.id, act.id]);
+  if (actual) {
+    throw new HttpError(409,
+      `Ya estás inscrito en ${actual.nombre}. Da de baja esa actividad antes de inscribirte en otra`);
+  }
+
   const [[prev]] = await db.query(
     'SELECT id, estado FROM inscripciones WHERE id_alumno = ? AND id_actividad = ?', [req.user.id, act.id]);
   if (prev && prev.estado === 'activa') throw new HttpError(409, 'Ya estás inscrito en esta actividad');

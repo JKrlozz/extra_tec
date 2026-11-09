@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- el token de sesión no sale del teléfono -->
+    <!-- La sesion no sale del telefono -->
     <exclude domain="sharedpref" path="sesion.xml"/>
 </full-backup-content>

@@ -15,7 +15,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
     private val modelo: FormularioAlumno_ModeloVista by viewModels()
 
-    // sin id, el formulario agrega un alumno nuevo
+    // Sin id el formulario agrega un alumno nuevo
     private val idAlumno: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
@@ -24,6 +24,7 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
         binding.tvTituloForm.text = if (idAlumno == null) "Agregar alumno" else "Editar alumno"
+        llenarSpinner(binding.spinnerSemestre, semestres) { it }
         if (idAlumno != null && savedInstanceState == null) {
             arguments?.let {
                 binding.etNombres.setText(it.getString(ARG_NOMBRES))
@@ -31,7 +32,7 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
                 binding.etApellidoMaterno.setText(it.getString(ARG_MATERNO))
                 binding.etCorreo.setText(it.getString(ARG_CORREO))
                 binding.etMatricula.setText(it.getString(ARG_MATRICULA))
-                binding.etSemestre.setText(it.getInt(ARG_SEMESTRE).toString())
+                binding.spinnerSemestre.setSelection((it.getInt(ARG_SEMESTRE) - 1).coerceIn(0, semestres.size - 1))
             }
         }
         if (idAlumno != null) binding.tilContrasena.visibility = View.GONE
@@ -42,7 +43,14 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
             if (posicion >= 0) binding.spinnerCarrera.setSelection(posicion)
         }
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { mostrarClaveInicial(it.claveInicial) { navegador.irRaiz(Pantalla_Vista.GESTIONAR_ALUMNOS) } }
+            evento.obtener()?.let {
+                mostrarClaveInicial(it.claveInicial) {
+                    navegador.irRaiz(
+                        Pantalla_Vista.GESTIONAR_ALUMNOS,
+                        Personas_Vista.argumentos("alumno"),
+                    )
+                }
+            }
         }
 
         binding.btnGuardar.setOnClickListener {
@@ -53,7 +61,7 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
                 binding.etApellidoMaterno.texto(),
                 binding.etCorreo.texto(),
                 binding.etMatricula.texto(),
-                binding.etSemestre.texto(),
+                binding.spinnerSemestre.selectedItemPosition,
                 binding.spinnerCarrera.selectedItemPosition,
                 binding.etContrasena.text.toString(),
             )

@@ -19,11 +19,10 @@
         <LinearLayout
             style="@style/Itsm.Content">
 
-            <TextView style="@style/Itsm.Text.Section" android:text="Parámetros" />
             <TextView
                 style="@style/Itsm.Text.Section"
-                android:layout_marginTop="0dp"
                 android:text="Tipo de reporte" />
+
             <com.google.android.material.card.MaterialCardView
                 style="@style/Itsm.Card"
                 android:layout_marginBottom="16dp">
@@ -34,22 +33,50 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Periodo" />
+
+            <TextView
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginBottom="8dp"
+                android:text="Puedes limitar el periodo con las fechas. Si las dejas vacías se usa todo el historial." />
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDesde"
                 style="@style/Itsm.Field"
-                android:hint="Fecha inicial (YYYY-MM-DD, opcional)">
+                android:hint="Fecha inicial (opcional)"
+                app:endIconDrawable="@drawable/ic_calendario"
+                app:endIconMode="custom">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDesde"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilHasta"
                 style="@style/Itsm.Field"
-                android:hint="Fecha final (YYYY-MM-DD, opcional)">
+                android:hint="Fecha final (opcional)"
+                app:endIconDrawable="@drawable/ic_calendario"
+                app:endIconMode="custom">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etHasta"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLimpiarFechas"
+                style="@style/Itsm.Button.Text"
+                android:layout_marginBottom="8dp"
+                android:text="Limpiar fechas" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGenerarReporte"
                 style="@style/Itsm.Button.Primary"
@@ -59,12 +86,36 @@
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginTop="8dp"
                 android:text="Exportar PDF" />
-            <TextView
-                android:id="@+id/tvResultadoReporte"
-                style="@style/Itsm.Text.Body"
+            <LinearLayout
+                android:id="@+id/encabezadoReporte"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textColor="@color/itsm_primary_dark"
-                android:textIsSelectable="true" />
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvTituloReporte"
+                    style="@style/Itsm.Text.Title"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tvResumenReporte"
+                    style="@style/Itsm.Text.Secondary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvVacioReporte"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="12dp"
+                android:text="Genera un reporte para ver los resultados." />
+
+            <LinearLayout
+                android:id="@+id/listaReporte"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" />
 
         </LinearLayout>
     </ScrollView>

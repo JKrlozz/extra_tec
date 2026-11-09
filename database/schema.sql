@@ -1,19 +1,17 @@
--- Esquema MySQL 8.0 de extra_tec en tercera forma normal (3FN)
--- Ejecutar antes de seed.sql
+-- Esquema MySQL de la aplicacion
+-- Ejecutar antes de los datos de prueba
 DROP DATABASE IF EXISTS extra_tec;
 CREATE DATABASE extra_tec CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE extra_tec;
 
--- ============================================================
--- Catálogos
--- ============================================================
+-- Catalogos
 
 CREATE TABLE carreras (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(80) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
--- El nombre del periodo no se almacena: se deriva de las fechas en v_periodos.
+-- El nombre del periodo se calcula con las fechas
 CREATE TABLE periodos (
   id      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   inicio  DATE NOT NULL,
@@ -22,25 +20,23 @@ CREATE TABLE periodos (
   CHECK (fin > inicio)
 ) ENGINE=InnoDB;
 
--- Catálogo de días: evita repetir el texto y conserva el orden de la semana.
+-- Dias de la semana
 CREATE TABLE dias_semana (
   id     TINYINT UNSIGNED PRIMARY KEY,
   nombre VARCHAR(10) NOT NULL UNIQUE,
   orden  TINYINT UNSIGNED NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
--- Catálogo de lugares donde se imparten las actividades.
+-- Lugares de las actividades
 CREATE TABLE lugares (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(60) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
--- ============================================================
 -- Personas
--- ============================================================
 
--- El nombre se guarda en columnas atómicas (1FN).
--- nombre_completo es una columna generada: se calcula, no se captura.
+-- El nombre se guarda en columnas separadas
+-- El nombre completo se calcula
 CREATE TABLE usuarios (
   id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombres           VARCHAR(60) NOT NULL,
@@ -50,7 +46,7 @@ CREATE TABLE usuarios (
                       CONCAT_WS(' ', nombres, apellido_paterno, apellido_materno)
                     ) STORED,
   correo            VARCHAR(120) NOT NULL UNIQUE,
-  contrasena_hash   VARCHAR(255) NOT NULL,        -- hash bcrypt generado por la api
+  contrasena_hash   VARCHAR(255) NOT NULL, -- clave cifrada
   rol               ENUM('alumno','docente','admin') NOT NULL,
   activo            TINYINT(1) NOT NULL DEFAULT 1,
   creado_en         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -58,12 +54,15 @@ CREATE TABLE usuarios (
   INDEX idx_usuarios_nombre (apellido_paterno, apellido_materno, nombres)
 ) ENGINE=InnoDB;
 
+-- El numero de control tiene tres digitos una T y cuatro digitos
+-- El semestre va de primero a noveno
 CREATE TABLE alumnos (
   id_usuario  INT UNSIGNED PRIMARY KEY,
-  matricula   VARCHAR(15) NOT NULL UNIQUE,
+  matricula   CHAR(8) NOT NULL UNIQUE,
   id_carrera  INT UNSIGNED NOT NULL,
   semestre    TINYINT UNSIGNED NOT NULL,
-  CHECK (semestre BETWEEN 1 AND 12),
+  CHECK (matricula REGEXP '^[0-9]{3}T[0-9]{4}$'),
+  CHECK (semestre BETWEEN 1 AND 9),
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE,
   FOREIGN KEY (id_carrera) REFERENCES carreras(id)
 ) ENGINE=InnoDB;
@@ -75,9 +74,7 @@ CREATE TABLE docentes (
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ============================================================
 -- Actividades y horarios
--- ============================================================
 
 CREATE TABLE actividades (
   id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -93,8 +90,8 @@ CREATE TABLE actividades (
   FOREIGN KEY (id_periodo) REFERENCES periodos(id)
 ) ENGINE=InnoDB;
 
--- Cada fila es un bloque de horario. Día y lugar se referencian por clave
--- foránea a sus catálogos, no se repiten como texto libre.
+-- Cada fila es un bloque de horario
+-- El dia y el lugar se guardan como claves
 CREATE TABLE horarios (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
@@ -109,9 +106,7 @@ CREATE TABLE horarios (
   FOREIGN KEY (id_lugar)     REFERENCES lugares(id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- Inscripciones, asistencia y evidencias
--- ============================================================
+-- Inscripciones asistencia y evidencias
 
 CREATE TABLE inscripciones (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -142,24 +137,22 @@ CREATE TABLE asistencias (
   FOREIGN KEY (id_alumno) REFERENCES alumnos(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- id_docente es el autor de la subida (hecho histórico), no un dato
--- derivable de la actividad, porque el titular puede cambiar después.
+-- El docente registra quien subio la evidencia
+-- El titular puede cambiar despues
 CREATE TABLE evidencias (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_actividad  INT UNSIGNED NOT NULL,
   id_docente    INT UNSIGNED NULL,
   descripcion   VARCHAR(255),
-  ruta_foto     VARCHAR(255) NOT NULL,           -- la imagen va en disco; aquí solo la ruta
+  ruta_foto     VARCHAR(255) NOT NULL, -- ruta de la imagen
   subida_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_actividad) REFERENCES actividades(id) ON DELETE CASCADE,
   FOREIGN KEY (id_docente)   REFERENCES docentes(id_usuario) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- ============================================================
 -- Constancias
--- ============================================================
 
--- El porcentaje no se almacena: se calcula con v_asistencia_alumno.
+-- El porcentaje se calcula al consultar
 CREATE TABLE constancias (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_inscripcion  INT UNSIGNED NOT NULL UNIQUE,
@@ -168,11 +161,9 @@ CREATE TABLE constancias (
   FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- ============================================================
--- Vistas: datos derivados y resúmenes para la API
--- ============================================================
+-- Vistas de datos calculados
 
--- Nombre legible del periodo calculado a partir de las fechas.
+-- Nombre del periodo
 CREATE VIEW v_periodos AS
 SELECT id, inicio, fin, activo,
        CONCAT(ELT(MONTH(inicio),'Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'),
@@ -181,7 +172,7 @@ SELECT id, inicio, fin, activo,
               ' ', YEAR(inicio)) AS nombre
 FROM periodos;
 
--- Cupo ocupado, horario resumido y docente de cada actividad.
+-- Cupo horario y docente de cada actividad
 CREATE VIEW v_actividades AS
 SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa, p.nombre AS periodo,
        u.nombre_completo AS docente, a.id_docente,
@@ -195,7 +186,7 @@ FROM actividades a
 JOIN v_periodos p ON p.id = a.id_periodo
 LEFT JOIN usuarios u ON u.id = a.id_docente;
 
--- Porcentaje de asistencia por inscripción (dato calculado, no almacenado).
+-- Porcentaje de asistencia
 CREATE VIEW v_asistencia_alumno AS
 SELECT i.id AS id_inscripcion, i.id_alumno, i.id_actividad,
        COUNT(s.id) AS sesiones,
@@ -219,6 +210,34 @@ BEGIN
    WHERE id_actividad = NEW.id_actividad AND estado = 'activa';
   IF v_ins >= v_cupo THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cupo lleno para esta actividad';
+  END IF;
+END$$
+
+-- Un alumno solo puede tener una actividad activa
+-- Al darse de baja queda libre para otra
+CREATE TRIGGER trg_inscripcion_unica_alta BEFORE INSERT ON inscripciones
+FOR EACH ROW
+BEGIN
+  DECLARE v_otras INT;
+  IF NEW.estado = 'activa' THEN
+    SELECT COUNT(*) INTO v_otras FROM inscripciones
+     WHERE id_alumno = NEW.id_alumno AND estado = 'activa';
+    IF v_otras > 0 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno ya tiene una actividad inscrita';
+    END IF;
+  END IF;
+END$$
+
+CREATE TRIGGER trg_inscripcion_unica_cambio BEFORE UPDATE ON inscripciones
+FOR EACH ROW
+BEGIN
+  DECLARE v_otras INT;
+  IF NEW.estado = 'activa' THEN
+    SELECT COUNT(*) INTO v_otras FROM inscripciones
+     WHERE id_alumno = NEW.id_alumno AND estado = 'activa' AND id <> NEW.id;
+    IF v_otras > 0 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno ya tiene una actividad inscrita';
+    END IF;
   END IF;
 END$$
 DELIMITER ;

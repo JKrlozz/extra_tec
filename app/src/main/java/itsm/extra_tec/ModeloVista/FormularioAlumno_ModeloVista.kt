@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import itsm.extra_tec.Modelo.Autenticacion_Modelo
 import itsm.extra_tec.Modelo.Carrera
+import itsm.extra_tec.Modelo.NumeroControl
 import itsm.extra_tec.Modelo.Personas_Modelo
 
 class FormularioAlumno_ModeloVista : Base_ModeloVista() {
@@ -24,20 +25,22 @@ class FormularioAlumno_ModeloVista : Base_ModeloVista() {
         apellidoMaterno: String,
         correo: String,
         matricula: String,
-        semestreTexto: String,
+        posicionSemestre: Int,
         posicionCarrera: Int,
         contrasena: String,
     ) {
-        val semestre = semestreTexto.toIntOrNull()
+        val semestre = posicionSemestre + 1
         val carrera = _carreras.value.orEmpty().getOrNull(posicionCarrera)
+        val numeroControl = NumeroControl.normalizar(matricula)
         when {
-            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || matricula.isEmpty() ->
-                return avisar("Completa nombres, apellido paterno, correo y matrícula.")
-            semestre == null || semestre !in 1..12 -> return avisar("El semestre debe ser de 1 a 12.")
+            nombres.isEmpty() || apellidoPaterno.isEmpty() || correo.isEmpty() || numeroControl.isEmpty() ->
+                return avisar("Completa nombres, apellido paterno, correo y número de control.")
+            !NumeroControl.esValido(numeroControl) -> return avisar(NumeroControl.MENSAJE)
+            semestre !in 1..9 -> return avisar("Elige un semestre de primero a noveno.")
             carrera == null -> return avisar("Aún no se cargan las carreras.")
         }
         Personas_Modelo.guardarAlumno(
-            id, nombres, apellidoPaterno, apellidoMaterno, correo, matricula, carrera!!.id, semestre!!, contrasena,
+            id, nombres, apellidoPaterno, apellidoMaterno, correo, numeroControl, carrera!!.id, semestre, contrasena,
         ) { resultado ->
             atender(resultado) {
                 avisar("Alumno guardado.")

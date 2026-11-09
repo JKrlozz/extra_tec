@@ -99,11 +99,14 @@
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Número de control">
+                android:hint="Número de control"
+                app:helperText="Formato 000T0000, por ejemplo 232T0182">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etMatricula"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapCharacters"
+                    android:maxLength="8" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegistrarse"

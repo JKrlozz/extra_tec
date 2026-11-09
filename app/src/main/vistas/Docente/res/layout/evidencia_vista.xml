@@ -6,12 +6,13 @@
     <LinearLayout style="@style/Itsm.Header">
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
+            android:id="@+id/tvTitulo"
             style="@style/Itsm.HeaderTitle"
             android:text="Subir evidencia" />
         <TextView
             android:id="@+id/tvSubtitulo"
             style="@style/Itsm.Text.Secondary"
-            android:textColor="#B8C4DA"
+            android:textColor="#E8C9D4"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
@@ -38,6 +39,32 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Fecha de la actividad" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFecha"
+                style="@style/Itsm.Button.Secondary"
+                android:layout_marginBottom="16dp"
+                android:text="Fecha"
+                app:icon="@drawable/ic_calendario"
+                app:iconTint="@color/itsm_primary" />
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Estado de la actividad" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Itsm.Card"
+                android:layout_marginBottom="16dp">
+                <Spinner
+                    android:id="@+id/spinnerEstado"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Descripción">
@@ -49,23 +76,31 @@
                     android:inputType="textMultiLine"
                     android:minLines="3" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Fotografías" />
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnElegirFoto"
+                android:id="@+id/btnElegirFotos"
                 style="@style/Itsm.Button.Secondary"
-                android:text="Seleccionar fotografía" />
-            <ImageView
-                android:id="@+id/ivVistaPrevia"
-                android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:layout_marginTop="12dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="Vista previa de la fotografía"
-                android:scaleType="centerCrop"
+                android:text="Seleccionar fotografías" />
+            <TextView
+                android:id="@+id/tvSinFotos"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="Sin fotografías. Para una actividad realizada debes agregar al menos una."
                 android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/listaFotos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGuardarEvidencia"
                 style="@style/Itsm.Button.Primary"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:text="Guardar evidencia" />
 
         </LinearLayout>

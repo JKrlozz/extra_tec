@@ -1,37 +1,44 @@
 package itsm.extra_tec.Modelo
 
 import android.content.Context
-import org.json.JSONObject
 
-// el archivo sesion se excluye de los respaldos (res/xml)
+// La sesion se guarda solo en este telefono
 class Sesion_Modelo(contexto: Context) {
     private val sesion = contexto.getSharedPreferences("sesion", Context.MODE_PRIVATE)
-    private val config = contexto.getSharedPreferences("config", Context.MODE_PRIVATE)
 
     fun guardar(sesionIniciada: SesionIniciada) {
+        val usuario = sesionIniciada.usuario
         sesion.edit()
-            .putString("token", sesionIniciada.token)
-            .putString("usuario", sesionIniciada.usuario.aJson().toString())
+            .putInt("id", usuario.id)
+            .putString("nombres", usuario.nombres)
+            .putString("apellido_paterno", usuario.apellidoPaterno)
+            .putString("apellido_materno", usuario.apellidoMaterno)
+            .putString("correo", usuario.correo)
+            .putString("rol", usuario.rol)
             .apply()
     }
 
     fun leer(): SesionIniciada? {
-        val token = sesion.getString("token", null) ?: return null
-        val usuario = runCatching { Usuario.desdeJson(JSONObject(sesion.getString("usuario", "")!!)) }.getOrNull()
-        if (usuario == null) {
+        val id = sesion.getInt("id", 0)
+        if (id == 0) return null
+        val rol = sesion.getString("rol", "").orEmpty()
+        if (rol !in setOf("alumno", "docente", "admin")) {
             borrar()
             return null
         }
-        return SesionIniciada(token, usuario)
+        return SesionIniciada(
+            Usuario(
+                id,
+                sesion.getString("nombres", "").orEmpty(),
+                sesion.getString("apellido_paterno", "").orEmpty(),
+                sesion.getString("apellido_materno", "").orEmpty(),
+                sesion.getString("correo", "").orEmpty(),
+                rol,
+            )
+        )
     }
 
     fun borrar() {
         sesion.edit().clear().apply()
-    }
-
-    fun urlServidor(): String? = config.getString("url", null)
-
-    fun guardarUrlServidor(url: String) {
-        config.edit().putString("url", url).apply()
     }
 }

@@ -1,8 +1,18 @@
--- Datos de prueba; contraseña demo: itsm1234
--- SHA2 es solo de prueba; la API guarda bcrypt
+-- Datos de prueba
+-- Las claves de prueba usan SHA2
 USE extra_tec;
 
-INSERT INTO carreras (nombre) VALUES ('Ing. en Sistemas'),('Ing. Industrial'),('Ing. en Gestión');
+INSERT INTO carreras (nombre) VALUES
+  ('Ingeniería en Sistemas Computacionales'),
+  ('Ingeniería Industrial'),
+  ('Ingeniería en Gestión Empresarial'),
+  ('Ingeniería Bioquímica'),
+  ('Ingeniería Electromecánica'),
+  ('Ingeniería Civil'),
+  ('Ingeniería en Tecnologías de la Información y Comunicaciones'),
+  ('Ingeniería Ambiental'),
+  ('Ingeniería Petrolera'),
+  ('Licenciatura en Gastronomía');
 
 INSERT INTO periodos (inicio, fin, activo) VALUES ('2025-01-20','2025-06-30',1);
 
@@ -33,10 +43,10 @@ SELECT id, 'Deportes', '2351000000' FROM usuarios WHERE rol = 'docente';
 INSERT INTO alumnos (id_usuario, matricula, id_carrera, semestre)
 SELECT u.id, m.mat, 1, 7
 FROM usuarios u
-JOIN (SELECT 'mhernandez@itsm.edu.mx' AS c, '2024021' AS mat
-      UNION ALL SELECT 'jmartinez@itsm.edu.mx', '2024022'
-      UNION ALL SELECT 'dsanchez@itsm.edu.mx',  '2024023'
-      UNION ALL SELECT 'pgarcia@itsm.edu.mx',   '2024024') m ON m.c = u.correo;
+JOIN (SELECT 'mhernandez@itsm.edu.mx' AS c, '232T0182' AS mat
+      UNION ALL SELECT 'jmartinez@itsm.edu.mx', '219T0382'
+      UNION ALL SELECT 'dsanchez@itsm.edu.mx',  '232T0183'
+      UNION ALL SELECT 'pgarcia@itsm.edu.mx',   '219T0383') m ON m.c = u.correo;
 
 INSERT INTO actividades (nombre, cupo, id_docente, id_periodo)
 SELECT t.n, t.c, u.id, 1
@@ -47,7 +57,7 @@ FROM (SELECT 'Fútbol' AS n, 25 AS c, 'cperez@itsm.edu.mx' AS d
       UNION ALL SELECT 'Banda de guerra', 30, 'lgomez@itsm.edu.mx') t
 JOIN usuarios u ON u.correo = t.d;
 
--- Día y lugar se guardan como claves foráneas a sus catálogos
+-- El dia y el lugar se guardan como claves
 INSERT INTO horarios (id_actividad, id_dia, hora_inicio, hora_fin, id_lugar)
 SELECT a.id, d.id, h.i, h.f, l.id
 FROM actividades a
@@ -60,18 +70,15 @@ JOIN (SELECT 'Fútbol' AS n, 'Lunes' AS d, '16:00' AS i, '18:00' AS f, 'Cancha d
 JOIN dias_semana d ON d.nombre = h.d
 JOIN lugares l ON l.nombre = h.l;
 
--- Todos en fútbol; María también en banda de guerra
+-- Cada alumno queda inscrito en una sola actividad
 INSERT INTO inscripciones (id_alumno, id_actividad)
 SELECT al.id_usuario, a.id FROM alumnos al JOIN actividades a ON a.nombre = 'Fútbol';
-INSERT INTO inscripciones (id_alumno, id_actividad)
-SELECT u.id, a.id FROM usuarios u JOIN actividades a ON a.nombre = 'Banda de guerra'
-WHERE u.correo = 'mhernandez@itsm.edu.mx';
 
--- 2 sesiones de fútbol; Pedro faltó a la segunda
+-- Dos sesiones de futbol y una falta
 INSERT INTO sesiones (id_actividad, fecha)
 SELECT id, '2025-03-03' FROM actividades WHERE nombre = 'Fútbol';
 INSERT INTO sesiones (id_actividad, fecha)
 SELECT id, '2025-03-05' FROM actividades WHERE nombre = 'Fútbol';
 INSERT INTO asistencias (id_sesion, id_alumno, presente)
-SELECT s.id, al.id_usuario, NOT (al.matricula = '2024024' AND s.fecha = '2025-03-05')
+SELECT s.id, al.id_usuario, NOT (al.matricula = '219T0383' AND s.fecha = '2025-03-05')
 FROM sesiones s JOIN alumnos al;

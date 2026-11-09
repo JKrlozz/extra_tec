@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <!-- el token de sesión no sale del teléfono -->
+    <!-- La sesion no sale del telefono -->
     <cloud-backup>
         <exclude domain="sharedpref" path="sesion.xml"/>
     </cloud-backup>

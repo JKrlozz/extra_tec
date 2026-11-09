@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db');
-const { wrap, HttpError, auth, requireFields } = require('../util');
+const { wrap, HttpError, auth, requireFields, requireMatricula, requireSemestre } = require('../util');
 
 const admin = auth('admin');
 
@@ -26,7 +26,7 @@ async function enTransaccion(fn) {
   }
 }
 
-// Arma un UPDATE parcial solo con los campos de nombre que llegaron.
+// Arma un cambio parcial con los nombres recibidos
 function camposNombre(body) {
   const campos = [];
   const valores = [];
@@ -57,7 +57,9 @@ router.get('/alumnos', admin, wrap(async (req, res) => {
 
 router.post('/alumnos', admin, wrap(async (req, res) => {
   requireFields(req.body, ['nombres', 'apellido_paterno', 'correo', 'matricula', 'id_carrera', 'semestre']);
-  const { nombres, apellido_paterno, apellido_materno, correo, matricula, id_carrera, semestre } = req.body;
+  const { nombres, apellido_paterno, apellido_materno, correo, id_carrera } = req.body;
+  const matricula = requireMatricula(req.body.matricula);
+  const semestre = requireSemestre(req.body.semestre);
   const clave = await claveInicial(req.body);
   const id = await enTransaccion(async (conn) => {
     const [r] = await conn.query(
@@ -72,7 +74,9 @@ router.post('/alumnos', admin, wrap(async (req, res) => {
 }));
 
 router.put('/alumnos/:id', admin, wrap(async (req, res) => {
-  const { matricula, id_carrera, semestre } = req.body;
+  const { id_carrera } = req.body;
+  const matricula = req.body.matricula === undefined ? undefined : requireMatricula(req.body.matricula);
+  const semestre = req.body.semestre === undefined ? undefined : requireSemestre(req.body.semestre);
   const found = await enTransaccion(async (conn) => {
     const [[existe]] = await conn.query("SELECT 1 AS ok FROM usuarios WHERE id = ? AND rol = 'alumno'", [req.params.id]);
     if (!existe) return false;

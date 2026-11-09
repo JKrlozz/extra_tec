@@ -6,15 +6,12 @@
         <TextView style="@style/Itsm.HeaderOverline" />
         <TextView
             style="@style/Itsm.HeaderTitle"
-            android:text="Bienvenido," />
+            android:text="Panel de Administrador" />
         <TextView
-            style="@style/Itsm.HeaderTitle"
-            android:layout_marginTop="0dp"
-            android:text="Administrador" />
-        <TextView
+            android:id="@+id/tvDetalle"
             style="@style/Itsm.Text.Secondary"
-            android:textColor="#B8C4DA"
-            android:text="Panel de gestión institucional" />
+            android:textColor="#E8C9D4"
+            android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
 
@@ -39,13 +36,7 @@
                 android:id="@+id/btnIrDocentes"
                 style="@style/Itsm.Button.Secondary"
                 android:layout_marginBottom="10dp"
-                android:text="Docentes" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnIrAlumnos"
-                style="@style/Itsm.Button.Secondary"
-                android:layout_marginBottom="10dp"
-                android:text="Alumnos" />
+                android:text="Personas" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIrReportes"

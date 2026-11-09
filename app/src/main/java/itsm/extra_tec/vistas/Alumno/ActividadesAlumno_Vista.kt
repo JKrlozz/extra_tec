@@ -22,17 +22,49 @@ class ActividadesAlumno_Vista : Base_Vista<ActividadesAlumnoVistaBinding>() {
         modelo.actividades.observe(viewLifecycleOwner) { actividades ->
             estadoLista(binding.tvVacio, actividades, "No hay actividades disponibles.")
             binding.listaContenido.removeAllViews()
+            // El alumno solo puede tener una actividad
+            // Las demas quedan bloqueadas hasta darse de baja
+            val yaInscrito = actividades?.any { it.inscrito } == true
             actividades?.forEach { a ->
-                val docente = a.docente.ifEmpty { "Por asignar" }
-                val cupo = "Cupo ${a.inscritos}/${a.cupo}"
+                val detalles = listOf(
+                    "Horario" to a.horario.ifBlank { "Por definir" },
+                    "Lugar" to a.lugar.ifBlank { "Por definir" },
+                    "Docente" to a.docente.ifBlank { "Por asignar" },
+                    "Cupo" to "${a.inscritos} de ${a.cupo} inscritos",
+                    "Estado" to when {
+                        a.inscrito -> "Inscrito"
+                        a.lleno -> "Cupo lleno"
+                        yaInscrito -> "Ya tienes otra actividad"
+                        else -> "Disponible"
+                    },
+                )
+                val progreso = if (a.cupo > 0) (a.inscritos * 100) / a.cupo else 0
                 if (a.inscrito) {
-                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario}, Prof. $docente", "Inscrito, $cupo",
-                        c = Accion_Vista("Darme de baja") {
+                    agregarTarjeta(
+                        binding.listaContenido,
+                        a.nombre,
+                        a.descripcion.ifBlank { null },
+                        detalles = detalles,
+                        progreso = progreso,
+                        a = Accion_Vista("Darme de baja", peligrosa = true) {
                             confirmar("¿Darte de baja de ${a.nombre}?") { modelo.darDeBaja(a.id) }
-                        })
+                        },
+                    )
                 } else {
-                    agregarTarjeta(binding.listaContenido, a.nombre, "${a.horario}, Prof. $docente", cupo,
-                        a = Accion_Vista(if (a.lleno) "Cupo lleno" else "Inscribirme", !a.lleno) { modelo.inscribir(a.id) })
+                    val disponible = !a.lleno && !yaInscrito
+                    val etiqueta = when {
+                        yaInscrito -> "Ya tienes una actividad"
+                        a.lleno -> "Cupo lleno"
+                        else -> "Inscribirme"
+                    }
+                    agregarTarjeta(
+                        binding.listaContenido,
+                        a.nombre,
+                        a.descripcion.ifBlank { null },
+                        detalles = detalles,
+                        progreso = progreso,
+                        a = Accion_Vista(etiqueta, disponible) { modelo.inscribir(a.id) },
+                    )
                 }
             }
         }

@@ -1,6 +1,5 @@
 package itsm.extra_tec.vistas.Administrador
 
-import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import androidx.fragment.app.viewModels
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import itsm.extra_tec.Modelo.DetalleActividad
 import itsm.extra_tec.Modelo.DiaSemana
 import itsm.extra_tec.Modelo.HorarioDia
@@ -22,7 +23,7 @@ import itsm.extra_tec.vistas.Comun.texto
 class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() {
     private val modelo: FormularioActividad_ModeloVista by viewModels()
 
-    // sin id, el formulario crea una actividad nueva
+    // Sin id el formulario crea una actividad nueva
     private val idActividad: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
 
     private val filas = mutableListOf<ItemHorarioVistaBinding>()
@@ -82,7 +83,7 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
         binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 
-    // Crea las filas una sola vez, cuando ya hay catálogos y, si es edición, detalle.
+    // Crea las filas cuando ya hay catalogos y detalle
     private fun pintarHorarios() {
         if (horariosPintados || dias.isEmpty()) return
         if (idActividad != null && detalle == null) return
@@ -101,8 +102,10 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
             fila.etHoraFin.setText(horario.horaFin)
             fila.etLugar.setText(horario.lugar, false)
         }
-        fila.etHoraInicio.setOnClickListener { elegirHora(fila.etHoraInicio) }
-        fila.etHoraFin.setOnClickListener { elegirHora(fila.etHoraFin) }
+        fila.etHoraInicio.setOnClickListener { elegirHora(fila.etHoraInicio, "Hora de inicio") }
+        fila.etHoraFin.setOnClickListener { elegirHora(fila.etHoraFin, "Hora de fin") }
+        fila.tilHoraInicio.setEndIconOnClickListener { elegirHora(fila.etHoraInicio, "Hora de inicio") }
+        fila.tilHoraFin.setEndIconOnClickListener { elegirHora(fila.etHoraFin, "Hora de fin") }
         fila.btnQuitar.setOnClickListener {
             binding.contenedorHorarios.removeView(fila.root)
             filas.remove(fila)
@@ -118,13 +121,24 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
         fila.etLugar.setAdapter(adaptadorLugares)
     }
 
-    private fun elegirHora(campo: EditText) {
+    // Reloj de Material para elegir la hora
+    // Se puede usar la esfera o el teclado
+    private fun elegirHora(campo: EditText, titulo: String) {
         val partes = campo.text.toString().split(":")
         val hora = partes.getOrNull(0)?.toIntOrNull() ?: 16
         val minuto = partes.getOrNull(1)?.toIntOrNull() ?: 0
-        TimePickerDialog(requireContext(), { _, h, m ->
-            campo.setText(String.format("%02d:%02d", h, m))
-        }, hora, minuto, true).show()
+        val selector = MaterialTimePicker.Builder()
+            .setTimeFormat(TimeFormat.CLOCK_24H)
+            .setHour(hora)
+            .setMinute(minuto)
+            .setTitleText(titulo)
+            .setPositiveButtonText("Aceptar")
+            .setNegativeButtonText("Cancelar")
+            .build()
+        selector.addOnPositiveButtonClickListener {
+            campo.setText(String.format("%02d:%02d", selector.hour, selector.minute))
+        }
+        selector.show(childFragmentManager, "selector_hora")
     }
 
     private fun leerHorarios(): List<HorarioDia>? {

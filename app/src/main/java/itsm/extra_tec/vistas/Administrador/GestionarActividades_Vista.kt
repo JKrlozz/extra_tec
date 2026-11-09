@@ -11,6 +11,8 @@ import itsm.extra_tec.vistas.Comun.Accion_Vista
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.Pantalla_Vista
 import itsm.extra_tec.vistas.Comun.agregarTarjeta
+import itsm.extra_tec.vistas.Docente.HistorialAsistencia_Vista
+import itsm.extra_tec.vistas.Docente.HistorialEvidencia_Vista
 
 class GestionarActividades_Vista : Base_Vista<GestionarActividadesVistaBinding>() {
     private val modelo: GestionarActividades_ModeloVista by viewModels()
@@ -25,15 +27,36 @@ class GestionarActividades_Vista : Base_Vista<GestionarActividadesVistaBinding>(
             estadoLista(binding.tvVacio, actividades, "No hay actividades registradas.")
             binding.listaContenido.removeAllViews()
             actividades?.forEach { a ->
-                agregarTarjeta(binding.listaContenido, a.nombre,
-                    "${a.horario}, Prof. ${a.docente.ifEmpty { "Por asignar" }}",
-                    "Cupo ${a.inscritos}/${a.cupo}",
-                    b = Accion_Vista("Editar") {
+                agregarTarjeta(
+                    binding.listaContenido,
+                    a.nombre,
+                    a.descripcion.ifBlank { null },
+                    detalles = listOf(
+                        "Horario" to a.horario.ifBlank { "Por definir" },
+                        "Lugar" to a.lugar.ifBlank { "Por definir" },
+                        "Docente" to a.docente.ifBlank { "Por asignar" },
+                        "Cupo" to "${a.inscritos} de ${a.cupo} inscritos",
+                    ),
+                    progreso = if (a.cupo > 0) (a.inscritos * 100) / a.cupo else 0,
+                    a = Accion_Vista("Editar") {
                         navegador.ir(Pantalla_Vista.FORMULARIO_ACTIVIDAD, FormularioActividad_Vista.argumentos(a.id))
                     },
-                    c = Accion_Vista("Eliminar") {
+                    b = Accion_Vista("Evidencias") {
+                        navegador.ir(
+                            Pantalla_Vista.HISTORIAL_EVIDENCIA_ADMIN,
+                            HistorialEvidencia_Vista.argumentos(a.id, a.nombre),
+                        )
+                    },
+                    c = Accion_Vista("Asistencias") {
+                        navegador.ir(
+                            Pantalla_Vista.HISTORIAL_ASISTENCIA_ADMIN,
+                            HistorialAsistencia_Vista.argumentos(a.id, a.nombre),
+                        )
+                    },
+                    d = Accion_Vista("Eliminar", peligrosa = true) {
                         confirmar("¿Eliminar la actividad ${a.nombre}? Se conserva su historial.") { modelo.eliminar(a.id) }
-                    })
+                    },
+                )
             }
         }
     }

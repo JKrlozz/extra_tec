@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <ImageView
+        android:id="@+id/ivFoto"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:contentDescription="Fotografía de la evidencia"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/tvNombre"
+        style="@style/Itsm.Text.Secondary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnQuitar"
+        style="@style/Itsm.Button.Text"
+        android:layout_width="wrap_content"
+        android:text="Quitar" />
+
+</LinearLayout>

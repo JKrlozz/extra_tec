@@ -26,7 +26,13 @@ class AlumnosDocente_Vista : Base_Vista<AlumnosDocenteVistaBinding>() {
         modelo.visibles.observe(viewLifecycleOwner) { alumnos ->
             estadoLista(binding.tvVacio, alumnos, "Sin resultados.")
             binding.listaContenido.removeAllViews()
-            alumnos?.forEach { agregarTarjeta(binding.listaContenido, it.nombre, "Matrícula ${it.matricula}") }
+            alumnos?.forEach {
+                agregarTarjeta(
+                    binding.listaContenido,
+                    it.nombre,
+                    detalles = listOf("Número de control" to it.matricula),
+                )
+            }
         }
         alEscribir(binding.etBuscar) { modelo.buscar(it) }
         binding.btnCancelar.setOnClickListener { navegador.atras() }

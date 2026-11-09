@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import itsm.extra_tec.Modelo.Resultado_Modelo
 
-// resultado de guardar; sin clave inicial si el administrador la escribió
+// Resultado de guardar con la clave inicial si existe
 data class Guardado_ModeloVista(val claveInicial: String?)
 
 open class Base_ModeloVista : ViewModel() {
@@ -23,7 +23,7 @@ open class Base_ModeloVista : ViewModel() {
         _cargando.value = valor
     }
 
-    // ejecuta la acción si hay éxito o muestra el error
+    // Ejecuta la accion o muestra el error
     protected fun <T> atender(resultado: Resultado_Modelo<T>, alExito: (T) -> Unit) {
         when (resultado) {
             is Resultado_Modelo.Exito -> alExito(resultado.valor)

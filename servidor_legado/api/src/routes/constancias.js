@@ -54,7 +54,7 @@ router.get('/constancias/:idActividad/pdf', auth('alumno'), wrap(async (req, res
   doc.moveDown(0.5).fontSize(14).fillColor('#C9A227').text('Actividades Extraescolares', { align: 'center' });
   doc.moveDown(2).fontSize(26).fillColor('#12284B').text('CONSTANCIA', { align: 'center' });
   doc.moveDown(2).fontSize(13).fillColor('#000').text(
-    `Se hace constar que ${d.alumno}, con matrícula ${d.matricula}, de la carrera de ${d.carrera}, ` +
+    `Se hace constar que ${d.alumno}, con número de control ${d.matricula}, de la carrera de ${d.carrera}, ` +
     `cumplió satisfactoriamente la actividad extraescolar "${d.actividad}" durante el periodo ${d.periodo}, ` +
     `con un porcentaje de asistencia de ${Number(d.porcentaje).toFixed(0)}%.`, { align: 'justify' });
   doc.moveDown(3).fontSize(10).fillColor('#555').text(`Folio: ${c.folio}`, { align: 'right' });

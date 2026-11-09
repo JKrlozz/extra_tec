@@ -12,7 +12,7 @@ import org.junit.Assert.*
 class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
-        // contexto de la app bajo prueba
+        // Contexto de la app de prueba
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("itsm.extra_tec", appContext.packageName)
     }
