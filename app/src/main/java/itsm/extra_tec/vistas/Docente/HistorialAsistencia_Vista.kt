@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import itsm.extra_tec.Modelo.SesionAsistencia
+import itsm.extra_tec.ModeloVista.Fechas_ModeloVista
 import itsm.extra_tec.ModeloVista.HistorialAsistencia_ModeloVista
 import itsm.extra_tec.R
 import itsm.extra_tec.databinding.HistorialAsistenciaVistaBinding
@@ -14,94 +15,107 @@ import itsm.extra_tec.databinding.ItemDetalleAsistenciaBinding
 import itsm.extra_tec.databinding.ItemSesionAsistenciaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.Pantalla_Vista
-import java.text.SimpleDateFormat
-import java.util.Locale
 
-class HistorialAsistencia_Vista : Base_Vista<HistorialAsistenciaVistaBinding>() {
+class HistorialAsistencia_Vista : Base_Vista() {
+    private var _binding: HistorialAsistenciaVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: HistorialAsistencia_ModeloVista by viewModels()
 
-    private val idActividad: Int? get() =
-        arguments?.getInt(ARG_ID_ACTIVIDAD, -1)?.takeIf { it > 0 } ?: sesion.claseId
+    private var idActividad = -1
+    private var nombreActividad = ""
 
-    private val nombreActividad: String get() =
-        arguments?.getString(ARG_NOMBRE).orEmpty().ifBlank { sesion.claseNombre }
-
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        HistorialAsistenciaVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = HistorialAsistenciaVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        val idClase = idActividad ?: return navegador.irAlInicio()
+        // actividad del admin o sesion
+        idActividad = arguments?.getInt(ARG_ID_ACTIVIDAD, -1) ?: -1
+        nombreActividad = arguments?.getString(ARG_NOMBRE) ?: ""
+        if (idActividad <= 0) {
+            idActividad = sesion.claseId ?: -1
+            nombreActividad = sesion.claseNombre
+        }
+        if (idActividad <= 0) {
+            navegador.irAlInicio()
+            return
+        }
         binding.tvSubtitulo.text = nombreActividad
-        modelo.cargar(idClase)
+        modelo.cargar(idActividad)
 
         modelo.sesiones.observe(viewLifecycleOwner) { sesiones ->
             estadoLista(binding.tvVacio, sesiones, "Aún no hay asistencias registradas.")
             binding.listaContenido.removeAllViews()
-            sesiones?.forEach { registro -> agregarSesion(registro, idClase) }
+            if (sesiones != null) {
+                for (registro in sesiones) {
+                    agregarSesion(registro)
+                }
+            }
         }
     }
 
-    private fun agregarSesion(registro: SesionAsistencia, idClase: Int) {
-        val item = ItemSesionAsistenciaBinding.inflate(
-            layoutInflater, binding.listaContenido, false,
-        )
-        item.tvFecha.text = fechaLegible(registro.fecha)
+    private fun agregarSesion(registro: SesionAsistencia) {
+        val item = ItemSesionAsistenciaBinding.inflate(layoutInflater, binding.listaContenido, false)
+        item.tvFecha.text = Fechas_ModeloVista.legible(registro.fecha)
         item.tvResumen.text = "${registro.presentes} de ${registro.total} presentes"
-        item.pbAsistencia.progress =
-            if (registro.total > 0) (registro.presentes * 100) / registro.total else 0
-        item.btnDetalle.text = "Expander"
+        if (registro.total > 0) {
+            item.pbAsistencia.progress = registro.presentes * 100 / registro.total
+        }
+        item.btnDetalle.text = "Ver detalle"
         item.btnDetalle.setOnClickListener {
-            val mostrar = item.contenedorDetalle.visibility != View.VISIBLE
-            item.contenedorDetalle.visibility = if (mostrar) View.VISIBLE else View.GONE
-            item.btnDetalle.text = if (mostrar) "Ocultar" else "Expander"
+            if (item.contenedorDetalle.visibility == View.VISIBLE) {
+                item.contenedorDetalle.visibility = View.GONE
+                item.btnDetalle.text = "Ver detalle"
+            } else {
+                item.contenedorDetalle.visibility = View.VISIBLE
+                item.btnDetalle.text = "Ocultar"
+            }
         }
         item.btnEditar.setOnClickListener {
-            val destino = if (sesion.rol == "admin") {
-                Pantalla_Vista.ASISTENCIA_ADMIN
-            } else {
-                Pantalla_Vista.ASISTENCIA
+            var destino = Pantalla_Vista.ASISTENCIA
+            if (sesion.rol == "admin") {
+                destino = Pantalla_Vista.ASISTENCIA_ADMIN
             }
-            navegador.ir(
-                destino,
-                Asistencia_Vista.argumentos(idClase, nombreActividad, registro.fecha),
-            )
+            navegador.ir(destino, Asistencia_Vista.argumentos(idActividad, nombreActividad, registro.fecha))
         }
 
-        item.tvSinDetalle.visibility =
-            if (registro.alumnos.isEmpty()) View.VISIBLE else View.GONE
-        registro.alumnos.forEach { alumno ->
-            val fila = ItemDetalleAsistenciaBinding.inflate(
-                layoutInflater, item.contenedorDetalle, false,
-            )
+        if (registro.alumnos.isEmpty()) {
+            item.tvSinDetalle.visibility = View.VISIBLE
+        } else {
+            item.tvSinDetalle.visibility = View.GONE
+        }
+        for (alumno in registro.alumnos) {
+            val fila = ItemDetalleAsistenciaBinding.inflate(layoutInflater, item.contenedorDetalle, false)
             fila.tvNombreDetalle.text = alumno.nombre
-            fila.tvMatriculaDetalle.text = "Número de control ${alumno.matricula}"
-            fila.tvEstadoDetalle.text = if (alumno.presente) "Presente" else "Ausente"
-            fila.tvEstadoDetalle.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    if (alumno.presente) R.color.itsm_success else R.color.itsm_danger,
-                ),
-            )
+            fila.tvMatriculaDetalle.text = "Número de control " + alumno.matricula
+            if (alumno.presente) {
+                fila.tvEstadoDetalle.text = "Presente"
+                fila.tvEstadoDetalle.setTextColor(ContextCompat.getColor(requireContext(), R.color.itsm_success))
+            } else {
+                fila.tvEstadoDetalle.text = "Ausente"
+                fila.tvEstadoDetalle.setTextColor(ContextCompat.getColor(requireContext(), R.color.itsm_danger))
+            }
             item.contenedorDetalle.addView(fila.root)
         }
         binding.listaContenido.addView(item.root)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
         private const val ARG_ID_ACTIVIDAD = "id_actividad"
         private const val ARG_NOMBRE = "nombre_actividad"
 
-        fun argumentos(idActividad: Int, nombre: String) = Bundle().apply {
-            putInt(ARG_ID_ACTIVIDAD, idActividad)
-            putString(ARG_NOMBRE, nombre)
+        fun argumentos(idActividad: Int, nombre: String): Bundle {
+            val datos = Bundle()
+            datos.putInt(ARG_ID_ACTIVIDAD, idActividad)
+            datos.putString(ARG_NOMBRE, nombre)
+            return datos
         }
-
-        private fun fechaLegible(iso: String): String =
-            runCatching {
-                val entrada = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                val salida = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-                salida.format(entrada.parse(iso)!!)
-            }.getOrDefault(iso)
     }
 }

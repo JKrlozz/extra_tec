@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- miniatura de una foto -->
+<com.google.android.material.imageview.ShapeableImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/tamano_miniatura"
+    android:layout_height="@dimen/tamano_miniatura"
+    android:layout_marginEnd="8dp"
+    android:background="@color/itsm_primary_light"
+    android:contentDescription="Fotografía, toca para ampliar"
+    android:foreground="?attr/selectableItemBackground"
+    android:scaleType="centerCrop"
+    app:shapeAppearance="@style/Itsm.FormaFoto" />

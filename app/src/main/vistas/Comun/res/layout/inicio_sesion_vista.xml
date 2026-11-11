@@ -18,8 +18,7 @@
         android:fillViewport="true">
 
         <LinearLayout
-            style="@style/Itsm.Content"
-            android:padding="20dp">
+            style="@style/Itsm.Content">
 
             <TextView
                 style="@style/Itsm.Text.Secondary"
@@ -32,6 +31,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCorreo"
+                    android:maxLength="100"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress" />
@@ -44,6 +44,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContrasena"
+                    android:maxLength="30"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword" />

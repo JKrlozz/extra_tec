@@ -7,19 +7,29 @@ import itsm.extra_tec.Modelo.Sesion_Actual
 import itsm.extra_tec.Modelo.Sesion_Modelo
 import itsm.extra_tec.Modelo.Usuario
 
-// Usuario actual y clase elegida para toda la app
+// usuario actual y clase elegida
 class Sesion_ModeloVista(aplicacion: Application) : AndroidViewModel(aplicacion) {
     private val almacen = Sesion_Modelo(aplicacion)
 
     var usuario: Usuario? = null
         private set
-    val rol: String get() = usuario?.rol.orEmpty()
 
     var claseId: Int? = null
-    var claseNombre: String = ""
+    var claseNombre = ""
 
+    val rol: String
+        get() {
+            val actual = usuario
+            if (actual == null) return ""
+            return actual.rol
+        }
+
+    // regresa true si habia sesion guardada
     fun restaurar(): Boolean {
-        val guardada = almacen.leer() ?: return false
+        val guardada = almacen.leer()
+        if (guardada == null) {
+            return false
+        }
         usuario = guardada.usuario
         Sesion_Actual.usuario = guardada.usuario
         return true

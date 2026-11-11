@@ -1,12 +1,14 @@
 package itsm.extra_tec.ModeloVista
 
-// Valor que se entrega a la vista una sola vez
-class Evento_ModeloVista<out T>(private val contenido: T) {
-    private var consumido = false
+// valor que se usa una vez
+class Evento_ModeloVista<T>(private val contenido: T) {
+    private var usado = false
 
     fun obtener(): T? {
-        if (consumido) return null
-        consumido = true
+        if (usado) {
+            return null
+        }
+        usado = true
         return contenido
     }
 }

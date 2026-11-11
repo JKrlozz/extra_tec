@@ -1,11 +1,10 @@
 package itsm.extra_tec.vistas.Comun
 
-import android.os.Bundle
+import android.app.DatePickerDialog
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
@@ -14,34 +13,36 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.viewbinding.ViewBinding
 import itsm.extra_tec.ModeloVista.Base_ModeloVista
+import itsm.extra_tec.ModeloVista.Fechas_ModeloVista
 import itsm.extra_tec.ModeloVista.Sesion_ModeloVista
+import java.util.Calendar
 
-fun EditText.texto(): String = text.toString().trim()
+// texto del campo sin espacios
+fun EditText.texto(): String {
+    return text.toString().trim()
+}
 
-abstract class Base_Vista<B : ViewBinding> : Fragment() {
-    private var _binding: B? = null
-    protected val binding: B get() = _binding!!
-
+// cosas que usan todas las pantallas
+open class Base_Vista : Fragment() {
     protected val sesion: Sesion_ModeloVista by activityViewModels()
-    protected val navegador: Navegador_Vista get() = requireActivity() as Navegador_Vista
 
-    protected abstract fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?): B
+    protected val navegador: Navegador_Vista
+        get() = requireActivity() as Navegador_Vista
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = crearBinding(inflater, container)
-        return binding.root
-    }
+    protected val semestres = listOf(
+        "Primero", "Segundo", "Tercero", "Cuarto", "Quinto",
+        "Sexto", "Séptimo", "Octavo",
+    )
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
-
-    // Muestra los mensajes del viewmodel
+    // muestra los mensajes del viewmodel
     protected fun escuchar(modelo: Base_ModeloVista) {
-        modelo.mensaje.observe(viewLifecycleOwner) { evento -> evento.obtener()?.let { aviso(it) } }
+        modelo.mensaje.observe(viewLifecycleOwner) { evento ->
+            val texto = evento.obtener()
+            if (texto != null) {
+                aviso(texto)
+            }
+        }
     }
 
     protected fun aviso(texto: String) {
@@ -50,7 +51,7 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
 
     protected fun cerrarSesion() {
         sesion.cerrar()
-        navegador.irRaiz(Pantalla_Vista.INICIO_SESION)
+        navegador.irRaiz(Pantalla_Vista.INICIO_SESION, null)
     }
 
     protected fun confirmar(mensaje: String, alAceptar: () -> Unit) {
@@ -61,43 +62,94 @@ abstract class Base_Vista<B : ViewBinding> : Fragment() {
             .show()
     }
 
-    // Etiquetas de los semestres
-    protected val semestres = listOf(
-        "Primero", "Segundo", "Tercero", "Cuarto", "Quinto",
-        "Sexto", "Séptimo", "Octavo", "Noveno",
-    )
-
-    protected fun <T> llenarSpinner(spinner: Spinner, elementos: List<T>, etiqueta: (T) -> String) {
-        spinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, elementos.map(etiqueta))
+    protected fun llenarSpinner(spinner: Spinner, textos: List<String>) {
+        val adaptador = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, textos)
+        spinner.adapter = adaptador
     }
 
     protected fun alEscribir(campo: EditText, accion: (String) -> Unit) {
         campo.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, inicio: Int, cantidad: Int, despues: Int) {}
             override fun onTextChanged(s: CharSequence?, inicio: Int, antes: Int, cantidad: Int) {}
-            override fun afterTextChanged(s: Editable?) = accion(s.toString())
+            override fun afterTextChanged(s: Editable?) {
+                accion(s.toString())
+            }
         })
     }
 
-    // Estado de una lista cargando vacia o con elementos
-    protected fun estadoLista(texto: TextView, elementos: List<*>?, vacio: String) {
-        val mensaje = when {
-            elementos == null -> "Cargando"
-            elementos.isEmpty() -> vacio
-            else -> null
+    // solo deja escribir la forma 000T0000
+    protected fun filtrarNumeroControl(campo: EditText) {
+        val forma = Regex("^[0-9]{0,3}$|^[0-9]{3}[Tt][0-9]{0,4}$")
+        val filtro = InputFilter { fuente, inicio, fin, actual, desde, hasta ->
+            val nuevo = actual.substring(0, desde) + fuente.substring(inicio, fin) + actual.substring(hasta)
+            if (forma.matches(nuevo)) {
+                null
+            } else {
+                ""
+            }
         }
-        texto.visibility = if (mensaje == null) View.GONE else View.VISIBLE
-        texto.text = mensaje
+        campo.filters = arrayOf(filtro, InputFilter.AllCaps(), InputFilter.LengthFilter(8))
     }
 
-    // La contrasena inicial se muestra una sola vez
+    // lista cargando vacia o con datos
+    protected fun estadoLista(texto: TextView, elementos: List<*>?, vacio: String) {
+        if (elementos == null) {
+            texto.visibility = View.VISIBLE
+            texto.text = "Cargando"
+        } else if (elementos.isEmpty()) {
+            texto.visibility = View.VISIBLE
+            texto.text = vacio
+        } else {
+            texto.visibility = View.GONE
+        }
+    }
+
+    // la clave se muestra una vez
     protected fun mostrarClaveInicial(clave: String?, alCerrar: () -> Unit) {
-        if (clave == null) return alCerrar()
+        if (clave == null) {
+            alCerrar()
+            return
+        }
         AlertDialog.Builder(requireContext())
             .setTitle("Contraseña inicial")
             .setMessage("Anótala y entrégala al usuario; no se volverá a mostrar:\n\n$clave")
             .setPositiveButton("Entendido") { _, _ -> alCerrar() }
             .setCancelable(false)
             .show()
+    }
+
+    // calendario del telefono
+    // hastaHoy bloquea dias futuros
+    protected fun elegirFecha(fechaActual: String, hastaHoy: Boolean, alElegir: (String) -> Unit) {
+        val calendario = Calendar.getInstance()
+        val partes = fechaActual.split("-")
+        if (partes.size == 3) {
+            val anio = partes[0].toIntOrNull()
+            val mes = partes[1].toIntOrNull()
+            val dia = partes[2].toIntOrNull()
+            if (anio != null && mes != null && dia != null) {
+                calendario.set(anio, mes - 1, dia)
+            }
+        }
+        val selector = DatePickerDialog(
+            requireContext(),
+            { _, anio, mes, dia -> alElegir(Fechas_ModeloVista.desdeCalendario(anio, mes, dia)) },
+            calendario.get(Calendar.YEAR),
+            calendario.get(Calendar.MONTH),
+            calendario.get(Calendar.DAY_OF_MONTH),
+        )
+        if (hastaHoy) {
+            selector.datePicker.maxDate = System.currentTimeMillis()
+        }
+        selector.show()
+    }
+
+    // abre la foto en grande
+    protected fun verFotos(fuentes: List<String>, inicio: Int) {
+        if (fuentes.isEmpty()) {
+            return
+        }
+        val visor = VisorFotos_Vista(requireContext(), fuentes, inicio)
+        visor.mostrar()
     }
 }

@@ -12,6 +12,7 @@ import com.google.android.material.timepicker.TimeFormat
 import itsm.extra_tec.Modelo.DetalleActividad
 import itsm.extra_tec.Modelo.DiaSemana
 import itsm.extra_tec.Modelo.HorarioDia
+import itsm.extra_tec.Modelo.Limites
 import itsm.extra_tec.Modelo.Lugar
 import itsm.extra_tec.ModeloVista.FormularioActividad_ModeloVista
 import itsm.extra_tec.databinding.FormularioActividadVistaBinding
@@ -19,85 +20,134 @@ import itsm.extra_tec.databinding.ItemHorarioVistaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.Pantalla_Vista
 import itsm.extra_tec.vistas.Comun.texto
+import java.util.Locale
 
-class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() {
+class FormularioActividad_Vista : Base_Vista() {
+    private var _binding: FormularioActividadVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: FormularioActividad_ModeloVista by viewModels()
 
-    // Sin id el formulario crea una actividad nueva
-    private val idActividad: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
-
+    // sin id es actividad nueva
+    private var idActividad: Int? = null
     private val filas = mutableListOf<ItemHorarioVistaBinding>()
-    private var dias: List<DiaSemana> = emptyList()
-    private var lugares: List<Lugar> = emptyList()
+    private var dias = listOf<DiaSemana>()
+    private var lugares = listOf<Lugar>()
     private var detalle: DetalleActividad? = null
     private var horariosPintados = false
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        FormularioActividadVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FormularioActividadVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        binding.tvTituloForm.text = if (idActividad == null) "Nueva actividad" else "Editar actividad"
+        filas.clear()
+        horariosPintados = false
+        val id = arguments?.getInt(ARG_ID, -1) ?: -1
+        if (id > 0) {
+            idActividad = id
+            binding.tvTituloForm.text = "Editar actividad"
+        } else {
+            binding.tvTituloForm.text = "Nueva actividad"
+        }
         modelo.iniciar(idActividad)
 
         modelo.docentes.observe(viewLifecycleOwner) { docentes ->
-            llenarSpinner(binding.spinnerDocente, docentes) { d -> d.nombre }
-            val id = detalle?.actividad?.idDocente ?: return@observe
-            val posicion = docentes.indexOfFirst { it.id == id }
-            if (posicion >= 0) binding.spinnerDocente.setSelection(posicion)
+            val nombres = mutableListOf<String>()
+            for (docente in docentes) {
+                nombres.add(docente.nombre)
+            }
+            llenarSpinner(binding.spinnerDocente, nombres)
+            seleccionarDocente()
         }
         modelo.catalogos.observe(viewLifecycleOwner) { catalogos ->
-            if (catalogos == null) return@observe
+            if (catalogos == null) {
+                return@observe
+            }
             dias = catalogos.dias
             lugares = catalogos.lugares
-            filas.forEach { actualizarAdaptadores(it) }
+            for (fila in filas) {
+                llenarFila(fila)
+            }
             pintarHorarios()
         }
-        modelo.detalle.observe(viewLifecycleOwner) { d ->
-            if (d == null) return@observe
-            detalle = d
-            val a = d.actividad
-            binding.etNombre.setText(a.nombre)
-            binding.etDescripcion.setText(a.descripcion)
-            binding.etCupo.setText(a.cupo.toString())
-            val posicion = modelo.docentes.value.orEmpty().indexOfFirst { it.id == a.idDocente }
-            if (posicion >= 0) binding.spinnerDocente.setSelection(posicion)
+        modelo.detalle.observe(viewLifecycleOwner) { datos ->
+            if (datos == null) {
+                return@observe
+            }
+            detalle = datos
+            binding.etNombre.setText(datos.actividad.nombre)
+            binding.etDescripcion.setText(datos.actividad.descripcion)
+            binding.etCupo.setText(datos.actividad.cupo.toString())
+            seleccionarDocente()
             pintarHorarios()
         }
         modelo.guardada.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.irRaiz(Pantalla_Vista.GESTIONAR_ACTIVIDADES) }
+            if (evento.obtener() != null) {
+                navegador.irRaiz(Pantalla_Vista.GESTIONAR_ACTIVIDADES, null)
+            }
         }
 
-        binding.btnAgregarHorario.setOnClickListener { agregarFila() }
+        binding.btnAgregarHorario.setOnClickListener {
+            if (filas.size >= 7) {
+                aviso("Puedes registrar hasta 7 horarios.")
+            } else {
+                agregarFila(null)
+            }
+        }
         binding.btnGuardar.setOnClickListener {
-            val horarios = leerHorarios() ?: return@setOnClickListener
-            modelo.guardar(
-                idActividad,
-                binding.etNombre.texto(),
-                binding.etDescripcion.texto(),
-                binding.etCupo.texto(),
-                horarios,
-                binding.spinnerDocente.selectedItemPosition,
-            )
+            val horarios = leerHorarios()
+            if (horarios != null) {
+                modelo.guardar(
+                    idActividad,
+                    binding.etNombre.texto(),
+                    binding.etDescripcion.texto(),
+                    binding.etCupo.texto(),
+                    horarios,
+                    binding.spinnerDocente.selectedItemPosition,
+                )
+            }
         }
         binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 
-    // Crea las filas cuando ya hay catalogos y detalle
-    private fun pintarHorarios() {
-        if (horariosPintados || dias.isEmpty()) return
-        if (idActividad != null && detalle == null) return
-        horariosPintados = true
-        val iniciales = detalle?.horarios.orEmpty()
-        if (iniciales.isEmpty()) agregarFila() else iniciales.forEach { agregarFila(it) }
+    private fun seleccionarDocente() {
+        val actual = detalle ?: return
+        val docentes = modelo.docentes.value ?: listOf()
+        for (i in docentes.indices) {
+            if (docentes[i].id == actual.actividad.idDocente) {
+                binding.spinnerDocente.setSelection(i)
+            }
+        }
     }
 
-    private fun agregarFila(horario: HorarioDia? = null) {
+    // filas cuando ya hay datos
+    private fun pintarHorarios() {
+        if (horariosPintados || dias.isEmpty()) {
+            return
+        }
+        if (idActividad != null && detalle == null) {
+            return
+        }
+        horariosPintados = true
+        val iniciales = detalle?.horarios ?: listOf()
+        if (iniciales.isEmpty()) {
+            agregarFila(null)
+        } else {
+            for (horario in iniciales) {
+                agregarFila(horario)
+            }
+        }
+    }
+
+    private fun agregarFila(horario: HorarioDia?) {
         val fila = ItemHorarioVistaBinding.inflate(layoutInflater, binding.contenedorHorarios, false)
-        actualizarAdaptadores(fila)
+        llenarFila(fila)
         if (horario != null) {
-            val posicion = dias.indexOfFirst { it.id == horario.idDia }
-            if (posicion >= 0) fila.spinnerDia.setSelection(posicion)
+            for (i in dias.indices) {
+                if (dias[i].id == horario.idDia) fila.spinnerDia.setSelection(i)
+            }
             fila.etHoraInicio.setText(horario.horaInicio)
             fila.etHoraFin.setText(horario.horaFin)
             fila.etLugar.setText(horario.lugar, false)
@@ -114,19 +164,28 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
         filas.add(fila)
     }
 
-    private fun actualizarAdaptadores(fila: ItemHorarioVistaBinding) {
-        val adaptadorDias = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, dias.map { it.nombre })
-        fila.spinnerDia.adapter = adaptadorDias
-        val adaptadorLugares = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, lugares.map { it.nombre })
-        fila.etLugar.setAdapter(adaptadorLugares)
+    private fun llenarFila(fila: ItemHorarioVistaBinding) {
+        val nombresDias = mutableListOf<String>()
+        for (dia in dias) {
+            nombresDias.add(dia.nombre)
+        }
+        llenarSpinner(fila.spinnerDia, nombresDias)
+        val nombresLugares = mutableListOf<String>()
+        for (lugar in lugares) {
+            nombresLugares.add(lugar.nombre)
+        }
+        fila.etLugar.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, nombresLugares))
     }
 
-    // Reloj de Material para elegir la hora
-    // Se puede usar la esfera o el teclado
+    // reloj para elegir la hora
     private fun elegirHora(campo: EditText, titulo: String) {
         val partes = campo.text.toString().split(":")
-        val hora = partes.getOrNull(0)?.toIntOrNull() ?: 16
-        val minuto = partes.getOrNull(1)?.toIntOrNull() ?: 0
+        var hora = 16
+        var minuto = 0
+        if (partes.size == 2) {
+            hora = partes[0].toIntOrNull() ?: 16
+            minuto = partes[1].toIntOrNull() ?: 0
+        }
         val selector = MaterialTimePicker.Builder()
             .setTimeFormat(TimeFormat.CLOCK_24H)
             .setHour(hora)
@@ -136,11 +195,12 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
             .setNegativeButtonText("Cancelar")
             .build()
         selector.addOnPositiveButtonClickListener {
-            campo.setText(String.format("%02d:%02d", selector.hour, selector.minute))
+            campo.setText(String.format(Locale.US, "%02d:%02d", selector.hour, selector.minute))
         }
         selector.show(childFragmentManager, "selector_hora")
     }
 
+    // revisa cada fila antes de guardar
     private fun leerHorarios(): List<HorarioDia>? {
         if (filas.isEmpty()) {
             aviso("Agrega al menos un horario.")
@@ -148,14 +208,14 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
         }
         val lista = mutableListOf<HorarioDia>()
         for (fila in filas) {
-            val dia = dias.getOrNull(fila.spinnerDia.selectedItemPosition)
-            if (dia == null) {
+            val posicion = fila.spinnerDia.selectedItemPosition
+            if (posicion < 0 || posicion >= dias.size) {
                 aviso("Selecciona el día de cada horario.")
                 return null
             }
-            val inicio = fila.etHoraInicio.text.toString().trim()
-            val fin = fila.etHoraFin.text.toString().trim()
-            if (!HORA.matches(inicio) || !HORA.matches(fin)) {
+            val inicio = fila.etHoraInicio.texto()
+            val fin = fila.etHoraFin.texto()
+            if (inicio.isEmpty() || fin.isEmpty()) {
                 aviso("Selecciona la hora de inicio y la hora de fin.")
                 return null
             }
@@ -163,17 +223,36 @@ class FormularioActividad_Vista : Base_Vista<FormularioActividadVistaBinding>() 
                 aviso("La hora de fin debe ser posterior a la de inicio.")
                 return null
             }
-            val lugar = fila.etLugar.text.toString().trim().ifEmpty { "ITSM" }
-            val idLugar = lugares.firstOrNull { it.nombre.equals(lugar, ignoreCase = true) }?.id ?: 0
-            lista.add(HorarioDia(dia.id, dia.nombre, inicio, fin, idLugar, lugar))
+            var lugar = fila.etLugar.text.toString().trim()
+            if (lugar.isEmpty()) {
+                lugar = "ITSM"
+            }
+            val error = Limites.revisarLugar(lugar)
+            if (error != null) {
+                aviso(error)
+                return null
+            }
+            var idLugar = 0
+            for (l in lugares) {
+                if (l.nombre.equals(lugar, true)) idLugar = l.id
+            }
+            lista.add(HorarioDia(dias[posicion].id, dias[posicion].nombre, inicio, fin, idLugar, lugar))
         }
         return lista
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     companion object {
-        private val HORA = Regex("^([01]\\d|2[0-3]):[0-5]\\d$")
         private const val ARG_ID = "id"
 
-        fun argumentos(id: Int) = Bundle().apply { putInt(ARG_ID, id) }
+        fun argumentos(id: Int): Bundle {
+            val datos = Bundle()
+            datos.putInt(ARG_ID, id)
+            return datos
+        }
     }
 }

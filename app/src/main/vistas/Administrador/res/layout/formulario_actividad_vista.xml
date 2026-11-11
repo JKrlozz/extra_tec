@@ -19,22 +19,29 @@
         android:fillViewport="true">
 
         <LinearLayout
-            style="@style/Itsm.Content"
-            android:padding="20dp">
+            style="@style/Itsm.Content">
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Nombre">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNombre"
+                    android:maxLength="50"
+                    android:inputType="textCapSentences"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Descripción (opcional)">
+                android:hint="Descripción (opcional)"
+                app:counterEnabled="true"
+                app:counterMaxLength="200">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescripcion"
+                    android:maxLength="200"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:minLines="2"
+                    android:gravity="top"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -57,9 +64,11 @@
                 android:text="Agregar horario" />
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Cupo">
+                android:hint="Cupo"
+                app:helperText="De 1 a 100 alumnos">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCupo"
+                    android:maxLength="3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number" />

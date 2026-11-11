@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- tableta grande -->
+    <dimen name="margen_lateral">160dp</dimen>
+    <dimen name="ancho_etiqueta">170dp</dimen>
+    <dimen name="tamano_titulo">26sp</dimen>
+    <dimen name="tamano_miniatura">110dp</dimen>
+</resources>

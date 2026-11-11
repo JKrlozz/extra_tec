@@ -102,6 +102,15 @@ _Pendiente de definir._
   - La paleta cambia al guinda y dorado del Tec del Bienestar. Los textos que antes se separaban con comas ahora usan filas de etiqueta y valor.
   - El catálogo de carreras se actualiza a las diez carreras oficiales. La versión 3 de la base migra los nombres anteriores sin perder alumnos.
 
+- 2026-11-10: Base en versión 4, límites de datos, paleta verde, visor de fotos y código simplificado (rama `feat/bd-limites-verde`).
+  - Base: catálogo `especialidades`, `evidencia_fotos.archivo` (solo el nombre, ya no la ruta del teléfono), `CHECK` de longitud y formato en todas las columnas de texto, fechas y horas, un solo periodo activo y triggers para asistencia de inscritos, rol de alumno/docente y máximo 10 fotos. Al actualizar se recrea con los datos de prueba (periodo Ago/Dic 2026). Detalle en `database/NORMALIZACION.md`; `database/schema.sqlite.sql` se regeneró desde el código.
+  - Límites: `Modelo/Limites.kt` concentra los máximos y mínimos; los usan los ModeloVista, los Modelo y la base, y los XML tienen el mismo `maxLength`. Fechas de evidencia y asistencia no pueden ser futuras. Pruebas en `LimitesTest`.
+  - Apariencia: paleta verde oscuro con fondos blancos y tarjetas, campos y barra inferior en verde claro. Márgenes en `values-w600dp` y `values-w840dp` para horizontal y tabletas. Se quitó `values-night/themes.xml`, que borraba los colores en modo oscuro.
+  - Fotos: el historial de evidencias muestra miniaturas; al tocarlas se abre un visor a pantalla completa con zoom de dos dedos, doble toque y anterior/siguiente. También en el editor de evidencias. Las fotos se cargan reducidas en otro hilo.
+  - Código: ViewBinding sencillo en cada fragmento (sin clase genérica), bucles en lugar de funciones avanzadas y comentarios en minúscula de máximo 6 palabras.
+  - Verificado: compila, 13 pruebas pasan, el esquema se probó con SQLite (40 casos) y en el emulador se revisaron bienvenida, inicio de sesión, inicio del docente, historial con fotos, visor y vista horizontal. Falta probar a mano el zoom con dos dedos y el resto de pantallas.
+- 2026-11-10: La app queda fija en vertical (evita perder el historial del botón Volver al girar). Semestres de primero a octavo. Todos los correos deben ser @itsm.edu.mx y el del alumno debe ser su número de control (por ejemplo 193t0183@itsm.edu.mx); se valida en la app y en la base (versión 5). El campo de número de control solo deja escribir la forma 000T0000. Las cuentas de prueba de alumno ahora entran con correos como 232t0182@itsm.edu.mx.
+
 ## Cómo levantar todo
 1. Abrir el proyecto en Android Studio y compilar la app, o usar el APK ya generado `extra_tec.apk` de la raíz.
 2. Instalar en el emulador o en el teléfono. No hace falta encender MySQL, la API ni configurar la red.

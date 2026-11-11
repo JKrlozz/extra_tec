@@ -1,47 +1,47 @@
--- Esquema SQLite de la aplicacion
--- La app crea este esquema la primera vez
--- Este archivo es la referencia de la estructura
-
+-- esquema local de sqlite version 5
+-- copia de BaseDatos_Esquema.kt
+-- la app crea esto al abrirse
 PRAGMA foreign_keys = ON;
-
--- Catalogos
 
 CREATE TABLE carreras (
   id     INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL UNIQUE
+  nombre TEXT NOT NULL UNIQUE CHECK (length(nombre) BETWEEN 3 AND 80)
 );
 
--- El nombre del periodo se calcula con las fechas
 CREATE TABLE periodos (
   id     INTEGER PRIMARY KEY AUTOINCREMENT,
-  inicio TEXT NOT NULL,
-  fin    TEXT NOT NULL,
+  inicio TEXT NOT NULL CHECK (inicio GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+  fin    TEXT NOT NULL CHECK (fin GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   activo INTEGER NOT NULL DEFAULT 0 CHECK (activo IN (0, 1)),
   CHECK (fin > inicio)
 );
 
--- Dias de la semana
+CREATE UNIQUE INDEX idx_periodo_activo ON periodos (activo) WHERE activo = 1;
+
 CREATE TABLE dias_semana (
   id     INTEGER PRIMARY KEY,
-  nombre TEXT NOT NULL UNIQUE,
-  orden  INTEGER NOT NULL UNIQUE
+  nombre TEXT NOT NULL UNIQUE CHECK (length(nombre) BETWEEN 5 AND 15),
+  orden  INTEGER NOT NULL UNIQUE CHECK (orden BETWEEN 1 AND 7)
 );
 
--- Lugares de las actividades
 CREATE TABLE lugares (
   id     INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL UNIQUE
+  nombre TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(nombre) BETWEEN 2 AND 60)
 );
 
--- Personas
+CREATE TABLE especialidades (
+  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(nombre) BETWEEN 2 AND 50)
+);
 
 CREATE TABLE usuarios (
   id               INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombres          TEXT NOT NULL,
-  apellido_paterno TEXT NOT NULL,
-  apellido_materno TEXT,
-  correo           TEXT NOT NULL UNIQUE,
-  contrasena_hash  TEXT NOT NULL,
+  nombres          TEXT NOT NULL CHECK (length(nombres) BETWEEN 2 AND 50),
+  apellido_paterno TEXT NOT NULL CHECK (length(apellido_paterno) BETWEEN 2 AND 40),
+  apellido_materno TEXT CHECK (apellido_materno IS NULL OR length(apellido_materno) BETWEEN 2 AND 40),
+  correo           TEXT NOT NULL UNIQUE COLLATE NOCASE
+                   CHECK (length(correo) <= 100 AND correo LIKE '_%@itsm.edu.mx'),
+  contrasena_hash  TEXT NOT NULL CHECK (length(contrasena_hash) <= 200),
   rol              TEXT NOT NULL CHECK (rol IN ('alumno', 'docente', 'admin')),
   activo           INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1)),
   creado_en        TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
@@ -54,41 +54,37 @@ CREATE TABLE alumnos (
   matricula  TEXT NOT NULL UNIQUE
              CHECK (matricula GLOB '[0-9][0-9][0-9]T[0-9][0-9][0-9][0-9]'),
   id_carrera INTEGER NOT NULL REFERENCES carreras(id),
-  semestre   INTEGER NOT NULL CHECK (semestre BETWEEN 1 AND 9)
+  semestre   INTEGER NOT NULL CHECK (semestre BETWEEN 1 AND 8)
 );
 
 CREATE TABLE docentes (
-  id_usuario   INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
-  especialidad TEXT,
-  telefono     TEXT
+  id_usuario      INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+  id_especialidad INTEGER REFERENCES especialidades(id),
+  telefono        TEXT CHECK (telefono IS NULL OR
+                              (length(telefono) = 10 AND telefono NOT GLOB '*[^0-9]*'))
 );
-
--- Actividades y horarios
 
 CREATE TABLE actividades (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre      TEXT NOT NULL,
-  descripcion TEXT,
-  cupo        INTEGER NOT NULL CHECK (cupo > 0),
+  nombre      TEXT NOT NULL CHECK (length(nombre) BETWEEN 3 AND 50),
+  descripcion TEXT CHECK (descripcion IS NULL OR length(descripcion) <= 200),
+  cupo        INTEGER NOT NULL CHECK (cupo BETWEEN 1 AND 100),
   id_docente  INTEGER REFERENCES docentes(id_usuario) ON DELETE SET NULL,
   id_periodo  INTEGER NOT NULL REFERENCES periodos(id),
   activa      INTEGER NOT NULL DEFAULT 1 CHECK (activa IN (0, 1)),
   UNIQUE (nombre, id_periodo)
 );
 
--- Cada fila es un bloque de horario
 CREATE TABLE horarios (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   id_actividad INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
   id_dia       INTEGER NOT NULL REFERENCES dias_semana(id),
-  hora_inicio  TEXT NOT NULL,
-  hora_fin     TEXT NOT NULL,
+  hora_inicio  TEXT NOT NULL CHECK (hora_inicio GLOB '[0-2][0-9]:[0-5][0-9]'),
+  hora_fin     TEXT NOT NULL CHECK (hora_fin GLOB '[0-2][0-9]:[0-5][0-9]'),
   id_lugar     INTEGER NOT NULL REFERENCES lugares(id),
   UNIQUE (id_actividad, id_dia, hora_inicio),
   CHECK (hora_fin > hora_inicio)
 );
-
--- Inscripciones y asistencia
 
 CREATE TABLE inscripciones (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,7 +98,7 @@ CREATE TABLE inscripciones (
 CREATE TABLE sesiones (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   id_actividad INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
-  fecha        TEXT NOT NULL,
+  fecha        TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   UNIQUE (id_actividad, fecha)
 );
 
@@ -114,41 +110,33 @@ CREATE TABLE asistencias (
   UNIQUE (id_sesion, id_alumno)
 );
 
--- Evidencias y constancias
-
--- Una evidencia corresponde a un dia de una actividad
--- Puede tener varias fotos y un estado
 CREATE TABLE evidencias (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   id_actividad   INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
   id_docente     INTEGER REFERENCES docentes(id_usuario) ON DELETE SET NULL,
-  fecha          TEXT NOT NULL,
+  fecha          TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   estado         TEXT NOT NULL DEFAULT 'realizada'
                  CHECK (estado IN ('realizada', 'suspendida', 'no_realizada')),
-  descripcion    TEXT,
+  descripcion    TEXT CHECK (descripcion IS NULL OR length(descripcion) <= 300),
   creada_en      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
   actualizada_en TEXT
 );
 
 CREATE INDEX idx_evidencias_actividad_fecha ON evidencias (id_actividad, fecha);
 
--- Cada fila es una foto de la evidencia
 CREATE TABLE evidencia_fotos (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   id_evidencia INTEGER NOT NULL REFERENCES evidencias(id) ON DELETE CASCADE,
-  ruta_foto    TEXT NOT NULL,
-  orden        INTEGER NOT NULL DEFAULT 0
+  archivo      TEXT NOT NULL UNIQUE CHECK (length(archivo) BETWEEN 5 AND 100),
+  orden        INTEGER NOT NULL DEFAULT 0 CHECK (orden >= 0)
 );
 
--- El porcentaje se calcula al consultar
 CREATE TABLE constancias (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   id_inscripcion INTEGER NOT NULL UNIQUE REFERENCES inscripciones(id) ON DELETE CASCADE,
-  folio          TEXT NOT NULL UNIQUE,
+  folio          TEXT NOT NULL UNIQUE CHECK (length(folio) BETWEEN 5 AND 20),
   emitida_en     TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
-
--- Vistas de datos calculados
 
 CREATE VIEW v_periodos AS
 SELECT id, inicio, fin, activo,
@@ -164,7 +152,6 @@ SELECT id, inicio, fin, activo,
        || ' ' || strftime('%Y', inicio) AS nombre
 FROM periodos;
 
--- El horario se arma en Kotlin
 CREATE VIEW v_actividades AS
 SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa,
        p.nombre AS periodo,
@@ -188,9 +175,6 @@ LEFT JOIN asistencias asi ON asi.id_sesion = s.id AND asi.id_alumno = i.id_alumn
 WHERE i.estado = 'activa'
 GROUP BY i.id, i.id_alumno, i.id_actividad;
 
--- Reglas de negocio
-
--- Bloquea inscripciones con cupo lleno
 CREATE TRIGGER trg_inscripcion_cupo BEFORE INSERT ON inscripciones
 FOR EACH ROW
 BEGIN
@@ -201,7 +185,6 @@ BEGIN
   THEN RAISE(ABORT, 'Cupo lleno para esta actividad') END;
 END;
 
--- Un alumno solo puede tener una actividad activa
 CREATE TRIGGER trg_inscripcion_unica_alta BEFORE INSERT ON inscripciones
 FOR EACH ROW WHEN NEW.estado = 'activa'
 BEGIN
@@ -220,5 +203,42 @@ BEGIN
   THEN RAISE(ABORT, 'El alumno ya tiene una actividad inscrita') END;
 END;
 
--- Los datos de prueba se insertan desde la app
--- Las contrasenas se guardan con PBKDF2 y una sal por cuenta
+CREATE TRIGGER trg_asistencia_inscrito BEFORE INSERT ON asistencias
+FOR EACH ROW
+BEGIN
+  SELECT CASE WHEN NOT EXISTS
+    (SELECT 1 FROM inscripciones i JOIN sesiones s ON s.id_actividad = i.id_actividad
+      WHERE s.id = NEW.id_sesion AND i.id_alumno = NEW.id_alumno)
+  THEN RAISE(ABORT, 'El alumno no esta inscrito en la actividad') END;
+END;
+
+CREATE TRIGGER trg_alumno_rol BEFORE INSERT ON alumnos
+FOR EACH ROW
+BEGIN
+  SELECT CASE WHEN (SELECT rol FROM usuarios WHERE id = NEW.id_usuario) <> 'alumno'
+  THEN RAISE(ABORT, 'El usuario no tiene rol de alumno') END;
+  SELECT CASE WHEN (SELECT lower(correo) FROM usuarios WHERE id = NEW.id_usuario) <> lower(NEW.matricula) || '@itsm.edu.mx'
+  THEN RAISE(ABORT, 'El correo no coincide con el numero de control') END;
+END;
+
+CREATE TRIGGER trg_alumno_correo BEFORE UPDATE ON alumnos
+FOR EACH ROW
+BEGIN
+  SELECT CASE WHEN (SELECT lower(correo) FROM usuarios WHERE id = NEW.id_usuario) <> lower(NEW.matricula) || '@itsm.edu.mx'
+  THEN RAISE(ABORT, 'El correo no coincide con el numero de control') END;
+END;
+
+CREATE TRIGGER trg_docente_rol BEFORE INSERT ON docentes
+FOR EACH ROW
+BEGIN
+  SELECT CASE WHEN (SELECT rol FROM usuarios WHERE id = NEW.id_usuario) <> 'docente'
+  THEN RAISE(ABORT, 'El usuario no tiene rol de docente') END;
+END;
+
+CREATE TRIGGER trg_fotos_maximo BEFORE INSERT ON evidencia_fotos
+FOR EACH ROW
+BEGIN
+  SELECT CASE WHEN
+    (SELECT COUNT(*) FROM evidencia_fotos WHERE id_evidencia = NEW.id_evidencia) >= 10
+  THEN RAISE(ABORT, 'Maximo 10 fotografias por evidencia') END;
+END;

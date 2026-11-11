@@ -14,6 +14,7 @@
         android:theme="@style/Theme.Extra_tec">
         <activity
             android:name=".vistas.Comun.Principal_Vista"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

@@ -6,7 +6,7 @@ import itsm.extra_tec.Modelo.Alumno
 import itsm.extra_tec.Modelo.Docente
 import itsm.extra_tec.Modelo.Personas_Modelo
 
-// Una sola pantalla para consultar alumnos y docentes
+// alumnos y docentes en una pantalla
 class Personas_ModeloVista : Base_ModeloVista() {
     private val _alumnos = MutableLiveData<List<Alumno>?>(null)
     val alumnos: LiveData<List<Alumno>?> = _alumnos
@@ -21,7 +21,9 @@ class Personas_ModeloVista : Base_ModeloVista() {
     }
 
     fun buscar(texto: String) {
-        if (texto.trim() == filtro) return
+        if (texto.trim() == filtro) {
+            return
+        }
         filtro = texto.trim()
         recargar()
     }
@@ -46,10 +48,10 @@ class Personas_ModeloVista : Base_ModeloVista() {
 
     private fun recargar() {
         Personas_Modelo.alumnos(filtro) { resultado ->
-            atender(resultado) { _alumnos.value = it }
+            atender(resultado) { lista -> _alumnos.value = lista }
         }
         Personas_Modelo.docentes(filtro) { resultado ->
-            atender(resultado) { _docentes.value = it }
+            atender(resultado) { lista -> _docentes.value = lista }
         }
     }
 }

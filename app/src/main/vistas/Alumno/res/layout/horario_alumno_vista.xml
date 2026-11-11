@@ -9,8 +9,7 @@
             android:text="Mi calendario" />
         <TextView
             android:id="@+id/tvSubtitulo"
-            style="@style/Itsm.Text.Secondary"
-            android:textColor="#E8C9D4"
+            style="@style/Itsm.HeaderSub"
             android:text="Horario semanal de tus actividades" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />

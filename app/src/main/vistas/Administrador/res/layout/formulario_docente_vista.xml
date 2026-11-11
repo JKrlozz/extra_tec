@@ -19,69 +19,81 @@
         android:fillViewport="true">
 
         <LinearLayout
-            style="@style/Itsm.Content"
-            android:padding="20dp">
+            style="@style/Itsm.Content">
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Nombre(s)">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNombres"
+                    android:maxLength="50"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName|textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Apellido paterno">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etApellidoPaterno"
+                    android:maxLength="40"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName|textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
                 android:hint="Apellido materno">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etApellidoMaterno"
+                    android:maxLength="40"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName|textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Correo">
+                android:hint="Correo"
+                app:helperText="Debe terminar en @itsm.edu.mx">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCorreo"
+                    android:maxLength="100"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Especialidad">
-                <com.google.android.material.textfield.TextInputEditText
+                android:hint="Especialidad (opcional)">
+                <AutoCompleteTextView
                     android:id="@+id/etEspecialidad"
+                    android:maxLength="50"
+                    android:completionThreshold="1"
+                    android:inputType="textCapSentences"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Teléfono">
+                android:hint="Teléfono (opcional)"
+                app:helperText="10 dígitos">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etTelefono"
+                    android:maxLength="10"
+                    android:digits="0123456789"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone" />
+                    android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContrasena"
                 style="@style/Itsm.Field"
-                android:hint="Contraseña inicial (si se deja vacía se genera una)"
+                android:hint="Contraseña inicial (opcional)"
+                app:helperText="De 8 a 30 caracteres. Si la dejas vacía se genera una"
                 app:endIconMode="password_toggle">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContrasena"
+                    android:maxLength="30"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword" />

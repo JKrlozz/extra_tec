@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -7,25 +8,38 @@
     android:paddingTop="6dp"
     android:paddingBottom="6dp">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivFoto"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:contentDescription="Fotografía de la evidencia"
-        android:scaleType="centerCrop" />
+        android:layout_width="@dimen/tamano_miniatura"
+        android:layout_height="@dimen/tamano_miniatura"
+        android:background="@color/itsm_primary_light"
+        android:contentDescription="Fotografía de la evidencia, toca para ampliar"
+        android:foreground="?attr/selectableItemBackground"
+        android:scaleType="centerCrop"
+        app:shapeAppearance="@style/Itsm.FormaFoto" />
 
-    <TextView
-        android:id="@+id/tvNombre"
-        style="@style/Itsm.Text.Secondary"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNombre"
+            style="@style/Itsm.Text.Body"
+            android:textStyle="bold" />
+
+        <TextView
+            style="@style/Itsm.Text.Secondary"
+            android:text="Toca la foto para ampliarla" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnQuitar"
         style="@style/Itsm.Button.Text"
         android:layout_width="wrap_content"
-        android:text="Quitar" />
+        android:text="Quitar"
+        android:textColor="@color/itsm_danger" />
 
 </LinearLayout>

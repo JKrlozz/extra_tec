@@ -2,26 +2,23 @@ package itsm.extra_tec.Modelo
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 object Asistencia_Modelo {
 
-    // Carga la lista de la fecha indicada o de hoy
-    fun lista(
-        idActividad: Int,
-        fecha: String? = null,
-        alTerminar: (Resultado_Modelo<ListaAsistencia>) -> Unit,
-    ) {
+    // lista de la fecha elegida
+    // sin registro todos salen presentes
+    fun lista(idActividad: Int, fecha: String, alTerminar: (Resultado_Modelo<ListaAsistencia>) -> Unit) {
         BaseDatos.consultar({ db ->
             exigirTitular(db, idActividad)
-            val dia = fecha?.takeIf { it.isNotBlank() } ?: hoy()
-            db.rawQuery(
+            var dia = fecha
+            if (dia.isBlank()) {
+                dia = Limites.hoy()
+            }
+            val cursor = db.rawQuery(
                 """SELECT u.id,
                           TRIM(COALESCE(u.nombres, '') || ' ' || COALESCE(u.apellido_paterno, '') || ' ' ||
                                COALESCE(u.apellido_materno, '')) AS nombre,
-                          a.matricula, asi.presente
+                          a.matricula, COALESCE(asi.presente, 1) AS presente
                      FROM inscripciones i
                      JOIN alumnos a ON a.id_usuario = i.id_alumno
                      JOIN usuarios u ON u.id = a.id_usuario
@@ -30,20 +27,17 @@ object Asistencia_Modelo {
                     WHERE i.id_actividad = ? AND i.estado = 'activa'
                     ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres""",
                 arrayOf(dia, idActividad.toString()),
-            ).use { c ->
-                val alumnos = buildList {
-                    while (c.moveToNext()) {
-                        val indice = c.getColumnIndex("presente")
-                        add(
-                            MarcaAsistencia(
-                                c.entero("id"), c.texto("nombre"), c.texto("matricula"),
-                                indice < 0 || c.isNull(indice) || c.getInt(indice) != 0,
-                            )
-                        )
-                    }
-                }
-                ListaAsistencia(dia, alumnos)
+            )
+            val alumnos = mutableListOf<MarcaAsistencia>()
+            while (cursor.moveToNext()) {
+                val marca = MarcaAsistencia(
+                    cursor.entero("id"), cursor.texto("nombre"), cursor.texto("matricula"),
+                    cursor.entero("presente") == 1,
+                )
+                alumnos.add(marca)
             }
+            cursor.close()
+            ListaAsistencia(dia, alumnos)
         }, alTerminar)
     }
 
@@ -55,38 +49,47 @@ object Asistencia_Modelo {
     ) {
         BaseDatos.escribir({ db ->
             exigirTitular(db, idActividad)
-            if (marcas.isEmpty()) throw ErrorDatos("La lista de asistencia está vacía.")
-            val dia = fecha.ifBlank { hoy() }
+            if (marcas.isEmpty()) {
+                throw ErrorDatos("La lista de asistencia está vacía.")
+            }
+            val error = Limites.revisarFecha(fecha)
+            if (error != null) {
+                throw ErrorDatos(error)
+            }
 
-            db.insertWithOnConflict("sesiones", null, ContentValues().apply {
-                put("id_actividad", idActividad)
-                put("fecha", dia)
-            }, SQLiteDatabase.CONFLICT_IGNORE)
-            val idSesion = db.rawQuery(
+            // crea la sesion si no existe
+            val sesion = ContentValues()
+            sesion.put("id_actividad", idActividad)
+            sesion.put("fecha", fecha)
+            db.insertWithOnConflict("sesiones", null, sesion, SQLiteDatabase.CONFLICT_IGNORE)
+
+            val cursor = db.rawQuery(
                 "SELECT id FROM sesiones WHERE id_actividad = ? AND fecha = ?",
-                arrayOf(idActividad.toString(), dia),
-            ).use { c ->
-                if (c.moveToFirst()) c.getInt(0) else throw ErrorDatos("No se pudo abrir la sesión.")
+                arrayOf(idActividad.toString(), fecha),
+            )
+            var idSesion = 0
+            if (cursor.moveToFirst()) {
+                idSesion = cursor.getInt(0)
+            }
+            cursor.close()
+            if (idSesion == 0) {
+                throw ErrorDatos("No se pudo abrir la sesión.")
             }
 
             for (marca in marcas) {
-                val inscrito = db.rawQuery(
-                    "SELECT 1 FROM inscripciones WHERE id_actividad = ? AND id_alumno = ? AND estado = 'activa'",
-                    arrayOf(idActividad.toString(), marca.idAlumno.toString()),
-                ).use { it.moveToFirst() }
-                if (!inscrito) continue
+                var presente = 0
+                if (marca.presente) presente = 1
 
-                val valores = ContentValues().apply { put("presente", if (marca.presente) 1 else 0) }
+                val valores = ContentValues()
+                valores.put("presente", presente)
                 val filas = db.update(
                     "asistencias", valores, "id_sesion = ? AND id_alumno = ?",
                     arrayOf(idSesion.toString(), marca.idAlumno.toString()),
                 )
                 if (filas == 0) {
-                    db.insertOrThrow("asistencias", null, ContentValues().apply {
-                        put("id_sesion", idSesion)
-                        put("id_alumno", marca.idAlumno)
-                        put("presente", if (marca.presente) 1 else 0)
-                    })
+                    valores.put("id_sesion", idSesion)
+                    valores.put("id_alumno", marca.idAlumno)
+                    db.insertOrThrow("asistencias", null, valores)
                 }
             }
         }, alTerminar)
@@ -95,62 +98,65 @@ object Asistencia_Modelo {
     fun historial(idActividad: Int, alTerminar: (Resultado_Modelo<List<SesionAsistencia>>) -> Unit) {
         BaseDatos.consultar({ db ->
             exigirTitular(db, idActividad)
-            db.rawQuery(
-                """SELECT s.id AS id_sesion, s.fecha,
-                          u.nombres, u.apellido_paterno, u.apellido_materno,
-                          a.matricula, asi.presente
-                     FROM sesiones s
-                     LEFT JOIN asistencias asi ON asi.id_sesion = s.id
-                     LEFT JOIN alumnos a ON a.id_usuario = asi.id_alumno
-                     LEFT JOIN usuarios u ON u.id = a.id_usuario
-                    WHERE s.id_actividad = ?
-                    ORDER BY s.fecha DESC, u.apellido_paterno, u.apellido_materno, u.nombres""",
+            val sesiones = mutableListOf<SesionAsistencia>()
+            val cursorSesiones = db.rawQuery(
+                "SELECT id, fecha FROM sesiones WHERE id_actividad = ? ORDER BY fecha DESC",
                 arrayOf(idActividad.toString()),
-            ).use { c ->
-                val mapa = LinkedHashMap<Int, SesionAsistencia>()
-                while (c.moveToNext()) {
-                    val idSesion = c.entero("id_sesion")
-                    val anterior = mapa[idSesion]
-                    val alumno = if (c.texto("matricula").isBlank()) {
-                        null
-                    } else {
-                        DetalleAsistencia(
-                            nombreCompleto(
-                                c.texto("nombres"), c.texto("apellido_paterno"), c.texto("apellido_materno"),
-                            ),
-                            c.texto("matricula"),
-                            c.entero("presente") != 0,
-                        )
-                    }
-                    val alumnos = (anterior?.alumnos ?: emptyList()) + listOfNotNull(alumno)
-                    mapa[idSesion] = SesionAsistencia(
-                        id = idSesion,
-                        fecha = c.texto("fecha"),
-                        presentes = alumnos.count { it.presente },
-                        total = alumnos.size,
-                        alumnos = alumnos,
-                    )
+            )
+            while (cursorSesiones.moveToNext()) {
+                val idSesion = cursorSesiones.getInt(0)
+                val fecha = cursorSesiones.getString(1)
+                val alumnos = detalleSesion(db, idSesion)
+                var presentes = 0
+                for (alumno in alumnos) {
+                    if (alumno.presente) presentes++
                 }
-                mapa.values.toList()
+                sesiones.add(SesionAsistencia(idSesion, fecha, presentes, alumnos.size, alumnos))
             }
+            cursorSesiones.close()
+            sesiones
         }, alTerminar)
     }
 
+    private fun detalleSesion(db: SQLiteDatabase, idSesion: Int): List<DetalleAsistencia> {
+        val cursor = db.rawQuery(
+            """SELECT u.nombres, u.apellido_paterno, u.apellido_materno, a.matricula, asi.presente
+                 FROM asistencias asi
+                 JOIN alumnos a ON a.id_usuario = asi.id_alumno
+                 JOIN usuarios u ON u.id = a.id_usuario
+                WHERE asi.id_sesion = ?
+                ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres""",
+            arrayOf(idSesion.toString()),
+        )
+        val lista = mutableListOf<DetalleAsistencia>()
+        while (cursor.moveToNext()) {
+            val nombre = nombreCompleto(
+                cursor.texto("nombres"), cursor.texto("apellido_paterno"), cursor.texto("apellido_materno"),
+            )
+            lista.add(DetalleAsistencia(nombre, cursor.texto("matricula"), cursor.entero("presente") == 1))
+        }
+        cursor.close()
+        return lista
+    }
 
-    // Comprueba que la actividad exista y que el docente sea el titular
+    // revisa que la actividad exista
+    // el docente solo ve sus actividades
     private fun exigirTitular(db: SQLiteDatabase, idActividad: Int) {
-        val docente = db.rawQuery(
+        val cursor = db.rawQuery(
             "SELECT id_docente FROM actividades WHERE id = ? AND activa = 1",
             arrayOf(idActividad.toString()),
-        ).use { c ->
-            if (!c.moveToFirst()) throw ErrorDatos("Actividad no encontrada.")
-            if (c.isNull(0)) null else c.getInt(0)
+        )
+        if (!cursor.moveToFirst()) {
+            cursor.close()
+            throw ErrorDatos("Actividad no encontrada.")
         }
+        var docente: Int? = null
+        if (!cursor.isNull(0)) {
+            docente = cursor.getInt(0)
+        }
+        cursor.close()
         if (Sesion_Actual.rol() == "docente" && docente != Sesion_Actual.id()) {
             throw ErrorDatos("No eres el docente de esta actividad.")
         }
     }
-
-    private fun hoy(): String =
-        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 }

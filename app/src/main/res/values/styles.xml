@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Estilos base -->
+    <!-- estilos base -->
     <style name="Itsm" />
     <style name="Itsm.Text" />
 
-    <!-- Contenedores -->
+    <!-- contenedores -->
     <style name="Itsm.Screen">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
@@ -12,15 +12,16 @@
         <item name="android:background">@color/itsm_background</item>
     </style>
 
+    <!-- encabezado blanco con titulo verde -->
     <style name="Itsm.Header">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">vertical</item>
-        <item name="android:background">@color/itsm_primary_dark</item>
-        <item name="android:paddingStart">20dp</item>
-        <item name="android:paddingEnd">20dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">16dp</item>
+        <item name="android:background">@color/itsm_background</item>
+        <item name="android:paddingStart">@dimen/margen_lateral</item>
+        <item name="android:paddingEnd">@dimen/margen_lateral</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
 
     <style name="Itsm.HeaderOverline">
@@ -37,24 +38,37 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">4dp</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/itsm_primary_dark</item>
+        <item name="android:textSize">@dimen/tamano_titulo</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- texto debajo del titulo -->
+    <style name="Itsm.HeaderSub">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">@color/itsm_text_secondary</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
     <style name="Itsm.AccentBar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">3dp</item>
-        <item name="android:background">@color/itsm_accent</item>
+        <item name="android:background">@color/itsm_primary</item>
     </style>
 
     <style name="Itsm.Content">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">vertical</item>
-        <item name="android:padding">16dp</item>
+        <item name="android:paddingStart">@dimen/margen_lateral</item>
+        <item name="android:paddingEnd">@dimen/margen_lateral</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
     </style>
 
+    <!-- tarjeta con fondo verde muy claro -->
     <style name="Itsm.Card" parent="Widget.Material3.CardView.Filled">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -72,7 +86,13 @@
         <item name="android:padding">16dp</item>
     </style>
 
-    <!-- Texto -->
+    <!-- esquinas redondas de las fotos -->
+    <style name="Itsm.FormaFoto">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+
+    <!-- texto -->
     <style name="Itsm.Text.Title">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -108,16 +128,7 @@
         <item name="android:textAllCaps">true</item>
     </style>
 
-    <!-- Dato resaltado dentro de una tarjeta -->
-    <style name="Itsm.Text.Value">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textColor">@color/itsm_text</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <!-- Numero grande de resumen -->
+    <!-- numero grande de resumen -->
     <style name="Itsm.Text.Metric">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -126,15 +137,16 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- Campos de formulario -->
+    <!-- campos de texto sin borde -->
     <style name="Itsm.Field" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginBottom">12dp</item>
         <item name="boxStrokeWidth">0dp</item>
-        <item name="boxStrokeWidthFocused">0dp</item>
-        <item name="boxStrokeColor">@android:color/transparent</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxStrokeColor">@color/itsm_primary</item>
         <item name="hintTextColor">@color/itsm_primary</item>
+        <item name="counterTextColor">@color/itsm_text_secondary</item>
         <item name="boxCornerRadiusTopStart">8dp</item>
         <item name="boxCornerRadiusTopEnd">8dp</item>
         <item name="boxCornerRadiusBottomStart">8dp</item>
@@ -142,7 +154,12 @@
         <item name="boxBackgroundColor">@color/itsm_surface</item>
     </style>
 
-    <!-- Botones -->
+    <!-- campo blanco para tarjetas -->
+    <style name="Itsm.Field.EnTarjeta">
+        <item name="boxBackgroundColor">@color/white</item>
+    </style>
+
+    <!-- botones -->
     <style name="Itsm.Button.Primary" parent="Widget.Material3.Button">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -152,7 +169,7 @@
         <item name="android:textSize">15sp</item>
         <item name="backgroundTint">@color/itsm_primary</item>
         <item name="android:textColor">@color/white</item>
-        <item name="cornerRadius">8dp</item>
+        <item name="cornerRadius">10dp</item>
     </style>
 
     <style name="Itsm.Button.Secondary" parent="Widget.Material3.Button.TonalButton">
@@ -161,9 +178,9 @@
         <item name="android:minHeight">48dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/itsm_primary</item>
+        <item name="android:textColor">@color/itsm_primary_dark</item>
         <item name="backgroundTint">@color/itsm_primary_light</item>
-        <item name="cornerRadius">8dp</item>
+        <item name="cornerRadius">10dp</item>
     </style>
 
     <style name="Itsm.Button.Danger" parent="Widget.Material3.Button.TonalButton">
@@ -174,7 +191,7 @@
         <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/itsm_danger</item>
         <item name="backgroundTint">@color/itsm_danger_light</item>
-        <item name="cornerRadius">8dp</item>
+        <item name="cornerRadius">10dp</item>
     </style>
 
     <style name="Itsm.Button.Text" parent="Widget.Material3.Button.TextButton">
@@ -185,20 +202,20 @@
         <item name="android:textColor">@color/itsm_primary</item>
     </style>
 
-    <!-- Barra de navegacion -->
+    <!-- barra de navegacion de abajo -->
     <style name="Itsm.NavBar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center</item>
-        <item name="android:background">@color/itsm_primary_dark</item>
+        <item name="android:background">@drawable/fondo_barra</item>
         <item name="android:paddingStart">6dp</item>
         <item name="android:paddingEnd">6dp</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">6dp</item>
     </style>
 
-    <!-- Botones de pestana para alternar listas -->
+    <!-- pestanas para cambiar de lista -->
     <style name="Itsm.Button.Tab" parent="Widget.Material3.Button.TonalButton">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">44dp</item>
@@ -209,11 +226,11 @@
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/itsm_primary</item>
-        <item name="backgroundTint">@color/itsm_surface</item>
+        <item name="backgroundTint">@color/itsm_primary_light</item>
         <item name="cornerRadius">22dp</item>
     </style>
 
-    <!-- Boton Volver de la barra inferior -->
+    <!-- boton volver de abajo -->
     <style name="Itsm.Button.Volver" parent="Widget.Material3.Button.TonalButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">44dp</item>
@@ -222,14 +239,15 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/itsm_primary</item>
+        <item name="android:textColor">@color/itsm_primary_dark</item>
         <item name="backgroundTint">@color/itsm_primary_light</item>
         <item name="cornerRadius">22dp</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">8dp</item>
-        <item name="iconTint">@color/itsm_primary</item>
+        <item name="iconTint">@color/itsm_primary_dark</item>
     </style>
 
+    <!-- el texto se achica -->
     <style name="Itsm.NavButton" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -238,8 +256,12 @@
         <item name="android:paddingStart">2dp</item>
         <item name="android:paddingEnd">2dp</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/itsm_primary_dark</item>
         <item name="android:maxLines">1</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">9sp</item>
+        <item name="autoSizeMaxTextSize">13sp</item>
     </style>
 </resources>

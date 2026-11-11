@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- medidas para telefono -->
+    <dimen name="margen_lateral">16dp</dimen>
+    <dimen name="ancho_etiqueta">104dp</dimen>
+    <dimen name="tamano_titulo">22sp</dimen>
+    <dimen name="tamano_miniatura">72dp</dimen>
+    <dimen name="borde_hoy">2dp</dimen>
+</resources>

@@ -10,75 +10,100 @@ import itsm.extra_tec.Modelo.Evidencia
 import itsm.extra_tec.Modelo.EvidenciaFoto
 import itsm.extra_tec.Modelo.Evidencias_Modelo
 import itsm.extra_tec.Modelo.FotoNueva
+import itsm.extra_tec.Modelo.Limites
 import itsm.extra_tec.Modelo.Sesion_Actual
-import java.util.UUID
+
+// foto del formulario guardada o nueva
+// la guardada tiene id
+data class FotoFormulario(
+    val id: Int?,
+    val uri: Uri?,
+    val ruta: String?,
+) {
+    // texto para poder mostrarla
+    val fuente: String
+        get() {
+            if (uri != null) return uri.toString()
+            if (ruta != null) return ruta
+            return ""
+        }
+}
 
 class Evidencia_ModeloVista : Base_ModeloVista() {
-    // Foto del formulario ya guardada o recien elegida
-    data class FotoFormulario(
-        val clave: String,
-        val id: Int? = null,
-        val uri: Uri? = null,
-        val ruta: String? = null,
-    )
-
-    private val _clases = MutableLiveData<List<Actividad>>(emptyList())
+    private val _clases = MutableLiveData<List<Actividad>>(listOf())
     val clases: LiveData<List<Actividad>> = _clases
 
-    private val _fotos = MutableLiveData<List<FotoFormulario>>(emptyList())
+    private val _fotos = MutableLiveData<List<FotoFormulario>>(listOf())
     val fotos: LiveData<List<FotoFormulario>> = _fotos
 
     private val _evidencia = MutableLiveData<Evidencia?>(null)
     val evidencia: LiveData<Evidencia?> = _evidencia
 
-    private val _guardada = MutableLiveData<Evento_ModeloVista<Unit>>()
-    val guardada: LiveData<Evento_ModeloVista<Unit>> = _guardada
+    private val _guardada = MutableLiveData<Evento_ModeloVista<Boolean>>()
+    val guardada: LiveData<Evento_ModeloVista<Boolean>> = _guardada
 
-    private var existentes: List<EvidenciaFoto> = emptyList()
+    private var existentes = listOf<EvidenciaFoto>()
     private var idEvidencia: Int? = null
     private var iniciado = false
 
     init {
-        // El administrador puede registrar evidencias de cualquier actividad
-        // El docente solo de sus actividades
-        val cargar = if (Sesion_Actual.rol() == "admin") {
-            Actividades_Modelo::todas
+        // el admin puede usar cualquier actividad
+        if (Sesion_Actual.rol() == "admin") {
+            Actividades_Modelo.todas { resultado -> atender(resultado) { lista -> _clases.value = lista } }
         } else {
-            Actividades_Modelo::misClases
+            Actividades_Modelo.misClases { resultado -> atender(resultado) { lista -> _clases.value = lista } }
         }
-        cargar { resultado -> atender(resultado) { _clases.value = it } }
     }
 
     fun cargar(id: Int?) {
-        if (iniciado) return
+        if (iniciado) {
+            return
+        }
         iniciado = true
         idEvidencia = id
-        if (id == null) return
+        if (id == null) {
+            return
+        }
         Evidencias_Modelo.detalle(id) { resultado ->
             atender(resultado) { evidencia ->
                 existentes = evidencia.fotos
                 _evidencia.value = evidencia
-                _fotos.value = evidencia.fotos.map {
-                    FotoFormulario("e:${it.id}", id = it.id, ruta = it.ruta)
+                val lista = mutableListOf<FotoFormulario>()
+                for (foto in evidencia.fotos) {
+                    lista.add(FotoFormulario(foto.id, null, foto.ruta))
                 }
+                _fotos.value = lista
             }
         }
     }
 
     fun agregarFotos(uris: List<Uri>) {
-        val actuales = _fotos.value.orEmpty()
-        val yaElegidas = actuales.mapNotNull { it.uri }.toSet()
-        val nuevas = uris.filter { it !in yaElegidas }
-        if (actuales.size + nuevas.size > Evidencias_Modelo.MAX_FOTOS) {
-            return avisar("Puedes seleccionar hasta ${Evidencias_Modelo.MAX_FOTOS} fotografías.")
+        val lista = mutableListOf<FotoFormulario>()
+        lista.addAll(_fotos.value ?: listOf())
+        for (uri in uris) {
+            // no se repite la misma foto
+            var repetida = false
+            for (foto in lista) {
+                if (foto.uri == uri) repetida = true
+            }
+            if (!repetida) {
+                lista.add(FotoFormulario(null, uri, null))
+            }
         }
-        _fotos.value = actuales + nuevas.map {
-            FotoFormulario("n:${UUID.randomUUID()}", uri = it)
+        if (lista.size > Limites.FOTOS_MAX) {
+            avisar("Puedes seleccionar hasta ${Limites.FOTOS_MAX} fotografías.")
+            return
         }
+        _fotos.value = lista
     }
 
-    fun quitarFoto(clave: String) {
-        _fotos.value = _fotos.value.orEmpty().filterNot { it.clave == clave }
+    fun quitarFoto(posicion: Int) {
+        val lista = mutableListOf<FotoFormulario>()
+        lista.addAll(_fotos.value ?: listOf())
+        if (posicion >= 0 && posicion < lista.size) {
+            lista.removeAt(posicion)
+        }
+        _fotos.value = lista
     }
 
     fun guardar(
@@ -88,30 +113,64 @@ class Evidencia_ModeloVista : Base_ModeloVista() {
         estado: String,
         descripcion: String,
     ) {
-        val clase = _clases.value.orEmpty().getOrNull(posicionClase)
-            ?: return avisar("No hay actividades disponibles.")
-        val actuales = _fotos.value.orEmpty()
-        val nuevas = mutableListOf<FotoNueva>()
-        for (foto in actuales.filter { it.uri != null }) {
-            val uri = foto.uri!!
-            val mime = lector.getType(uri) ?: "image/jpeg"
-            val bytes = runCatching { lector.openInputStream(uri)!!.use { it.readBytes() } }.getOrNull()
-                ?: return avisar("No se pudo leer una de las fotografías.")
-            val extension = when {
-                mime.contains("png") -> "png"
-                mime.contains("webp") -> "webp"
-                else -> "jpg"
-            }
-            nuevas.add(FotoNueva("evidencia.$extension", mime, bytes))
+        val clases = _clases.value ?: listOf()
+        if (posicionClase < 0 || posicionClase >= clases.size) {
+            avisar("No hay actividades disponibles.")
+            return
         }
-        val conservadas = actuales.mapNotNull { it.id }.toSet()
-        val quitar = existentes.map { it.id }.filterNot { it in conservadas }
+        var error = Limites.revisarFecha(fecha)
+        if (error == null) {
+            error = Limites.revisarDescripcionEvidencia(descripcion)
+        }
+        if (error != null) {
+            avisar(error)
+            return
+        }
+
+        // se leen las fotos nuevas
+        val actuales = _fotos.value ?: listOf()
+        val nuevas = mutableListOf<FotoNueva>()
+        val conservadas = mutableListOf<Int>()
+        for (foto in actuales) {
+            if (foto.id != null) {
+                conservadas.add(foto.id)
+            }
+            if (foto.uri != null) {
+                val tipo = lector.getType(foto.uri) ?: "image/jpeg"
+                var bytes: ByteArray? = null
+                try {
+                    val entrada = lector.openInputStream(foto.uri)
+                    if (entrada != null) {
+                        bytes = entrada.readBytes()
+                        entrada.close()
+                    }
+                } catch (e: Exception) {
+                    bytes = null
+                }
+                if (bytes == null) {
+                    avisar("No se pudo leer una de las fotografías.")
+                    return
+                }
+                if (bytes.size > Limites.FOTO_BYTES_MAX) {
+                    avisar("Una fotografía supera 8 MB.")
+                    return
+                }
+                nuevas.add(FotoNueva("evidencia", tipo, bytes))
+            }
+        }
+        val quitar = mutableListOf<Int>()
+        for (foto in existentes) {
+            if (!conservadas.contains(foto.id)) {
+                quitar.add(foto.id)
+            }
+        }
+
         Evidencias_Modelo.guardar(
-            clase.id, idEvidencia, fecha, estado, descripcion, nuevas, quitar,
+            clases[posicionClase].id, idEvidencia, fecha, estado, descripcion, nuevas, quitar,
         ) { resultado ->
             atender(resultado) {
                 avisar("Evidencia guardada.")
-                _guardada.value = Evento_ModeloVista(Unit)
+                _guardada.value = Evento_ModeloVista(true)
             }
         }
     }

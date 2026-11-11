@@ -8,7 +8,7 @@
     <TextView
         android:id="@+id/tvEtiqueta"
         style="@style/Itsm.Text.Secondary"
-        android:layout_width="78dp"
+        android:layout_width="@dimen/ancho_etiqueta"
         android:layout_marginTop="0dp"
         android:textColor="@color/itsm_primary_dark"
         android:textSize="12sp"

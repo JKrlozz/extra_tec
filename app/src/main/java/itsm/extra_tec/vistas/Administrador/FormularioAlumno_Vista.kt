@@ -12,43 +12,60 @@ import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.Pantalla_Vista
 import itsm.extra_tec.vistas.Comun.texto
 
-class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
+class FormularioAlumno_Vista : Base_Vista() {
+    private var _binding: FormularioAlumnoVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: FormularioAlumno_ModeloVista by viewModels()
 
-    // Sin id el formulario agrega un alumno nuevo
-    private val idAlumno: Int? get() = arguments?.getInt(ARG_ID, -1)?.takeIf { it >= 0 }
+    // sin id es alumno nuevo
+    private var idAlumno: Int? = null
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        FormularioAlumnoVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FormularioAlumnoVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        binding.tvTituloForm.text = if (idAlumno == null) "Agregar alumno" else "Editar alumno"
-        llenarSpinner(binding.spinnerSemestre, semestres) { it }
-        if (idAlumno != null && savedInstanceState == null) {
-            arguments?.let {
-                binding.etNombres.setText(it.getString(ARG_NOMBRES))
-                binding.etApellidoPaterno.setText(it.getString(ARG_PATERNO))
-                binding.etApellidoMaterno.setText(it.getString(ARG_MATERNO))
-                binding.etCorreo.setText(it.getString(ARG_CORREO))
-                binding.etMatricula.setText(it.getString(ARG_MATRICULA))
-                binding.spinnerSemestre.setSelection((it.getInt(ARG_SEMESTRE) - 1).coerceIn(0, semestres.size - 1))
+        filtrarNumeroControl(binding.etMatricula)
+        llenarSpinner(binding.spinnerSemestre, semestres)
+        val datos = arguments
+        if (datos != null && datos.getInt(ARG_ID, -1) > 0) {
+            idAlumno = datos.getInt(ARG_ID)
+            binding.tvTituloForm.text = "Editar alumno"
+            // al editar no cambia la clave
+            binding.tilContrasena.visibility = View.GONE
+            if (savedInstanceState == null) {
+                binding.etNombres.setText(datos.getString(ARG_NOMBRES))
+                binding.etApellidoPaterno.setText(datos.getString(ARG_PATERNO))
+                binding.etApellidoMaterno.setText(datos.getString(ARG_MATERNO))
+                binding.etCorreo.setText(datos.getString(ARG_CORREO))
+                binding.etMatricula.setText(datos.getString(ARG_MATRICULA))
+                val semestre = datos.getInt(ARG_SEMESTRE, 1)
+                if (semestre >= 1 && semestre <= semestres.size) {
+                    binding.spinnerSemestre.setSelection(semestre - 1)
+                }
             }
+        } else {
+            binding.tvTituloForm.text = "Agregar alumno"
         }
-        if (idAlumno != null) binding.tilContrasena.visibility = View.GONE
 
         modelo.carreras.observe(viewLifecycleOwner) { carreras ->
-            llenarSpinner(binding.spinnerCarrera, carreras) { it.nombre }
-            val posicion = carreras.indexOfFirst { it.id == arguments?.getInt(ARG_CARRERA, -1) }
-            if (posicion >= 0) binding.spinnerCarrera.setSelection(posicion)
+            val nombres = mutableListOf<String>()
+            for (carrera in carreras) {
+                nombres.add(carrera.nombre)
+            }
+            llenarSpinner(binding.spinnerCarrera, nombres)
+            val idCarrera = arguments?.getInt(ARG_CARRERA, -1) ?: -1
+            for (i in carreras.indices) {
+                if (carreras[i].id == idCarrera) binding.spinnerCarrera.setSelection(i)
+            }
         }
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let {
-                mostrarClaveInicial(it.claveInicial) {
-                    navegador.irRaiz(
-                        Pantalla_Vista.GESTIONAR_ALUMNOS,
-                        Personas_Vista.argumentos("alumno"),
-                    )
+            val guardado = evento.obtener()
+            if (guardado != null) {
+                mostrarClaveInicial(guardado.claveInicial) {
+                    navegador.irRaiz(Pantalla_Vista.GESTIONAR_ALUMNOS, Personas_Vista.argumentos("alumno"))
                 }
             }
         }
@@ -69,6 +86,11 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
         binding.btnCancelar.setOnClickListener { navegador.atras() }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     companion object {
         private const val ARG_ID = "id"
         private const val ARG_NOMBRES = "nombres"
@@ -79,15 +101,17 @@ class FormularioAlumno_Vista : Base_Vista<FormularioAlumnoVistaBinding>() {
         private const val ARG_SEMESTRE = "semestre"
         private const val ARG_CARRERA = "carrera"
 
-        fun argumentos(a: Alumno) = Bundle().apply {
-            putInt(ARG_ID, a.id)
-            putString(ARG_NOMBRES, a.nombres)
-            putString(ARG_PATERNO, a.apellidoPaterno)
-            putString(ARG_MATERNO, a.apellidoMaterno)
-            putString(ARG_CORREO, a.correo)
-            putString(ARG_MATRICULA, a.matricula)
-            putInt(ARG_SEMESTRE, a.semestre)
-            putInt(ARG_CARRERA, a.idCarrera)
+        fun argumentos(alumno: Alumno): Bundle {
+            val datos = Bundle()
+            datos.putInt(ARG_ID, alumno.id)
+            datos.putString(ARG_NOMBRES, alumno.nombres)
+            datos.putString(ARG_PATERNO, alumno.apellidoPaterno)
+            datos.putString(ARG_MATERNO, alumno.apellidoMaterno)
+            datos.putString(ARG_CORREO, alumno.correo)
+            datos.putString(ARG_MATRICULA, alumno.matricula)
+            datos.putInt(ARG_SEMESTRE, alumno.semestre)
+            datos.putInt(ARG_CARRERA, alumno.idCarrera)
+            return datos
         }
     }
 }

@@ -10,8 +10,7 @@
             android:text="Alumnos" />
         <TextView
             android:id="@+id/tvSubtitulo"
-            style="@style/Itsm.Text.Secondary"
-            android:textColor="#E8C9D4"
+            style="@style/Itsm.HeaderSub"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />
@@ -29,6 +28,8 @@
                 android:hint="Buscar alumno">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBuscar"
+                    android:maxLength="50"
+                    android:inputType="text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>

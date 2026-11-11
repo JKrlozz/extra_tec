@@ -1,6 +1,5 @@
 package itsm.extra_tec.vistas.Administrador
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,39 +11,47 @@ import itsm.extra_tec.databinding.ReportesVistaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.agregarTarjeta
 import itsm.extra_tec.vistas.Comun.texto
-import java.util.Calendar
-import java.util.Locale
 
-class Reportes_Vista : Base_Vista<ReportesVistaBinding>() {
+class Reportes_Vista : Base_Vista() {
+    private var _binding: ReportesVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: Reportes_ModeloVista by viewModels()
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        ReportesVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = ReportesVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        llenarSpinner(binding.spinnerTipo, modelo.tipos) { it.second }
+        llenarSpinner(binding.spinnerTipo, modelo.etiquetas)
 
         modelo.reporte.observe(viewLifecycleOwner) { reporte ->
-            binding.encabezadoReporte.visibility = if (reporte == null) View.GONE else View.VISIBLE
             binding.listaReporte.removeAllViews()
             if (reporte == null) {
+                binding.encabezadoReporte.visibility = View.GONE
                 binding.tvVacioReporte.visibility = View.VISIBLE
                 binding.tvVacioReporte.text = "Genera un reporte para ver los resultados."
                 return@observe
             }
+            binding.encabezadoReporte.visibility = View.VISIBLE
+            binding.tvTituloReporte.text = "Reporte " + reporte.etiqueta.lowercase()
+            binding.tvResumenReporte.text = reporte.rango + "\n" + reporte.filas.size + " registros"
+            if (reporte.filas.isEmpty()) {
+                binding.tvVacioReporte.visibility = View.VISIBLE
+                binding.tvVacioReporte.text = "No hay registros en ese periodo."
+            } else {
+                binding.tvVacioReporte.visibility = View.GONE
+            }
 
-            binding.tvTituloReporte.text = "Reporte ${reporte.etiqueta.lowercase()}"
-            binding.tvResumenReporte.text = "${reporte.rango}\n${reporte.registros} registros"
-            binding.tvVacioReporte.visibility = if (reporte.filas.isEmpty()) View.VISIBLE else View.GONE
-            binding.tvVacioReporte.text = "No hay registros en ese periodo."
-
-            modelo.bloques(reporte).forEach { bloque ->
-                val porcentaje = bloque.detalles
-                    .firstOrNull { it.first == "Asistencia" }
-                    ?.second
-                    ?.substringBefore(" ")
-                    ?.toIntOrNull()
+            for (bloque in modelo.bloques(reporte)) {
+                // la barra muestra la asistencia
+                var porcentaje: Int? = null
+                for (detalle in bloque.detalles) {
+                    if (detalle.first == "Asistencia") {
+                        porcentaje = detalle.second.substringBefore(" ").toDoubleOrNull()?.toInt()
+                    }
+                }
                 agregarTarjeta(
                     binding.listaReporte,
                     bloque.titulo,
@@ -54,36 +61,26 @@ class Reportes_Vista : Base_Vista<ReportesVistaBinding>() {
             }
         }
 
-        binding.etDesde.setOnClickListener { elegirFecha(binding.etDesde) }
-        binding.etHasta.setOnClickListener { elegirFecha(binding.etHasta) }
-        binding.tilDesde.setEndIconOnClickListener { elegirFecha(binding.etDesde) }
-        binding.tilHasta.setEndIconOnClickListener { elegirFecha(binding.etHasta) }
+        binding.etDesde.setOnClickListener { pedirFecha(binding.etDesde) }
+        binding.etHasta.setOnClickListener { pedirFecha(binding.etHasta) }
+        binding.tilDesde.setEndIconOnClickListener { pedirFecha(binding.etDesde) }
+        binding.tilHasta.setEndIconOnClickListener { pedirFecha(binding.etHasta) }
         binding.btnLimpiarFechas.setOnClickListener {
             binding.etDesde.setText("")
             binding.etHasta.setText("")
         }
-
         binding.btnGenerarReporte.setOnClickListener {
             modelo.generar(binding.spinnerTipo.selectedItemPosition, binding.etDesde.texto(), binding.etHasta.texto())
         }
         binding.btnExportarPdf.setOnClickListener { modelo.exportar(requireContext().applicationContext) }
     }
 
-    private fun elegirFecha(campo: EditText) {
-        val partes = campo.texto().split("-")
-        val calendario = Calendar.getInstance().apply {
-            if (partes.size == 3) {
-                runCatching { set(partes[0].toInt(), partes[1].toInt() - 1, partes[2].toInt()) }
-            }
-        }
-        DatePickerDialog(
-            requireContext(),
-            { _, anio, mes, dia ->
-                campo.setText(String.format(Locale.US, "%04d-%02d-%02d", anio, mes + 1, dia))
-            },
-            calendario.get(Calendar.YEAR),
-            calendario.get(Calendar.MONTH),
-            calendario.get(Calendar.DAY_OF_MONTH),
-        ).show()
+    private fun pedirFecha(campo: EditText) {
+        elegirFecha(campo.texto(), false) { nueva -> campo.setText(nueva) }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

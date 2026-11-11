@@ -15,10 +15,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Locale
 
-// Bloque de un reporte con un titulo y varios datos
+// bloque de reporte con datos
 data class BloquePdf(val titulo: String, val detalles: List<Pair<String, String>>)
 
-// Datos que lleva la constancia oficial
+// datos de la constancia oficial
 data class ConstanciaPdf(
     val alumno: String,
     val matricula: String,
@@ -38,31 +38,42 @@ object Archivos_Modelo {
     private const val ANCHO = 612
     private const val ALTO = 792
     private const val MARGEN = 46f
-    private val GUINDA = Color.rgb(122, 23, 53)
-    private val GUINDA_CLARO = Color.rgb(247, 241, 238)
-    private val GRIS = Color.rgb(90, 80, 84)
+    private val VERDE = Color.rgb(19, 85, 58)
+    private val VERDE_CLARO = Color.rgb(238, 246, 241)
+    private val VERDE_TEXTO = Color.rgb(214, 236, 223)
+    private val GRIS = Color.rgb(84, 98, 90)
     private val NEGRO = Color.rgb(20, 20, 20)
 
-    // Devuelve la ubicacion del archivo guardado
+    // regresa donde quedo el archivo
     fun guardarEnDescargas(contexto: Context, nombre: String, mime: String, bytes: ByteArray): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val valores = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, nombre)
-                put(MediaStore.Downloads.MIME_TYPE, mime)
-                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-            }
+            val valores = ContentValues()
+            valores.put(MediaStore.Downloads.DISPLAY_NAME, nombre)
+            valores.put(MediaStore.Downloads.MIME_TYPE, mime)
+            valores.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
             val uri = contexto.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, valores)
-                ?: throw IllegalStateException("No se pudo crear el archivo")
-            contexto.contentResolver.openOutputStream(uri)!!.use { it.write(bytes) }
+            if (uri == null) {
+                throw IllegalStateException("No se pudo crear el archivo")
+            }
+            val salida = contexto.contentResolver.openOutputStream(uri)
+            if (salida == null) {
+                throw IllegalStateException("No se pudo escribir el archivo")
+            }
+            salida.write(bytes)
+            salida.close()
             return "Descargas/$nombre"
         }
-        // Android 9 o anterior usa la carpeta de la app
-        val carpeta = contexto.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: contexto.filesDir
-        File(carpeta, nombre).writeBytes(bytes)
-        return File(carpeta, nombre).absolutePath
+        // android 9 usa otra carpeta
+        var carpeta = contexto.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        if (carpeta == null) {
+            carpeta = contexto.filesDir
+        }
+        val archivo = File(carpeta, nombre)
+        archivo.writeBytes(bytes)
+        return archivo.absolutePath
     }
 
-    // Constancia con el formato oficial del Tecnologico
+    // constancia con el formato del tecnologico
     fun constanciaPdf(d: ConstanciaPdf): ByteArray {
         val doc = PdfDocument()
         val pagina = doc.startPage(PdfDocument.PageInfo.Builder(ANCHO, ALTO, 1).create())
@@ -145,29 +156,30 @@ object Archivos_Modelo {
         return salida.toByteArray()
     }
 
-    // Reporte con tarjetas y datos separados por renglon
+    // reporte con un dato por renglon
     fun reportePdf(titulo: String, subtitulo: String, bloques: List<BloquePdf>): ByteArray {
         val doc = PdfDocument()
         var numero = 1
         var pagina = doc.startPage(PdfDocument.PageInfo.Builder(ANCHO, ALTO, numero).create())
         var lienzo = pagina.canvas
-        var y = 118f
 
         cabeceraReporte(lienzo, titulo, subtitulo, false)
-        y = 126f
+        var y = 126f
 
         val pTitulo = pincel(12f, true, NEGRO)
-        val pEtiqueta = pincel(9f, true, GUINDA)
+        val pEtiqueta = pincel(9f, true, VERDE)
         val pValor = pincel(9.5f, false, NEGRO)
         val anchoValor = ANCHO - 2 * MARGEN - 128f
 
         for (bloque in bloques) {
-            val lineas = bloque.detalles.map { (etiqueta, valor) ->
-                Triple(etiqueta, valor, ajustar(valor, pValor, anchoValor))
+            // cada valor se parte en renglones
+            val renglones = mutableListOf<List<String>>()
+            var altoTarjeta = 46f
+            for (detalle in bloque.detalles) {
+                val texto = ajustar(detalle.second, pValor, anchoValor)
+                renglones.add(texto)
+                altoTarjeta += maxOf(17f, texto.size * 13f + 4f)
             }
-            val altoTarjeta = 46f + lineas.sumOf { (_, _, texto) ->
-                maxOf(17.0, texto.size * 13.0 + 4.0)
-            }.toFloat()
 
             if (y + altoTarjeta > ALTO - 54) {
                 piePagina(lienzo, numero)
@@ -180,11 +192,13 @@ object Archivos_Modelo {
             }
 
             val fondo = RectF(MARGEN, y, ANCHO - MARGEN, y + altoTarjeta)
-            lienzo.drawRoundRect(fondo, 10f, 10f, pincelRelleno(GUINDA_CLARO))
-            lienzo.drawRect(MARGEN, y + 10f, MARGEN + 3f, y + altoTarjeta - 10f, pincelRelleno(GUINDA))
+            lienzo.drawRoundRect(fondo, 10f, 10f, pincelRelleno(VERDE_CLARO))
+            lienzo.drawRect(MARGEN, y + 10f, MARGEN + 3f, y + altoTarjeta - 10f, pincelRelleno(VERDE))
             lienzo.drawText(bloque.titulo, MARGEN + 16f, y + 20f, pTitulo)
             var filaY = y + 38f
-            for ((etiqueta, _, texto) in lineas) {
+            for (i in bloque.detalles.indices) {
+                val etiqueta = bloque.detalles[i].first
+                val texto = renglones[i]
                 lienzo.drawText(etiqueta, MARGEN + 16f, filaY, pEtiqueta)
                 var renglon = filaY
                 for (linea in texto) {
@@ -206,30 +220,29 @@ object Archivos_Modelo {
 
     private fun cabeceraReporte(lienzo: Canvas, titulo: String, subtitulo: String, continuacion: Boolean) {
         val fondo = RectF(MARGEN, 34f, ANCHO - MARGEN, 104f)
-        lienzo.drawRoundRect(fondo, 12f, 12f, pincelRelleno(GUINDA))
+        lienzo.drawRoundRect(fondo, 12f, 12f, pincelRelleno(VERDE))
         val pTitulo = pincel(16f, true, Color.WHITE)
-        lienzo.drawText(if (continuacion) "$titulo continuación" else titulo, MARGEN + 18f, 62f, pTitulo)
-        val pSub = pincel(9f, false, Color.rgb(240, 220, 228))
+        var textoTitulo = titulo
+        if (continuacion) {
+            textoTitulo = "$titulo continuación"
+        }
+        lienzo.drawText(textoTitulo, MARGEN + 18f, 62f, pTitulo)
+        val pSub = pincel(9f, false, VERDE_TEXTO)
         var subY = 80f
-        for (linea in subtitulo.lines()) {
+        for (linea in subtitulo.split("\n")) {
             lienzo.drawText(linea, MARGEN + 18f, subY, pSub)
             subY += 12f
         }
-        lienzo.drawText("Instituto Tecnológico Superior de Misantla", ANCHO - MARGEN - 18f, 96f, pincel(7.5f, false, Color.WHITE).apply {
-            textAlign = Paint.Align.RIGHT
-        })
+        val pEscuela = pincel(7.5f, false, Color.WHITE)
+        pEscuela.textAlign = Paint.Align.RIGHT
+        lienzo.drawText("Instituto Tecnológico Superior de Misantla", ANCHO - MARGEN - 18f, 96f, pEscuela)
     }
 
     private fun piePagina(lienzo: Canvas, numero: Int) {
-        lienzo.drawText(
-            "ITSM Actividades extraescolares",
-            MARGEN, ALTO - 24f, pincel(7.5f, false, GRIS),
-        )
-        lienzo.drawText(
-            "Página $numero",
-            ANCHO - MARGEN, ALTO - 24f,
-            pincel(7.5f, false, GRIS).apply { textAlign = Paint.Align.RIGHT },
-        )
+        lienzo.drawText("ITSM Actividades extraescolares", MARGEN, ALTO - 24f, pincel(7.5f, false, GRIS))
+        val pNumero = pincel(7.5f, false, GRIS)
+        pNumero.textAlign = Paint.Align.RIGHT
+        lienzo.drawText("Página $numero", ANCHO - MARGEN, ALTO - 24f, pNumero)
     }
 
     private fun dibujarMembrete(lienzo: Canvas) {
@@ -287,11 +300,11 @@ object Archivos_Modelo {
         lienzo.drawLine(x, y, x + ancho, y, pincelTrazo(0.9f, NEGRO))
     }
 
-    private data class Parte(val texto: String, val negrita: Boolean)
+    // texto normal o en negrita
+    private class Parte(val texto: String, val negrita: Boolean)
 
-    private data class Palabra(val texto: String, val negrita: Boolean)
-
-    // Escribe un parrafo con partes normales y en negrita
+    // escribe un parrafo justificado
+    // regresa la altura donde termino
     private fun parrafo(
         lienzo: Canvas,
         partes: List<Parte>,
@@ -304,95 +317,136 @@ object Archivos_Modelo {
     ): Float {
         val normal = pincel(tam, false, NEGRO, serif)
         val negrita = pincel(tam, true, NEGRO, serif)
-        val palabras = partes.flatMap { parte ->
-            parte.texto.split(" ").filter { it.isNotEmpty() }.map { Palabra(it, parte.negrita) }
-        }
-        fun anchoDe(palabra: Palabra) = (if (palabra.negrita) negrita else normal).measureText(palabra.texto)
         val anchoEspacio = normal.measureText(" ")
 
-        var linea = mutableListOf<Palabra>()
-        var anchoLinea = 0f
-        var y = yInicial
-
-        fun dibujarLinea(ultima: Boolean) {
-            if (linea.isEmpty()) return
-            val suma = linea.fold(0f) { total, palabra -> total + anchoDe(palabra) }
-            val espacios = (linea.size - 1).coerceAtLeast(0)
-            val hueco = if (!ultima && espacios > 0) {
-                ((ancho - suma) / espacios).coerceAtLeast(anchoEspacio)
-            } else {
-                anchoEspacio
+        // se separa todo en palabras
+        val palabras = mutableListOf<Parte>()
+        for (parte in partes) {
+            for (palabra in parte.texto.split(" ")) {
+                if (palabra.isNotEmpty()) {
+                    palabras.add(Parte(palabra, parte.negrita))
+                }
             }
-            var cx = x
-            linea.forEachIndexed { indice, palabra ->
-                lienzo.drawText(palabra.texto, cx, y, if (palabra.negrita) negrita else normal)
-                cx += anchoDe(palabra)
-                if (indice < linea.size - 1) cx += hueco
-            }
-            y += altoLinea
         }
 
+        var linea = mutableListOf<Parte>()
+        var anchoLinea = 0f
+        var y = yInicial
         for (palabra in palabras) {
-            val anchoPalabra = anchoDe(palabra)
-            val necesario = if (linea.isEmpty()) anchoPalabra else anchoLinea + anchoEspacio + anchoPalabra
-            if (necesario > ancho && linea.isNotEmpty()) {
-                dibujarLinea(false)
+            val anchoPalabra = medir(palabra, normal, negrita)
+            if (linea.isNotEmpty() && anchoLinea + anchoEspacio + anchoPalabra > ancho) {
+                dibujarLinea(lienzo, linea, x, y, ancho, normal, negrita, false)
+                y += altoLinea
                 linea = mutableListOf()
                 anchoLinea = 0f
             }
-            if (linea.isNotEmpty()) anchoLinea += anchoEspacio
+            if (linea.isNotEmpty()) {
+                anchoLinea += anchoEspacio
+            }
             linea.add(palabra)
             anchoLinea += anchoPalabra
         }
-        dibujarLinea(true)
+        if (linea.isNotEmpty()) {
+            dibujarLinea(lienzo, linea, x, y, ancho, normal, negrita, true)
+            y += altoLinea
+        }
         return y
     }
 
-    // Parte un texto en renglones que caben en el ancho
+    private fun dibujarLinea(
+        lienzo: Canvas,
+        linea: List<Parte>,
+        x: Float,
+        y: Float,
+        ancho: Float,
+        normal: Paint,
+        negrita: Paint,
+        ultima: Boolean,
+    ) {
+        var suma = 0f
+        for (palabra in linea) {
+            suma += medir(palabra, normal, negrita)
+        }
+        // el espacio se reparte para justificar
+        var hueco = normal.measureText(" ")
+        if (!ultima && linea.size > 1) {
+            val repartido = (ancho - suma) / (linea.size - 1)
+            if (repartido > hueco) {
+                hueco = repartido
+            }
+        }
+        var cx = x
+        for (palabra in linea) {
+            var pintura = normal
+            if (palabra.negrita) pintura = negrita
+            lienzo.drawText(palabra.texto, cx, y, pintura)
+            cx += medir(palabra, normal, negrita) + hueco
+        }
+    }
+
+    private fun medir(palabra: Parte, normal: Paint, negrita: Paint): Float {
+        if (palabra.negrita) {
+            return negrita.measureText(palabra.texto)
+        }
+        return normal.measureText(palabra.texto)
+    }
+
+    // parte el texto en renglones
     private fun ajustar(texto: String, pintura: Paint, ancho: Float): List<String> {
         val resultado = mutableListOf<String>()
         for (bloque in texto.split("\n")) {
-            if (bloque.isEmpty()) {
-                resultado.add("")
-                continue
-            }
             var resto = bloque
+            if (resto.isEmpty()) {
+                resultado.add("")
+            }
             while (resto.isNotEmpty()) {
-                val caben = pintura.breakText(resto, true, ancho, null).coerceAtLeast(1)
+                var caben = pintura.breakText(resto, true, ancho, null)
+                if (caben < 1) caben = 1
                 if (caben >= resto.length) {
                     resultado.add(resto)
-                    break
+                    resto = ""
+                } else {
+                    var corte = resto.lastIndexOf(' ', caben)
+                    if (corte <= 0) corte = caben
+                    resultado.add(resto.substring(0, corte))
+                    resto = resto.substring(corte).trim()
                 }
-                val corte = resto.lastIndexOf(' ', caben).takeIf { it > 0 } ?: caben
-                resultado.add(resto.substring(0, corte))
-                resto = resto.substring(corte).trimStart()
             }
         }
-        return resultado.ifEmpty { listOf("") }
-    }
-
-    private fun pincel(tam: Float, negrita: Boolean, color: Int, serif: Boolean = false): Paint =
-        Paint().apply {
-            isAntiAlias = true
-            textSize = tam
-            this.color = color
-            typeface = Typeface.create(
-                if (serif) Typeface.SERIF else Typeface.SANS_SERIF,
-                if (negrita) Typeface.BOLD else Typeface.NORMAL,
-            )
+        if (resultado.isEmpty()) {
+            resultado.add("")
         }
-
-    private fun pincelTrazo(grosor: Float, color: Int): Paint = Paint().apply {
-        isAntiAlias = true
-        style = Paint.Style.STROKE
-        strokeWidth = grosor
-        this.color = color
+        return resultado
     }
 
-    private fun pincelRelleno(color: Int): Paint = Paint().apply {
-        isAntiAlias = true
-        style = Paint.Style.FILL
-        this.color = color
+    private fun pincel(tam: Float, negrita: Boolean, color: Int, serif: Boolean = false): Paint {
+        val pintura = Paint()
+        pintura.isAntiAlias = true
+        pintura.textSize = tam
+        pintura.color = color
+        var familia = Typeface.SANS_SERIF
+        if (serif) familia = Typeface.SERIF
+        var estilo = Typeface.NORMAL
+        if (negrita) estilo = Typeface.BOLD
+        pintura.typeface = Typeface.create(familia, estilo)
+        return pintura
+    }
+
+    private fun pincelTrazo(grosor: Float, color: Int): Paint {
+        val pintura = Paint()
+        pintura.isAntiAlias = true
+        pintura.style = Paint.Style.STROKE
+        pintura.strokeWidth = grosor
+        pintura.color = color
+        return pintura
+    }
+
+    private fun pincelRelleno(color: Int): Paint {
+        val pintura = Paint()
+        pintura.isAntiAlias = true
+        pintura.style = Paint.Style.FILL
+        pintura.color = color
+        return pintura
     }
 
     private fun textoCentrado(lienzo: Canvas, texto: String, cx: Float, y: Float, pintura: Paint) {

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- telefono acostado o tableta -->
+    <dimen name="margen_lateral">64dp</dimen>
+    <dimen name="ancho_etiqueta">150dp</dimen>
+    <dimen name="tamano_titulo">24sp</dimen>
+    <dimen name="tamano_miniatura">96dp</dimen>
+</resources>

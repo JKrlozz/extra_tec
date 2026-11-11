@@ -4,12 +4,14 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import itsm.extra_tec.R
 import itsm.extra_tec.databinding.ItemDetalleTarjetaBinding
 import itsm.extra_tec.databinding.ItemTarjetaVistaBinding
 
+// boton de una tarjeta
 class Accion_Vista(
     val texto: String,
     val activa: Boolean = true,
@@ -17,36 +19,53 @@ class Accion_Vista(
     val alPulsar: () -> Unit,
 )
 
-// Tarjeta reutilizable con filas de etiqueta y valor
-// Cada dato se muestra por separado
+// tarjeta con etiqueta y valor
+// lleva fotos y cuatro botones
 fun agregarTarjeta(
     contenedor: ViewGroup,
     titulo: String,
     linea1: String? = null,
     linea2: String? = null,
     progreso: Int? = null,
-    detalles: List<Pair<String, String>> = emptyList(),
+    detalles: List<Pair<String, String>> = listOf(),
+    fotos: List<String> = listOf(),
+    alTocarFoto: ((Int) -> Unit)? = null,
     a: Accion_Vista? = null,
     b: Accion_Vista? = null,
     c: Accion_Vista? = null,
     d: Accion_Vista? = null,
 ) {
-    val tarjeta = ItemTarjetaVistaBinding.inflate(LayoutInflater.from(contenedor.context), contenedor, false)
+    val inflador = LayoutInflater.from(contenedor.context)
+    val tarjeta = ItemTarjetaVistaBinding.inflate(inflador, contenedor, false)
     tarjeta.tvTitulo.text = titulo
-    for ((vista, texto) in listOf(tarjeta.tvLinea1 to linea1, tarjeta.tvLinea2 to linea2)) {
-        vista.visibility = if (texto.isNullOrBlank()) View.GONE else View.VISIBLE
-        vista.text = texto
+    ponerTexto(tarjeta.tvLinea1, linea1)
+    ponerTexto(tarjeta.tvLinea2, linea2)
+
+    // solo datos con valor
+    for (detalle in detalles) {
+        if (detalle.second.isNotBlank()) {
+            val fila = ItemDetalleTarjetaBinding.inflate(inflador, tarjeta.contenedorDetalles, false)
+            fila.tvEtiqueta.text = detalle.first
+            fila.tvValor.text = detalle.second
+            tarjeta.contenedorDetalles.addView(fila.root)
+            tarjeta.contenedorDetalles.visibility = View.VISIBLE
+        }
     }
 
-    val visibles = detalles.filter { it.second.isNotBlank() }
-    tarjeta.contenedorDetalles.visibility = if (visibles.isEmpty()) View.GONE else View.VISIBLE
-    visibles.forEach { (etiqueta, valor) ->
-        val fila = ItemDetalleTarjetaBinding.inflate(
-            LayoutInflater.from(contenedor.context), tarjeta.contenedorDetalles, false,
-        )
-        fila.tvEtiqueta.text = etiqueta
-        fila.tvValor.text = valor
-        tarjeta.contenedorDetalles.addView(fila.root)
+    // miniaturas de las fotos
+    if (fotos.isNotEmpty()) {
+        tarjeta.scrollFotos.visibility = View.VISIBLE
+        val tamano = contenedor.resources.getDimensionPixelSize(R.dimen.tamano_miniatura)
+        for (i in fotos.indices) {
+            val miniatura = inflador.inflate(R.layout.item_miniatura_foto, tarjeta.contenedorFotos, false) as ImageView
+            Fotos_Vista.mostrar(miniatura, fotos[i], tamano)
+            miniatura.setOnClickListener {
+                if (alTocarFoto != null) {
+                    alTocarFoto(i)
+                }
+            }
+            tarjeta.contenedorFotos.addView(miniatura)
+        }
     }
 
     if (progreso != null) {
@@ -55,15 +74,29 @@ fun agregarTarjeta(
     }
 
     val acciones = listOfNotNull(a, b, c, d)
-    val botones = listOf(tarjeta.btnA, tarjeta.btnB, tarjeta.btnC, tarjeta.btnD)
-    botones.forEachIndexed { indice, boton ->
-        configurar(boton, acciones.getOrNull(indice), indice == 0)
+    configurar(tarjeta.btnA, acciones.getOrNull(0), true)
+    configurar(tarjeta.btnB, acciones.getOrNull(1), false)
+    configurar(tarjeta.btnC, acciones.getOrNull(2), false)
+    configurar(tarjeta.btnD, acciones.getOrNull(3), false)
+    if (acciones.isNotEmpty()) {
+        tarjeta.filaBotones1.visibility = View.VISIBLE
     }
-    tarjeta.filaBotones1.visibility = if (acciones.isNotEmpty()) View.VISIBLE else View.GONE
-    tarjeta.filaBotones2.visibility = if (acciones.size > 2) View.VISIBLE else View.GONE
+    if (acciones.size > 2) {
+        tarjeta.filaBotones2.visibility = View.VISIBLE
+    }
     contenedor.addView(tarjeta.root)
 }
 
+private fun ponerTexto(vista: android.widget.TextView, texto: String?) {
+    if (texto.isNullOrBlank()) {
+        vista.visibility = View.GONE
+    } else {
+        vista.visibility = View.VISIBLE
+        vista.text = texto
+    }
+}
+
+// primero verde y peligroso rojo
 private fun configurar(boton: MaterialButton, accion: Accion_Vista?, principal: Boolean) {
     if (accion == null) {
         boton.visibility = View.GONE
@@ -72,14 +105,13 @@ private fun configurar(boton: MaterialButton, accion: Accion_Vista?, principal: 
     boton.text = accion.texto
     boton.isEnabled = accion.activa
     boton.visibility = View.VISIBLE
+    val contexto = boton.context
     if (accion.peligrosa) {
-        boton.setTextColor(ContextCompat.getColor(boton.context, R.color.itsm_danger))
-        boton.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(boton.context, R.color.itsm_danger_light))
+        boton.setTextColor(ContextCompat.getColor(contexto, R.color.itsm_danger))
+        boton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(contexto, R.color.itsm_danger_light))
     } else if (principal) {
-        boton.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(boton.context, R.color.itsm_primary))
-        boton.setTextColor(ContextCompat.getColor(boton.context, R.color.white))
+        boton.setTextColor(ContextCompat.getColor(contexto, R.color.white))
+        boton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(contexto, R.color.itsm_primary))
     }
     boton.setOnClickListener { accion.alPulsar() }
 }

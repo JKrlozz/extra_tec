@@ -8,32 +8,50 @@ import androidx.fragment.app.viewModels
 import itsm.extra_tec.ModeloVista.Registro_ModeloVista
 import itsm.extra_tec.databinding.RegistroVistaBinding
 
-class Registro_Vista : Base_Vista<RegistroVistaBinding>() {
+class Registro_Vista : Base_Vista() {
+    private var _binding: RegistroVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: Registro_ModeloVista by viewModels()
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        RegistroVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = RegistroVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        modelo.carreras.observe(viewLifecycleOwner) { llenarSpinner(binding.spinnerCarrera, it) { carrera -> carrera.nombre } }
-        llenarSpinner(binding.spinnerSemestre, semestres) { it }
+        filtrarNumeroControl(binding.etMatricula)
+        llenarSpinner(binding.spinnerSemestre, semestres)
+        modelo.carreras.observe(viewLifecycleOwner) { carreras ->
+            val nombres = mutableListOf<String>()
+            for (carrera in carreras) {
+                nombres.add(carrera.nombre)
+            }
+            llenarSpinner(binding.spinnerCarrera, nombres)
+        }
         modelo.registrado.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.irRaiz(Pantalla_Vista.INICIO_SESION) }
+            if (evento.obtener() != null) {
+                navegador.irRaiz(Pantalla_Vista.INICIO_SESION, null)
+            }
         }
 
         binding.btnRegistrarse.setOnClickListener {
             modelo.registrar(
-                nombres = binding.etNombres.texto(),
-                apellidoPaterno = binding.etApellidoPaterno.texto(),
-                apellidoMaterno = binding.etApellidoMaterno.texto(),
-                correo = binding.etCorreo.texto(),
-                contrasena = binding.etContrasena.text.toString(),
-                matricula = binding.etMatricula.texto(),
-                posicionSemestre = binding.spinnerSemestre.selectedItemPosition,
-                posicionCarrera = binding.spinnerCarrera.selectedItemPosition,
+                binding.etNombres.texto(),
+                binding.etApellidoPaterno.texto(),
+                binding.etApellidoMaterno.texto(),
+                binding.etCorreo.texto(),
+                binding.etContrasena.text.toString(),
+                binding.etMatricula.texto(),
+                binding.spinnerSemestre.selectedItemPosition,
+                binding.spinnerCarrera.selectedItemPosition,
             )
         }
         binding.btnCancelar.setOnClickListener { navegador.atras() }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

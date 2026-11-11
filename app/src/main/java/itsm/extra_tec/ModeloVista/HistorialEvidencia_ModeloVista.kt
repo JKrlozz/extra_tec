@@ -13,7 +13,9 @@ class HistorialEvidencia_ModeloVista : Base_ModeloVista() {
 
     fun cargar(id: Int) {
         idActividad = id
-        Evidencias_Modelo.historial(id) { resultado -> atender(resultado) { _evidencias.value = it } }
+        Evidencias_Modelo.historial(id) { resultado ->
+            atender(resultado) { lista -> _evidencias.value = lista }
+        }
     }
 
     fun eliminar(id: Int) {

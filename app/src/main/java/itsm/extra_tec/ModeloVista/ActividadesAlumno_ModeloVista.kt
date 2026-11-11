@@ -14,7 +14,9 @@ class ActividadesAlumno_ModeloVista : Base_ModeloVista() {
     }
 
     fun cargar() {
-        Actividades_Modelo.listar { resultado -> atender(resultado) { _actividades.value = it } }
+        Actividades_Modelo.listar { resultado ->
+            atender(resultado) { lista -> _actividades.value = lista }
+        }
     }
 
     fun inscribir(idActividad: Int) {

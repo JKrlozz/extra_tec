@@ -3,15 +3,15 @@ package itsm.extra_tec.vistas.Comun
 import android.os.Bundle
 
 interface Navegador_Vista {
-    // Avanza y guarda la pantalla en el historial
-    fun ir(pantalla: Pantalla_Vista, argumentos: Bundle? = null)
+    // avanza y guarda la pantalla anterior
+    fun ir(pantalla: Pantalla_Vista, argumentos: Bundle?)
 
-    // Abre una pantalla de inicio y limpia el historial
-    fun irRaiz(pantalla: Pantalla_Vista, argumentos: Bundle? = null)
+    // abre y borra el historial
+    fun irRaiz(pantalla: Pantalla_Vista, argumentos: Bundle?)
 
-    // Vuelve a la pantalla anterior o al inicio del rol
+    // regresa a la pantalla anterior
     fun atras()
 
-    // Abre el inicio del rol
+    // abre el inicio segun el rol
     fun irAlInicio()
 }

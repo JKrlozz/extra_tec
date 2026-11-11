@@ -3,70 +3,54 @@ package itsm.extra_tec.Modelo
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 
-// Una evidencia corresponde a un dia de una actividad
-// Puede tener varias fotos y un estado
-internal const val DDL_EVIDENCIAS = """
-    CREATE TABLE evidencias (
-      id             INTEGER PRIMARY KEY AUTOINCREMENT,
-      id_actividad   INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
-      id_docente     INTEGER REFERENCES docentes(id_usuario) ON DELETE SET NULL,
-      fecha          TEXT NOT NULL,
-      estado         TEXT NOT NULL DEFAULT 'realizada'
-                     CHECK (estado IN ('realizada', 'suspendida', 'no_realizada')),
-      descripcion    TEXT,
-      creada_en      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-      actualizada_en TEXT
-    )
-"""
-
-internal const val DDL_EVIDENCIA_FOTOS = """
-    CREATE TABLE evidencia_fotos (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      id_evidencia INTEGER NOT NULL REFERENCES evidencias(id) ON DELETE CASCADE,
-      ruta_foto    TEXT NOT NULL,
-      orden        INTEGER NOT NULL DEFAULT 0
-    )
-"""
-
-// Esquema local equivalente al de MySQL
-// Se aplica una sola vez al crear la base local
+// tablas de la base en 3fn
+// los check siguen a limites
 internal val ESQUEMA = listOf(
     """
     CREATE TABLE carreras (
       id     INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL UNIQUE
+      nombre TEXT NOT NULL UNIQUE CHECK (length(nombre) BETWEEN 3 AND 80)
     )
     """,
     """
     CREATE TABLE periodos (
       id     INTEGER PRIMARY KEY AUTOINCREMENT,
-      inicio TEXT NOT NULL,
-      fin    TEXT NOT NULL,
+      inicio TEXT NOT NULL CHECK (inicio GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+      fin    TEXT NOT NULL CHECK (fin GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
       activo INTEGER NOT NULL DEFAULT 0 CHECK (activo IN (0, 1)),
       CHECK (fin > inicio)
     )
     """,
+    // solo puede haber un periodo activo
+    "CREATE UNIQUE INDEX idx_periodo_activo ON periodos (activo) WHERE activo = 1",
     """
     CREATE TABLE dias_semana (
       id     INTEGER PRIMARY KEY,
-      nombre TEXT NOT NULL UNIQUE,
-      orden  INTEGER NOT NULL UNIQUE
+      nombre TEXT NOT NULL UNIQUE CHECK (length(nombre) BETWEEN 5 AND 15),
+      orden  INTEGER NOT NULL UNIQUE CHECK (orden BETWEEN 1 AND 7)
     )
     """,
     """
     CREATE TABLE lugares (
       id     INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL UNIQUE
+      nombre TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(nombre) BETWEEN 2 AND 60)
+    )
+    """,
+    """
+    CREATE TABLE especialidades (
+      id     INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(nombre) BETWEEN 2 AND 50)
     )
     """,
     """
     CREATE TABLE usuarios (
       id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombres          TEXT NOT NULL,
-      apellido_paterno TEXT NOT NULL,
-      apellido_materno TEXT,
-      correo           TEXT NOT NULL UNIQUE,
-      contrasena_hash  TEXT NOT NULL,
+      nombres          TEXT NOT NULL CHECK (length(nombres) BETWEEN 2 AND 50),
+      apellido_paterno TEXT NOT NULL CHECK (length(apellido_paterno) BETWEEN 2 AND 40),
+      apellido_materno TEXT CHECK (apellido_materno IS NULL OR length(apellido_materno) BETWEEN 2 AND 40),
+      correo           TEXT NOT NULL UNIQUE COLLATE NOCASE
+                       CHECK (length(correo) <= 100 AND correo LIKE '_%@itsm.edu.mx'),
+      contrasena_hash  TEXT NOT NULL CHECK (length(contrasena_hash) <= 200),
       rol              TEXT NOT NULL CHECK (rol IN ('alumno', 'docente', 'admin')),
       activo           INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1)),
       creado_en        TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
@@ -79,22 +63,23 @@ internal val ESQUEMA = listOf(
       matricula  TEXT NOT NULL UNIQUE
                  CHECK (matricula GLOB '[0-9][0-9][0-9]T[0-9][0-9][0-9][0-9]'),
       id_carrera INTEGER NOT NULL REFERENCES carreras(id),
-      semestre   INTEGER NOT NULL CHECK (semestre BETWEEN 1 AND 9)
+      semestre   INTEGER NOT NULL CHECK (semestre BETWEEN 1 AND 8)
     )
     """,
     """
     CREATE TABLE docentes (
-      id_usuario   INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
-      especialidad TEXT,
-      telefono     TEXT
+      id_usuario      INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+      id_especialidad INTEGER REFERENCES especialidades(id),
+      telefono        TEXT CHECK (telefono IS NULL OR
+                                  (length(telefono) = 10 AND telefono NOT GLOB '*[^0-9]*'))
     )
     """,
     """
     CREATE TABLE actividades (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre      TEXT NOT NULL,
-      descripcion TEXT,
-      cupo        INTEGER NOT NULL CHECK (cupo > 0),
+      nombre      TEXT NOT NULL CHECK (length(nombre) BETWEEN 3 AND 50),
+      descripcion TEXT CHECK (descripcion IS NULL OR length(descripcion) <= 200),
+      cupo        INTEGER NOT NULL CHECK (cupo BETWEEN 1 AND 100),
       id_docente  INTEGER REFERENCES docentes(id_usuario) ON DELETE SET NULL,
       id_periodo  INTEGER NOT NULL REFERENCES periodos(id),
       activa      INTEGER NOT NULL DEFAULT 1 CHECK (activa IN (0, 1)),
@@ -106,8 +91,8 @@ internal val ESQUEMA = listOf(
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       id_actividad INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
       id_dia       INTEGER NOT NULL REFERENCES dias_semana(id),
-      hora_inicio  TEXT NOT NULL,
-      hora_fin     TEXT NOT NULL,
+      hora_inicio  TEXT NOT NULL CHECK (hora_inicio GLOB '[0-2][0-9]:[0-5][0-9]'),
+      hora_fin     TEXT NOT NULL CHECK (hora_fin GLOB '[0-2][0-9]:[0-5][0-9]'),
       id_lugar     INTEGER NOT NULL REFERENCES lugares(id),
       UNIQUE (id_actividad, id_dia, hora_inicio),
       CHECK (hora_fin > hora_inicio)
@@ -127,7 +112,7 @@ internal val ESQUEMA = listOf(
     CREATE TABLE sesiones (
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       id_actividad INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
-      fecha        TEXT NOT NULL,
+      fecha        TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
       UNIQUE (id_actividad, fecha)
     )
     """,
@@ -140,19 +125,40 @@ internal val ESQUEMA = listOf(
       UNIQUE (id_sesion, id_alumno)
     )
     """,
-    DDL_EVIDENCIAS,
-    DDL_EVIDENCIA_FOTOS,
+    // una evidencia es un dia
+    """
+    CREATE TABLE evidencias (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_actividad   INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
+      id_docente     INTEGER REFERENCES docentes(id_usuario) ON DELETE SET NULL,
+      fecha          TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+      estado         TEXT NOT NULL DEFAULT 'realizada'
+                     CHECK (estado IN ('realizada', 'suspendida', 'no_realizada')),
+      descripcion    TEXT CHECK (descripcion IS NULL OR length(descripcion) <= 300),
+      creada_en      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      actualizada_en TEXT
+    )
+    """,
     "CREATE INDEX idx_evidencias_actividad_fecha ON evidencias (id_actividad, fecha)",
+    // solo se guarda el archivo
+    """
+    CREATE TABLE evidencia_fotos (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_evidencia INTEGER NOT NULL REFERENCES evidencias(id) ON DELETE CASCADE,
+      archivo      TEXT NOT NULL UNIQUE CHECK (length(archivo) BETWEEN 5 AND 100),
+      orden        INTEGER NOT NULL DEFAULT 0 CHECK (orden >= 0)
+    )
+    """,
     """
     CREATE TABLE constancias (
       id             INTEGER PRIMARY KEY AUTOINCREMENT,
       id_inscripcion INTEGER NOT NULL UNIQUE REFERENCES inscripciones(id) ON DELETE CASCADE,
-      folio          TEXT NOT NULL UNIQUE,
+      folio          TEXT NOT NULL UNIQUE CHECK (length(folio) BETWEEN 5 AND 20),
       emitida_en     TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     )
     """,
 
-    // Nombre del periodo calculado con las fechas
+    // nombre del periodo con fechas
     """
     CREATE VIEW v_periodos AS
     SELECT id, inicio, fin, activo,
@@ -169,8 +175,7 @@ internal val ESQUEMA = listOf(
     FROM periodos
     """,
 
-    // Cupo docente y periodo de cada actividad
-    // El horario se arma en Kotlin para respetar el orden de los dias
+    // actividad con docente periodo e inscritos
     """
     CREATE VIEW v_actividades AS
     SELECT a.id, a.nombre, a.descripcion, a.cupo, a.activa,
@@ -185,7 +190,7 @@ internal val ESQUEMA = listOf(
     LEFT JOIN usuarios u ON u.id = a.id_docente
     """,
 
-    // Porcentaje de asistencia calculado al consultar
+    // porcentaje de asistencia de cada alumno
     """
     CREATE VIEW v_asistencia_alumno AS
     SELECT i.id AS id_inscripcion, i.id_alumno, i.id_actividad,
@@ -199,7 +204,7 @@ internal val ESQUEMA = listOf(
     GROUP BY i.id, i.id_alumno, i.id_actividad
     """,
 
-    // Bloquea inscripciones con cupo lleno
+    // no deja inscribir con cupo lleno
     """
     CREATE TRIGGER trg_inscripcion_cupo BEFORE INSERT ON inscripciones
     FOR EACH ROW
@@ -212,7 +217,7 @@ internal val ESQUEMA = listOf(
     END
     """,
 
-    // Un alumno solo puede tener una actividad activa
+    // una actividad activa por alumno
     """
     CREATE TRIGGER trg_inscripcion_unica_alta BEFORE INSERT ON inscripciones
     FOR EACH ROW WHEN NEW.estado = 'activa'
@@ -233,25 +238,76 @@ internal val ESQUEMA = listOf(
       THEN RAISE(ABORT, 'El alumno ya tiene una actividad inscrita') END;
     END
     """,
+
+    // asistencia solo de alumnos inscritos
+    """
+    CREATE TRIGGER trg_asistencia_inscrito BEFORE INSERT ON asistencias
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE WHEN NOT EXISTS
+        (SELECT 1 FROM inscripciones i JOIN sesiones s ON s.id_actividad = i.id_actividad
+          WHERE s.id = NEW.id_sesion AND i.id_alumno = NEW.id_alumno)
+      THEN RAISE(ABORT, 'El alumno no esta inscrito en la actividad') END;
+    END
+    """,
+
+    // el rol debe coincidir
+    """
+    CREATE TRIGGER trg_alumno_rol BEFORE INSERT ON alumnos
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE WHEN (SELECT rol FROM usuarios WHERE id = NEW.id_usuario) <> 'alumno'
+      THEN RAISE(ABORT, 'El usuario no tiene rol de alumno') END;
+      SELECT CASE WHEN (SELECT lower(correo) FROM usuarios WHERE id = NEW.id_usuario) <> lower(NEW.matricula) || '@itsm.edu.mx'
+      THEN RAISE(ABORT, 'El correo no coincide con el numero de control') END;
+    END
+    """,
+    // al editar tambien se revisa el correo
+    """
+    CREATE TRIGGER trg_alumno_correo BEFORE UPDATE ON alumnos
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE WHEN (SELECT lower(correo) FROM usuarios WHERE id = NEW.id_usuario) <> lower(NEW.matricula) || '@itsm.edu.mx'
+      THEN RAISE(ABORT, 'El correo no coincide con el numero de control') END;
+    END
+    """,
+    """
+    CREATE TRIGGER trg_docente_rol BEFORE INSERT ON docentes
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE WHEN (SELECT rol FROM usuarios WHERE id = NEW.id_usuario) <> 'docente'
+      THEN RAISE(ABORT, 'El usuario no tiene rol de docente') END;
+    END
+    """,
+
+    // maximo diez fotos por evidencia
+    """
+    CREATE TRIGGER trg_fotos_maximo BEFORE INSERT ON evidencia_fotos
+    FOR EACH ROW
+    BEGIN
+      SELECT CASE WHEN
+        (SELECT COUNT(*) FROM evidencia_fotos WHERE id_evidencia = NEW.id_evidencia) >= 10
+      THEN RAISE(ABORT, 'Maximo 10 fotografias por evidencia') END;
+    END
+    """,
 )
 
-// Se borran en orden inverso a las dependencias
+// se borran en orden inverso
 internal val VISTAS = listOf("v_asistencia_alumno", "v_actividades", "v_periodos")
 
 internal val TABLAS = listOf(
     "constancias", "asistencias", "sesiones", "inscripciones", "evidencia_fotos",
     "evidencias", "horarios", "actividades", "alumnos", "docentes", "usuarios",
-    "lugares", "dias_semana", "periodos", "carreras",
+    "especialidades", "lugares", "dias_semana", "periodos", "carreras",
 )
 
-// Datos de prueba
-// La contrasena de prueba es la misma para todas las cuentas
+// datos de prueba
+// todas usan la misma contrasena
 internal object Sembrado {
     private const val CLAVE_DEMO = "itsm1234"
 
     fun crear(db: SQLiteDatabase) {
-        // Los tres primeros lugares conservan el id de las carreras anteriores
-        listOf(
+        val carreras = listOf(
             "Ingeniería en Sistemas Computacionales",
             "Ingeniería Industrial",
             "Ingeniería en Gestión Empresarial",
@@ -262,146 +318,173 @@ internal object Sembrado {
             "Ingeniería Ambiental",
             "Ingeniería Petrolera",
             "Licenciatura en Gastronomía",
-        ).forEach {
-            db.insert("carreras", null, ContentValues().apply { put("nombre", it) })
+        )
+        for (nombre in carreras) {
+            insertarNombre(db, "carreras", nombre)
         }
-        db.execSQL("INSERT INTO periodos (inicio, fin, activo) VALUES ('2025-01-20', '2025-06-30', 1)")
+
+        db.execSQL("INSERT INTO periodos (inicio, fin, activo) VALUES ('2026-08-17', '2026-12-18', 1)")
 
         val dias = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
-        dias.forEachIndexed { indice, nombre ->
-            db.insert("dias_semana", null, ContentValues().apply {
-                put("id", indice + 1)
-                put("nombre", nombre)
-                put("orden", indice + 1)
-            })
+        for (i in dias.indices) {
+            val valores = ContentValues()
+            valores.put("id", i + 1)
+            valores.put("nombre", dias[i])
+            valores.put("orden", i + 1)
+            db.insert("dias_semana", null, valores)
         }
-        listOf(
+
+        val lugares = listOf(
             "ITSM", "Cancha de fútbol", "Cancha de básquetbol",
             "Gimnasio", "Salón de usos múltiples", "Patio central",
-        ).forEach {
-            db.insert("lugares", null, ContentValues().apply { put("nombre", it) })
-        }
-
-        val personas = listOf(
-            Persona("Administrador", "ITSM", null, "admin@itsm.edu.mx", "admin"),
-            Persona("Carlos", "Pérez", "Domínguez", "cperez@itsm.edu.mx", "docente"),
-            Persona("Ana", "López", "Hernández", "alopez@itsm.edu.mx", "docente"),
-            Persona("Luis", "Gómez", "Ramos", "lgomez@itsm.edu.mx", "docente"),
-            Persona("María", "Hernández", "Cruz", "mhernandez@itsm.edu.mx", "alumno"),
-            Persona("José", "Martínez", "Luna", "jmartinez@itsm.edu.mx", "alumno"),
-            Persona("Diana", "Sánchez", "Rojas", "dsanchez@itsm.edu.mx", "alumno"),
-            Persona("Pedro", "García", "Mendoza", "pgarcia@itsm.edu.mx", "alumno"),
         )
+        for (nombre in lugares) {
+            insertarNombre(db, "lugares", nombre)
+        }
+
+        val especialidades = listOf("Deportes", "Ajedrez", "Música")
+        for (nombre in especialidades) {
+            insertarNombre(db, "especialidades", nombre)
+        }
+
         val hash = Clave.generar(CLAVE_DEMO)
-        personas.forEach { p ->
-            db.insert("usuarios", null, ContentValues().apply {
-                put("nombres", p.nombres)
-                put("apellido_paterno", p.paterno)
-                if (p.materno == null) putNull("apellido_materno") else put("apellido_materno", p.materno)
-                put("correo", p.correo)
-                put("contrasena_hash", hash)
-                put("rol", p.rol)
-            })
-        }
+        insertarUsuario(db, "Administrador", "ITSM", null, "admin@itsm.edu.mx", "admin", hash)
+        insertarUsuario(db, "Carlos", "Pérez", "Domínguez", "cperez@itsm.edu.mx", "docente", hash)
+        insertarUsuario(db, "Ana", "López", "Hernández", "alopez@itsm.edu.mx", "docente", hash)
+        insertarUsuario(db, "Luis", "Gómez", "Ramos", "lgomez@itsm.edu.mx", "docente", hash)
+        insertarUsuario(db, "María", "Hernández", "Cruz", "232t0182@itsm.edu.mx", "alumno", hash)
+        insertarUsuario(db, "José", "Martínez", "Luna", "219t0382@itsm.edu.mx", "alumno", hash)
+        insertarUsuario(db, "Diana", "Sánchez", "Rojas", "232t0183@itsm.edu.mx", "alumno", hash)
+        insertarUsuario(db, "Pedro", "García", "Mendoza", "219t0383@itsm.edu.mx", "alumno", hash)
 
-        listOf("cperez@itsm.edu.mx", "alopez@itsm.edu.mx", "lgomez@itsm.edu.mx").forEach { correo ->
-            db.insert("docentes", null, ContentValues().apply {
-                put("id_usuario", idDe(db, "usuarios", "correo", correo))
-                put("especialidad", "Deportes")
-                put("telefono", "2351000000")
-            })
-        }
+        insertarDocente(db, "cperez@itsm.edu.mx", "Deportes", "2351000001")
+        insertarDocente(db, "alopez@itsm.edu.mx", "Ajedrez", "2351000002")
+        insertarDocente(db, "lgomez@itsm.edu.mx", "Música", "2351000003")
 
-        listOf(
-            "mhernandez@itsm.edu.mx" to "232T0182",
-            "jmartinez@itsm.edu.mx" to "219T0382",
-            "dsanchez@itsm.edu.mx" to "232T0183",
-            "pgarcia@itsm.edu.mx" to "219T0383",
-        ).forEach { (correo, matricula) ->
-            db.insert("alumnos", null, ContentValues().apply {
-                put("id_usuario", idDe(db, "usuarios", "correo", correo))
-                put("matricula", matricula)
-                put("id_carrera", 1)
-                put("semestre", 7)
-            })
-        }
+        insertarAlumno(db, "232t0182@itsm.edu.mx", "232T0182")
+        insertarAlumno(db, "219t0382@itsm.edu.mx", "219T0382")
+        insertarAlumno(db, "232t0183@itsm.edu.mx", "232T0183")
+        insertarAlumno(db, "219t0383@itsm.edu.mx", "219T0383")
 
-        listOf(
-            Triple("Fútbol", 25, "cperez@itsm.edu.mx"),
-            Triple("Ajedrez", 20, "alopez@itsm.edu.mx"),
-            Triple("Voleibol", 25, "lgomez@itsm.edu.mx"),
-            Triple("Baloncesto", 25, "cperez@itsm.edu.mx"),
-            Triple("Banda de guerra", 30, "lgomez@itsm.edu.mx"),
-        ).forEach { (nombre, cupo, correo) ->
-            db.insert("actividades", null, ContentValues().apply {
-                put("nombre", nombre)
-                put("cupo", cupo)
-                put("id_docente", idDe(db, "usuarios", "correo", correo))
-                put("id_periodo", 1)
-            })
-        }
+        insertarActividad(db, "Fútbol", 25, "cperez@itsm.edu.mx")
+        insertarActividad(db, "Ajedrez", 20, "alopez@itsm.edu.mx")
+        insertarActividad(db, "Voleibol", 25, "lgomez@itsm.edu.mx")
+        insertarActividad(db, "Baloncesto", 25, "cperez@itsm.edu.mx")
+        insertarActividad(db, "Banda de guerra", 30, "lgomez@itsm.edu.mx")
 
-        listOf(
-            FilaHorario("Fútbol", "Lunes", "16:00", "18:00", "Cancha de fútbol"),
-            FilaHorario("Fútbol", "Miércoles", "16:00", "18:00", "Cancha de fútbol"),
-            FilaHorario("Ajedrez", "Martes", "15:00", "17:00", "Salón de usos múltiples"),
-            FilaHorario("Voleibol", "Jueves", "17:00", "19:00", "Gimnasio"),
-            FilaHorario("Baloncesto", "Viernes", "17:00", "19:00", "Cancha de básquetbol"),
-            FilaHorario("Banda de guerra", "Lunes", "18:00", "20:00", "Patio central"),
-        ).forEach { h ->
-            db.insert("horarios", null, ContentValues().apply {
-                put("id_actividad", idDe(db, "actividades", "nombre", h.actividad))
-                put("id_dia", idDe(db, "dias_semana", "nombre", h.dia))
-                put("hora_inicio", h.inicio)
-                put("hora_fin", h.fin)
-                put("id_lugar", idDe(db, "lugares", "nombre", h.lugar))
-            })
-        }
+        insertarHorario(db, "Fútbol", "Lunes", "16:00", "18:00", "Cancha de fútbol")
+        insertarHorario(db, "Fútbol", "Miércoles", "16:00", "18:00", "Cancha de fútbol")
+        insertarHorario(db, "Ajedrez", "Martes", "15:00", "17:00", "Salón de usos múltiples")
+        insertarHorario(db, "Voleibol", "Jueves", "17:00", "19:00", "Gimnasio")
+        insertarHorario(db, "Baloncesto", "Viernes", "17:00", "19:00", "Cancha de básquetbol")
+        insertarHorario(db, "Banda de guerra", "Lunes", "18:00", "20:00", "Patio central")
 
+        // todos los alumnos van a futbol
         val futbol = idDe(db, "actividades", "nombre", "Fútbol")
-        db.execSQL("INSERT INTO inscripciones (id_alumno, id_actividad) SELECT id_usuario, ? FROM alumnos", arrayOf(futbol))
+        db.execSQL(
+            "INSERT INTO inscripciones (id_alumno, id_actividad) SELECT id_usuario, ? FROM alumnos",
+            arrayOf(futbol),
+        )
 
-        listOf("2025-03-03", "2025-03-05").forEach { fecha ->
-            db.insert("sesiones", null, ContentValues().apply {
-                put("id_actividad", futbol)
-                put("fecha", fecha)
-            })
-            val sesion = db.rawQuery(
-                "SELECT id FROM sesiones WHERE id_actividad = ? AND fecha = ?",
-                arrayOf(futbol.toString(), fecha),
-            ).use { it.moveToFirst(); it.getInt(0) }
-            db.rawQuery("SELECT id_usuario, matricula FROM alumnos", null).use { c ->
-                while (c.moveToNext()) {
-                    val falta = c.getString(1) == "219T0383" && fecha == "2025-03-05"
-                    db.insert("asistencias", null, ContentValues().apply {
-                        put("id_sesion", sesion)
-                        put("id_alumno", c.getInt(0))
-                        put("presente", if (falta) 0 else 1)
-                    })
+        // pedro falta a la segunda
+        val fechas = listOf("2026-09-07", "2026-09-09")
+        for (fecha in fechas) {
+            val valores = ContentValues()
+            valores.put("id_actividad", futbol)
+            valores.put("fecha", fecha)
+            val sesion = db.insert("sesiones", null, valores)
+
+            val cursor = db.rawQuery("SELECT id_usuario, matricula FROM alumnos", null)
+            while (cursor.moveToNext()) {
+                var presente = 1
+                if (cursor.getString(1) == "219T0383" && fecha == "2026-09-09") {
+                    presente = 0
                 }
+                val asistencia = ContentValues()
+                asistencia.put("id_sesion", sesion)
+                asistencia.put("id_alumno", cursor.getInt(0))
+                asistencia.put("presente", presente)
+                db.insert("asistencias", null, asistencia)
             }
+            cursor.close()
         }
     }
 
-    private fun idDe(db: SQLiteDatabase, tabla: String, columna: String, valor: String): Int =
-        db.rawQuery("SELECT id FROM $tabla WHERE $columna = ?", arrayOf(valor)).use {
-            it.moveToFirst()
-            it.getInt(0)
+    private fun insertarNombre(db: SQLiteDatabase, tabla: String, nombre: String) {
+        val valores = ContentValues()
+        valores.put("nombre", nombre)
+        db.insert(tabla, null, valores)
+    }
+
+    private fun insertarUsuario(
+        db: SQLiteDatabase,
+        nombres: String,
+        paterno: String,
+        materno: String?,
+        correo: String,
+        rol: String,
+        hash: String,
+    ) {
+        val valores = ContentValues()
+        valores.put("nombres", nombres)
+        valores.put("apellido_paterno", paterno)
+        valores.put("apellido_materno", materno)
+        valores.put("correo", correo)
+        valores.put("contrasena_hash", hash)
+        valores.put("rol", rol)
+        db.insert("usuarios", null, valores)
+    }
+
+    private fun insertarDocente(db: SQLiteDatabase, correo: String, especialidad: String, telefono: String) {
+        val valores = ContentValues()
+        valores.put("id_usuario", idDe(db, "usuarios", "correo", correo))
+        valores.put("id_especialidad", idDe(db, "especialidades", "nombre", especialidad))
+        valores.put("telefono", telefono)
+        db.insert("docentes", null, valores)
+    }
+
+    private fun insertarAlumno(db: SQLiteDatabase, correo: String, matricula: String) {
+        val valores = ContentValues()
+        valores.put("id_usuario", idDe(db, "usuarios", "correo", correo))
+        valores.put("matricula", matricula)
+        valores.put("id_carrera", 1)
+        valores.put("semestre", 7)
+        db.insert("alumnos", null, valores)
+    }
+
+    private fun insertarActividad(db: SQLiteDatabase, nombre: String, cupo: Int, correoDocente: String) {
+        val valores = ContentValues()
+        valores.put("nombre", nombre)
+        valores.put("cupo", cupo)
+        valores.put("id_docente", idDe(db, "usuarios", "correo", correoDocente))
+        valores.put("id_periodo", 1)
+        db.insert("actividades", null, valores)
+    }
+
+    private fun insertarHorario(
+        db: SQLiteDatabase,
+        actividad: String,
+        dia: String,
+        inicio: String,
+        fin: String,
+        lugar: String,
+    ) {
+        val valores = ContentValues()
+        valores.put("id_actividad", idDe(db, "actividades", "nombre", actividad))
+        valores.put("id_dia", idDe(db, "dias_semana", "nombre", dia))
+        valores.put("hora_inicio", inicio)
+        valores.put("hora_fin", fin)
+        valores.put("id_lugar", idDe(db, "lugares", "nombre", lugar))
+        db.insert("horarios", null, valores)
+    }
+
+    private fun idDe(db: SQLiteDatabase, tabla: String, columna: String, valor: String): Int {
+        val cursor = db.rawQuery("SELECT id FROM $tabla WHERE $columna = ?", arrayOf(valor))
+        var id = 0
+        if (cursor.moveToFirst()) {
+            id = cursor.getInt(0)
         }
-
-    private data class Persona(
-        val nombres: String,
-        val paterno: String,
-        val materno: String?,
-        val correo: String,
-        val rol: String,
-    )
-
-    private data class FilaHorario(
-        val actividad: String,
-        val dia: String,
-        val inicio: String,
-        val fin: String,
-        val lugar: String,
-    )
+        cursor.close()
+        return id
+    }
 }

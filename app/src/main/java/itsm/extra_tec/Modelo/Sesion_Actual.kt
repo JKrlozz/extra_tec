@@ -1,12 +1,23 @@
 package itsm.extra_tec.Modelo
 
-// Usuario autenticado en este momento
-// La sesion vive solo en este telefono
+// usuario que tiene la sesion abierta
 object Sesion_Actual {
     @Volatile
     var usuario: Usuario? = null
 
-    fun id(): Int = usuario?.id ?: throw ErrorDatos("La sesión terminó. Inicia sesión de nuevo.")
+    fun id(): Int {
+        val actual = usuario
+        if (actual == null) {
+            throw ErrorDatos("La sesión terminó. Inicia sesión de nuevo.")
+        }
+        return actual.id
+    }
 
-    fun rol(): String = usuario?.rol.orEmpty()
+    fun rol(): String {
+        val actual = usuario
+        if (actual == null) {
+            return ""
+        }
+        return actual.rol
+    }
 }

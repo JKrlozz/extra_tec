@@ -7,10 +7,11 @@ import itsm.extra_tec.Modelo.CatalogosHorario
 import itsm.extra_tec.Modelo.DetalleActividad
 import itsm.extra_tec.Modelo.Docente
 import itsm.extra_tec.Modelo.HorarioDia
+import itsm.extra_tec.Modelo.Limites
 import itsm.extra_tec.Modelo.Personas_Modelo
 
 class FormularioActividad_ModeloVista : Base_ModeloVista() {
-    private val _docentes = MutableLiveData<List<Docente>>(emptyList())
+    private val _docentes = MutableLiveData<List<Docente>>(listOf())
     val docentes: LiveData<List<Docente>> = _docentes
 
     private val _catalogos = MutableLiveData<CatalogosHorario?>(null)
@@ -19,18 +20,26 @@ class FormularioActividad_ModeloVista : Base_ModeloVista() {
     private val _detalle = MutableLiveData<DetalleActividad?>(null)
     val detalle: LiveData<DetalleActividad?> = _detalle
 
-    private val _guardada = MutableLiveData<Evento_ModeloVista<Unit>>()
-    val guardada: LiveData<Evento_ModeloVista<Unit>> = _guardada
+    private val _guardada = MutableLiveData<Evento_ModeloVista<Boolean>>()
+    val guardada: LiveData<Evento_ModeloVista<Boolean>> = _guardada
 
     private var iniciado = false
 
     fun iniciar(idActividad: Int?) {
-        if (iniciado) return
+        if (iniciado) {
+            return
+        }
         iniciado = true
-        Personas_Modelo.docentes { resultado -> atender(resultado) { _docentes.value = it } }
-        Actividades_Modelo.catalogosHorario { resultado -> atender(resultado) { _catalogos.value = it } }
+        Personas_Modelo.docentes("") { resultado ->
+            atender(resultado) { lista -> _docentes.value = lista }
+        }
+        Actividades_Modelo.catalogosHorario { resultado ->
+            atender(resultado) { catalogos -> _catalogos.value = catalogos }
+        }
         if (idActividad != null) {
-            Actividades_Modelo.detalle(idActividad) { r -> atender(r) { _detalle.value = it } }
+            Actividades_Modelo.detalle(idActividad) { resultado ->
+                atender(resultado) { detalle -> _detalle.value = detalle }
+            }
         }
     }
 
@@ -43,19 +52,24 @@ class FormularioActividad_ModeloVista : Base_ModeloVista() {
         posicionDocente: Int,
     ) {
         val cupo = cupoTexto.toIntOrNull()
-        val docente = _docentes.value.orEmpty().getOrNull(posicionDocente)
-        when {
-            nombre.isEmpty() -> return avisar("Escribe el nombre.")
-            cupo == null || cupo <= 0 -> return avisar("El cupo debe ser un número mayor a 0.")
-            horarios.isEmpty() -> return avisar("Agrega al menos un horario.")
-            horarios.any { it.horaInicio >= it.horaFin } ->
-                return avisar("La hora de fin debe ser posterior a la de inicio.")
-            docente == null -> return avisar("Primero registra un docente.")
+        val error = Limites.revisarActividad(nombre, descripcion, cupo)
+        if (error != null || cupo == null) {
+            avisar(error ?: "Escribe el cupo.")
+            return
         }
-        Actividades_Modelo.guardar(id, nombre, descripcion, cupo!!, docente!!.id, horarios) { resultado ->
+        if (horarios.isEmpty()) {
+            avisar("Agrega al menos un horario.")
+            return
+        }
+        val docentes = _docentes.value ?: listOf()
+        if (posicionDocente < 0 || posicionDocente >= docentes.size) {
+            avisar("Primero registra un docente.")
+            return
+        }
+        Actividades_Modelo.guardar(id, nombre, descripcion, cupo, docentes[posicionDocente].id, horarios) { resultado ->
             atender(resultado) {
                 avisar("Actividad guardada.")
-                _guardada.value = Evento_ModeloVista(Unit)
+                _guardada.value = Evento_ModeloVista(true)
             }
         }
     }

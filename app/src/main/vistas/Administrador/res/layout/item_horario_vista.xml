@@ -35,7 +35,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilHoraInicio"
-                style="@style/Itsm.Field"
+                style="@style/Itsm.Field.EnTarjeta"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:hint="Hora de inicio"
@@ -58,7 +58,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilHoraFin"
-                style="@style/Itsm.Field"
+                style="@style/Itsm.Field.EnTarjeta"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:hint="Hora de fin"
@@ -77,11 +77,12 @@
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Itsm.Field"
+            style="@style/Itsm.Field.EnTarjeta"
             android:hint="Lugar">
 
             <AutoCompleteTextView
                 android:id="@+id/etLugar"
+                android:maxLength="60"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:completionThreshold="0"

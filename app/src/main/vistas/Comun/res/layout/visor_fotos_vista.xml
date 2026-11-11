@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ventana para ver fotos -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/tvContador"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCerrar"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cerrar"
+            android:textAllCaps="false"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <itsm.extra_tec.vistas.Comun.FotoZoom_Vista
+        android:id="@+id/ivFoto"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:contentDescription="Fotografía ampliada" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="4dp"
+        android:text="Usa dos dedos o toca dos veces para acercar"
+        android:textColor="#B3FFFFFF"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnterior"
+            style="@style/Itsm.Button.Secondary"
+            android:layout_width="0dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="Anterior" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSiguiente"
+            style="@style/Itsm.Button.Secondary"
+            android:layout_width="0dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="Siguiente" />
+    </LinearLayout>
+</LinearLayout>

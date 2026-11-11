@@ -14,7 +14,9 @@ class GestionarActividades_ModeloVista : Base_ModeloVista() {
     }
 
     fun cargar() {
-        Actividades_Modelo.listar { resultado -> atender(resultado) { _actividades.value = it } }
+        Actividades_Modelo.todas { resultado ->
+            atender(resultado) { lista -> _actividades.value = lista }
+        }
     }
 
     fun eliminar(id: Int) {

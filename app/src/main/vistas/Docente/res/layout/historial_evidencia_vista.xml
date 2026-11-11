@@ -9,8 +9,7 @@
             android:text="Historial de evidencias" />
         <TextView
             android:id="@+id/tvSubtitulo"
-            style="@style/Itsm.Text.Secondary"
-            android:textColor="#E8C9D4"
+            style="@style/Itsm.HeaderSub"
             android:text="" />
     </LinearLayout>
     <View style="@style/Itsm.AccentBar" />

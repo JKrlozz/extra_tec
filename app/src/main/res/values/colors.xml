@@ -3,19 +3,23 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Colores del sistema -->
-    <color name="itsm_primary">#7A1735</color>
-    <color name="itsm_primary_dark">#4E0E22</color>
-    <color name="itsm_primary_light">#F6E6EC</color>
-    <color name="itsm_accent">#C9A227</color>
-    <color name="itsm_accent_light">#F8F0D6</color>
-    <color name="itsm_background">#FAF6F2</color>
-    <color name="itsm_surface">#FFFFFF</color>
-    <color name="itsm_text">#2B2226</color>
-    <color name="itsm_text_secondary">#6E5F66</color>
-    <color name="itsm_divider">#E7DAD4</color>
+    <!-- verdes de la app -->
+    <color name="itsm_primary">#13553A</color>
+    <color name="itsm_primary_dark">#0B3B27</color>
+    <color name="itsm_primary_light">#E3F0E8</color>
+    <color name="itsm_accent">#2E8B57</color>
+    <color name="itsm_accent_light">#EEF6F1</color>
+
+    <!-- fondos y textos -->
+    <color name="itsm_background">#FFFFFF</color>
+    <color name="itsm_surface">#F2F8F4</color>
+    <color name="itsm_text">#1E2B24</color>
+    <color name="itsm_text_secondary">#56665D</color>
+    <color name="itsm_divider">#D3E4D9</color>
+
+    <!-- avisos -->
     <color name="itsm_danger">#B3261E</color>
-    <color name="itsm_danger_light">#F8E3E1</color>
-    <color name="itsm_success">#2E7D32</color>
-    <color name="itsm_success_light">#E6F2E7</color>
+    <color name="itsm_danger_light">#F9E3E1</color>
+    <color name="itsm_success">#1E7B45</color>
+    <color name="itsm_success_light">#E3F2E8</color>
 </resources>

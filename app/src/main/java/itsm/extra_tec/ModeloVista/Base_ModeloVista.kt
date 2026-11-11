@@ -5,7 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import itsm.extra_tec.Modelo.Resultado_Modelo
 
-// Resultado de guardar con la clave inicial si existe
+// resultado de guardar una persona
+// trae la clave si hay
 data class Guardado_ModeloVista(val claveInicial: String?)
 
 open class Base_ModeloVista : ViewModel() {
@@ -23,11 +24,12 @@ open class Base_ModeloVista : ViewModel() {
         _cargando.value = valor
     }
 
-    // Ejecuta la accion o muestra el error
+    // hace la accion o avisa
     protected fun <T> atender(resultado: Resultado_Modelo<T>, alExito: (T) -> Unit) {
-        when (resultado) {
-            is Resultado_Modelo.Exito -> alExito(resultado.valor)
-            is Resultado_Modelo.Fallo -> avisar(resultado.mensaje)
+        if (resultado is Resultado_Modelo.Exito) {
+            alExito(resultado.valor)
+        } else if (resultado is Resultado_Modelo.Fallo) {
+            avisar(resultado.mensaje)
         }
     }
 }

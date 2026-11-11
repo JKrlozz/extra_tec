@@ -8,33 +8,48 @@ import androidx.fragment.app.viewModels
 import itsm.extra_tec.ModeloVista.AlumnosDocente_ModeloVista
 import itsm.extra_tec.databinding.AlumnosDocenteVistaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
-import itsm.extra_tec.vistas.Comun.Pantalla_Vista
 import itsm.extra_tec.vistas.Comun.agregarTarjeta
 
-class AlumnosDocente_Vista : Base_Vista<AlumnosDocenteVistaBinding>() {
+class AlumnosDocente_Vista : Base_Vista() {
+    private var _binding: AlumnosDocenteVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: AlumnosDocente_ModeloVista by viewModels()
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        AlumnosDocenteVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AlumnosDocenteVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
-        val idClase = sesion.claseId ?: return navegador.irRaiz(Pantalla_Vista.INICIO_DOCENTE)
+        val idClase = sesion.claseId
+        if (idClase == null) {
+            navegador.irAlInicio()
+            return
+        }
         binding.tvSubtitulo.text = sesion.claseNombre
         modelo.cargar(idClase)
 
         modelo.visibles.observe(viewLifecycleOwner) { alumnos ->
             estadoLista(binding.tvVacio, alumnos, "Sin resultados.")
             binding.listaContenido.removeAllViews()
-            alumnos?.forEach {
+            if (alumnos == null) {
+                return@observe
+            }
+            for (alumno in alumnos) {
                 agregarTarjeta(
                     binding.listaContenido,
-                    it.nombre,
-                    detalles = listOf("Número de control" to it.matricula),
+                    alumno.nombre,
+                    detalles = listOf("Número de control" to alumno.matricula),
                 )
             }
         }
-        alEscribir(binding.etBuscar) { modelo.buscar(it) }
+        alEscribir(binding.etBuscar) { texto -> modelo.buscar(texto) }
         binding.btnCancelar.setOnClickListener { navegador.atras() }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

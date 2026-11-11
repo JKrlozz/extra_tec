@@ -18,9 +18,9 @@
         android:background="@color/itsm_background"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingStart="16dp"
+        android:paddingStart="@dimen/margen_lateral"
         android:paddingTop="4dp"
-        android:paddingEnd="16dp"
+        android:paddingEnd="@dimen/margen_lateral"
         android:paddingBottom="4dp"
         android:visibility="gone">
 

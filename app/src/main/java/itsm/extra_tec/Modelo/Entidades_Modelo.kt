@@ -1,8 +1,13 @@
 package itsm.extra_tec.Modelo
 
-// Une las partes del nombre
-fun nombreCompleto(nombres: String, paterno: String, materno: String): String =
-    listOf(nombres, paterno, materno).filter { it.isNotBlank() }.joinToString(" ")
+// junta las partes del nombre
+fun nombreCompleto(nombres: String, paterno: String, materno: String): String {
+    var nombre = nombres.trim() + " " + paterno.trim()
+    if (materno.isNotBlank()) {
+        nombre = nombre + " " + materno.trim()
+    }
+    return nombre.trim()
+}
 
 data class Usuario(
     val id: Int,
@@ -12,7 +17,8 @@ data class Usuario(
     val correo: String,
     val rol: String,
 ) {
-    val nombre: String get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
+    val nombre: String
+        get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
 }
 
 data class SesionIniciada(val usuario: Usuario)
@@ -37,7 +43,8 @@ data class Actividad(
     val idDocente: Int?,
     val inscrito: Boolean,
 ) {
-    val lleno: Boolean get() = inscritos >= cupo
+    val lleno: Boolean
+        get() = inscritos >= cupo
 }
 
 data class HorarioDia(
@@ -45,8 +52,8 @@ data class HorarioDia(
     val diaSemana: String,
     val horaInicio: String,
     val horaFin: String,
-    val idLugar: Int = 0,
-    val lugar: String = "",
+    val idLugar: Int,
+    val lugar: String,
 )
 
 data class DetalleActividad(val actividad: Actividad, val horarios: List<HorarioDia>)
@@ -74,7 +81,8 @@ data class Alumno(
     val idCarrera: Int,
     val carrera: String,
 ) {
-    val nombre: String get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
+    val nombre: String
+        get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
 }
 
 data class Docente(
@@ -86,7 +94,8 @@ data class Docente(
     val especialidad: String,
     val telefono: String,
 ) {
-    val nombre: String get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
+    val nombre: String
+        get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
 }
 
 data class AlumnoInscrito(val id: Int, val nombre: String, val matricula: String)
@@ -105,6 +114,7 @@ data class SesionAsistencia(
     val alumnos: List<DetalleAsistencia>,
 )
 
+// ruta completa de la foto
 data class EvidenciaFoto(val id: Int, val ruta: String)
 
 data class Evidencia(
@@ -117,19 +127,22 @@ data class Evidencia(
     val descripcion: String,
     val fotos: List<EvidenciaFoto>,
 ) {
-    val estadoEtiqueta: String get() = etiquetaEstado(estado)
-    val marcaTiempo: String get() = creadaEn.take(16)
-    val editada: Boolean get() = actualizadaEn != null
+    val estadoEtiqueta: String
+        get() = etiquetaEstado(estado)
+    val marcaTiempo: String
+        get() = creadaEn.take(16)
+    val editada: Boolean
+        get() = actualizadaEn != null
 }
 
-fun etiquetaEstado(estado: String): String = when (estado) {
-    "realizada" -> "Realizada"
-    "suspendida" -> "Suspendida"
-    "no_realizada" -> "No realizada"
-    else -> estado
+fun etiquetaEstado(estado: String): String {
+    if (estado == "realizada") return "Realizada"
+    if (estado == "suspendida") return "Suspendida"
+    if (estado == "no_realizada") return "No realizada"
+    return estado
 }
 
-// Foto nueva con los bytes del selector
-data class FotoNueva(val nombre: String, val tipoMime: String, val datos: ByteArray)
+// foto nueva con sus bytes
+class FotoNueva(val nombre: String, val tipoMime: String, val datos: ByteArray)
 
-data class Archivo(val bytes: ByteArray, val nombre: String)
+class Archivo(val bytes: ByteArray, val nombre: String)

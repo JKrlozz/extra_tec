@@ -9,29 +9,38 @@ class AlumnosDocente_ModeloVista : Base_ModeloVista() {
     private val _visibles = MutableLiveData<List<AlumnoInscrito>?>(null)
     val visibles: LiveData<List<AlumnoInscrito>?> = _visibles
 
-    private var todos: List<AlumnoInscrito> = emptyList()
+    private var todos = listOf<AlumnoInscrito>()
     private var filtro = ""
     private var idActividad = -1
 
     fun cargar(id: Int) {
-        if (idActividad == id) return
+        if (idActividad == id) {
+            return
+        }
         idActividad = id
         Actividades_Modelo.alumnosDeActividad(id) { resultado ->
-            atender(resultado) {
-                todos = it
-                aplicarFiltro()
+            atender(resultado) { lista ->
+                todos = lista
+                filtrar()
             }
         }
     }
 
     fun buscar(texto: String) {
         filtro = texto.trim().lowercase()
-        aplicarFiltro()
+        filtrar()
     }
 
-    private fun aplicarFiltro() {
-        _visibles.value = todos.filter {
-            filtro.isEmpty() || it.nombre.lowercase().contains(filtro) || it.matricula.contains(filtro)
+    // busca por nombre o control
+    private fun filtrar() {
+        val lista = mutableListOf<AlumnoInscrito>()
+        for (alumno in todos) {
+            val coincide = alumno.nombre.lowercase().contains(filtro) ||
+                alumno.matricula.lowercase().contains(filtro)
+            if (filtro.isEmpty() || coincide) {
+                lista.add(alumno)
+            }
         }
+        _visibles.value = lista
     }
 }

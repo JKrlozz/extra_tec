@@ -10,6 +10,8 @@ class HistorialAsistencia_ModeloVista : Base_ModeloVista() {
     val sesiones: LiveData<List<SesionAsistencia>?> = _sesiones
 
     fun cargar(idActividad: Int) {
-        Asistencia_Modelo.historial(idActividad) { resultado -> atender(resultado) { _sesiones.value = it } }
+        Asistencia_Modelo.historial(idActividad) { resultado ->
+            atender(resultado) { lista -> _sesiones.value = lista }
+        }
     }
 }

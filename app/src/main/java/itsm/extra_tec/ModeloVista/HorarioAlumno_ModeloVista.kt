@@ -3,10 +3,10 @@ package itsm.extra_tec.ModeloVista
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import itsm.extra_tec.Modelo.Actividades_Modelo
+import itsm.extra_tec.Modelo.HorarioAlumno
 import java.util.Calendar
 
 data class BloqueHorario(
-    val idActividad: Int,
     val nombre: String,
     val horaInicio: String,
     val horaFin: String,
@@ -14,7 +14,6 @@ data class BloqueHorario(
 )
 
 data class DiaCalendario(
-    val idDia: Int,
     val nombre: String,
     val esHoy: Boolean,
     val bloques: List<BloqueHorario>,
@@ -24,48 +23,37 @@ class HorarioAlumno_ModeloVista : Base_ModeloVista() {
     private val _horario = MutableLiveData<List<DiaCalendario>?>(null)
     val horario: LiveData<List<DiaCalendario>?> = _horario
 
+    private val dias = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
+
     init {
         Actividades_Modelo.horarioAlumno { resultado ->
-            atender(resultado) { filas ->
-                val hoy = idDiaHoy()
-                _horario.value = (1..6).map { idDia ->
-                    val delDia = filas.filter { it.dia.idDia == idDia }
-                    DiaCalendario(
-                        idDia = idDia,
-                        nombre = delDia.firstOrNull()?.dia?.diaSemana ?: nombreDia(idDia),
-                        esHoy = idDia == hoy,
-                        bloques = delDia.map {
-                            BloqueHorario(
-                                idActividad = it.idActividad,
-                                nombre = it.nombre,
-                                horaInicio = it.dia.horaInicio,
-                                horaFin = it.dia.horaFin,
-                                lugar = it.dia.lugar,
-                            )
-                        },
-                    )
-                }
-            }
+            atender(resultado) { filas -> armarSemana(filas) }
         }
     }
 
-    private fun idDiaHoy(): Int = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
-        Calendar.MONDAY -> 1
-        Calendar.TUESDAY -> 2
-        Calendar.WEDNESDAY -> 3
-        Calendar.THURSDAY -> 4
-        Calendar.FRIDAY -> 5
-        Calendar.SATURDAY -> 6
-        else -> 7
+    // una tarjeta por dia
+    private fun armarSemana(filas: List<HorarioAlumno>) {
+        val hoy = diaDeHoy()
+        val semana = mutableListOf<DiaCalendario>()
+        for (i in dias.indices) {
+            val idDia = i + 1
+            val bloques = mutableListOf<BloqueHorario>()
+            for (fila in filas) {
+                if (fila.dia.idDia == idDia) {
+                    bloques.add(BloqueHorario(fila.nombre, fila.dia.horaInicio, fila.dia.horaFin, fila.dia.lugar))
+                }
+            }
+            semana.add(DiaCalendario(dias[i], idDia == hoy, bloques))
+        }
+        _horario.value = semana
     }
 
-    private fun nombreDia(id: Int): String = when (id) {
-        1 -> "Lunes"
-        2 -> "Martes"
-        3 -> "Miércoles"
-        4 -> "Jueves"
-        5 -> "Viernes"
-        6 -> "Sábado"
-        else -> "Domingo"
+    // lunes es 1 y domingo 7
+    private fun diaDeHoy(): Int {
+        val dia = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        if (dia == Calendar.SUNDAY) {
+            return 7
+        }
+        return dia - 1
     }
 }

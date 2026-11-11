@@ -1,7 +1,5 @@
 package itsm.extra_tec.vistas.Docente
 
-import android.app.DatePickerDialog
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,154 +8,185 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import itsm.extra_tec.Modelo.Evidencias_Modelo
 import itsm.extra_tec.ModeloVista.Evidencia_ModeloVista
+import itsm.extra_tec.ModeloVista.Fechas_ModeloVista
+import itsm.extra_tec.ModeloVista.FotoFormulario
+import itsm.extra_tec.R
 import itsm.extra_tec.databinding.EvidenciaVistaBinding
 import itsm.extra_tec.databinding.ItemFotoEvidenciaVistaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
+import itsm.extra_tec.vistas.Comun.Fotos_Vista
 import itsm.extra_tec.vistas.Comun.texto
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
-class Evidencia_Vista : Base_Vista<EvidenciaVistaBinding>() {
+class Evidencia_Vista : Base_Vista() {
+    private var _binding: EvidenciaVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: Evidencia_ModeloVista by viewModels()
 
-    private var fecha = hoy()
+    private var fecha = Fechas_ModeloVista.hoy()
     private var precargada = false
-    private var idActividadEvidencia: Int? = null
+    private var idActividadEvidencia = -1
 
-    private val idEvidencia: Int? get() = argumento(ARG_ID)
-    private val idActividadFija: Int? get() = argumento(ARG_ID_ACTIVIDAD)
-    private val nombreActividad: String get() = arguments?.getString(ARG_NOMBRE).orEmpty()
-
+    // el selector de fotos del telefono
     private val elegirFotos = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        if (uris.isNotEmpty()) modelo.agregarFotos(uris)
+        if (uris.isNotEmpty()) {
+            modelo.agregarFotos(uris)
+        }
     }
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        EvidenciaVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = EvidenciaVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
+        val idEvidencia = leerNumero(ARG_ID)
+        val idActividadFija = leerNumero(ARG_ID_ACTIVIDAD)
+        val nombreActividad = arguments?.getString(ARG_NOMBRE) ?: ""
         modelo.cargar(idEvidencia)
 
-        binding.tvTitulo.text = if (idEvidencia == null) "Subir evidencia" else "Editar evidencia"
-        binding.tvSubtitulo.text = nombreActividad.ifBlank {
-            "Selecciona la actividad, la fecha y las fotografías"
+        if (idEvidencia == null) {
+            binding.tvTitulo.text = "Subir evidencia"
+            binding.btnGuardarEvidencia.text = "Guardar evidencia"
+        } else {
+            binding.tvTitulo.text = "Editar evidencia"
+            binding.btnGuardarEvidencia.text = "Guardar cambios"
+            // al editar no cambia actividad
+            binding.spinnerActividad.isEnabled = false
+            binding.spinnerActividad.alpha = 0.6f
         }
-        binding.btnGuardarEvidencia.text = if (idEvidencia == null) "Guardar evidencia" else "Guardar cambios"
-        // Al editar la evidencia conserva su actividad
-        binding.spinnerActividad.isEnabled = idEvidencia == null
-        binding.spinnerActividad.alpha = if (idEvidencia == null) 1f else 0.6f
+        if (nombreActividad.isBlank()) {
+            binding.tvSubtitulo.text = "Selecciona la actividad, la fecha y las fotografías"
+        } else {
+            binding.tvSubtitulo.text = nombreActividad
+        }
 
-        llenarSpinner(binding.spinnerEstado, Evidencias_Modelo.ESTADOS) { it.second }
+        val estados = mutableListOf<String>()
+        for (estado in Evidencias_Modelo.ESTADOS) {
+            estados.add(estado[1])
+        }
+        llenarSpinner(binding.spinnerEstado, estados)
         actualizarFecha()
 
         modelo.clases.observe(viewLifecycleOwner) { clases ->
-            llenarSpinner(binding.spinnerActividad, clases) { it.nombre }
-            val deseada = idActividadFija ?: idActividadEvidencia ?: sesion.claseId
-            if (deseada != null) {
-                val actual = clases.indexOfFirst { it.id == deseada }
-                if (actual >= 0) binding.spinnerActividad.setSelection(actual)
+            val nombres = mutableListOf<String>()
+            for (clase in clases) {
+                nombres.add(clase.nombre)
+            }
+            llenarSpinner(binding.spinnerActividad, nombres)
+            // se busca la actividad que toca
+            var deseada = sesion.claseId ?: -1
+            if (idActividadEvidencia > 0) deseada = idActividadEvidencia
+            if (idActividadFija != null) deseada = idActividadFija
+            for (i in clases.indices) {
+                if (clases[i].id == deseada) binding.spinnerActividad.setSelection(i)
             }
         }
         modelo.evidencia.observe(viewLifecycleOwner) { evidencia ->
-            if (evidencia == null) return@observe
+            if (evidencia == null) {
+                return@observe
+            }
             idActividadEvidencia = evidencia.idActividad
-            val clases = modelo.clases.value.orEmpty()
-            val posicionClase = clases.indexOfFirst { it.id == evidencia.idActividad }
-            if (posicionClase >= 0) binding.spinnerActividad.setSelection(posicionClase)
-            if (precargada) return@observe
+            val clases = modelo.clases.value ?: listOf()
+            for (i in clases.indices) {
+                if (clases[i].id == evidencia.idActividad) binding.spinnerActividad.setSelection(i)
+            }
+            // los datos se ponen una vez
+            if (precargada) {
+                return@observe
+            }
             precargada = true
             fecha = evidencia.fecha
             actualizarFecha()
             binding.etDescripcion.setText(evidencia.descripcion)
-            val posicion = Evidencias_Modelo.ESTADOS.indexOfFirst { it.first == evidencia.estado }
-            if (posicion >= 0) binding.spinnerEstado.setSelection(posicion)
+            for (i in Evidencias_Modelo.ESTADOS.indices) {
+                if (Evidencias_Modelo.ESTADOS[i][0] == evidencia.estado) binding.spinnerEstado.setSelection(i)
+            }
         }
-        modelo.fotos.observe(viewLifecycleOwner) { mostrarFotos(it) }
+        modelo.fotos.observe(viewLifecycleOwner) { fotos -> mostrarFotos(fotos) }
         modelo.guardada.observe(viewLifecycleOwner) { evento ->
-            evento.obtener()?.let { navegador.atras() }
+            if (evento.obtener() != null) {
+                navegador.atras()
+            }
         }
 
-        binding.btnFecha.setOnClickListener { elegirFecha() }
+        binding.btnFecha.setOnClickListener {
+            elegirFecha(fecha, true) { nueva ->
+                fecha = nueva
+                actualizarFecha()
+            }
+        }
         binding.btnElegirFotos.setOnClickListener { elegirFotos.launch("image/*") }
         binding.btnGuardarEvidencia.setOnClickListener {
+            val posicionEstado = binding.spinnerEstado.selectedItemPosition
             modelo.guardar(
                 requireContext().contentResolver,
                 binding.spinnerActividad.selectedItemPosition,
                 fecha,
-                Evidencias_Modelo.ESTADOS[binding.spinnerEstado.selectedItemPosition].first,
+                Evidencias_Modelo.ESTADOS[posicionEstado][0],
                 binding.etDescripcion.texto(),
             )
         }
     }
 
     private fun actualizarFecha() {
-        binding.btnFecha.text = "Fecha: ${fechaLegible(fecha)}"
+        binding.btnFecha.text = "Fecha: " + Fechas_ModeloVista.legible(fecha)
     }
 
-    private fun elegirFecha() {
-        val partes = fecha.split("-")
-        val calendario = Calendar.getInstance().apply {
-            if (partes.size == 3) {
-                set(partes[0].toInt(), partes[1].toInt() - 1, partes[2].toInt())
-            }
-        }
-        DatePickerDialog(
-            requireContext(),
-            { _, anio, mes, dia ->
-                fecha = String.format(Locale.US, "%04d-%02d-%02d", anio, mes + 1, dia)
-                actualizarFecha()
-            },
-            calendario.get(Calendar.YEAR),
-            calendario.get(Calendar.MONTH),
-            calendario.get(Calendar.DAY_OF_MONTH),
-        ).show()
-    }
-
-    private fun mostrarFotos(fotos: List<Evidencia_ModeloVista.FotoFormulario>) {
+    private fun mostrarFotos(fotos: List<FotoFormulario>) {
         binding.listaFotos.removeAllViews()
-        binding.tvSinFotos.visibility = if (fotos.isEmpty()) View.VISIBLE else View.GONE
-        fotos.forEach { foto ->
+        if (fotos.isEmpty()) {
+            binding.tvSinFotos.visibility = View.VISIBLE
+        } else {
+            binding.tvSinFotos.visibility = View.GONE
+        }
+        // todas las fotos para el visor
+        val fuentes = mutableListOf<String>()
+        for (foto in fotos) {
+            fuentes.add(foto.fuente)
+        }
+        val tamano = resources.getDimensionPixelSize(R.dimen.tamano_miniatura)
+        for (i in fotos.indices) {
             val fila = ItemFotoEvidenciaVistaBinding.inflate(layoutInflater, binding.listaFotos, false)
-            fila.tvNombre.text = if (foto.id != null) "Fotografía guardada" else "Fotografía nueva"
-            if (foto.uri != null) {
-                fila.ivFoto.setImageURI(foto.uri)
-            } else if (foto.ruta != null) {
-                val opciones = BitmapFactory.Options().apply { inSampleSize = 4 }
-                fila.ivFoto.setImageBitmap(BitmapFactory.decodeFile(foto.ruta, opciones))
+            if (fotos[i].id != null) {
+                fila.tvNombre.text = "Fotografía guardada"
+            } else {
+                fila.tvNombre.text = "Fotografía nueva"
             }
-            fila.btnQuitar.setOnClickListener { modelo.quitarFoto(foto.clave) }
+            Fotos_Vista.mostrar(fila.ivFoto, fuentes[i], tamano)
+            fila.ivFoto.setOnClickListener { verFotos(fuentes, i) }
+            fila.btnQuitar.setOnClickListener { modelo.quitarFoto(i) }
             binding.listaFotos.addView(fila.root)
         }
     }
 
-    private fun argumento(clave: String): Int? =
-        arguments?.getInt(clave, -1)?.takeIf { it > 0 }
+    private fun leerNumero(clave: String): Int? {
+        val numero = arguments?.getInt(clave, -1) ?: -1
+        if (numero > 0) {
+            return numero
+        }
+        return null
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     companion object {
         private const val ARG_ID = "id_evidencia"
         private const val ARG_ID_ACTIVIDAD = "id_actividad"
         private const val ARG_NOMBRE = "nombre_actividad"
 
-        fun argumentos(
-            idEvidencia: Int? = null,
-            idActividad: Int? = null,
-            nombreActividad: String = "",
-        ) = Bundle().apply {
-            if (idEvidencia != null) putInt(ARG_ID, idEvidencia)
-            if (idActividad != null) putInt(ARG_ID_ACTIVIDAD, idActividad)
-            if (nombreActividad.isNotBlank()) putString(ARG_NOMBRE, nombreActividad)
+        // sin id es evidencia nueva
+        fun argumentos(idEvidencia: Int?, idActividad: Int, nombreActividad: String): Bundle {
+            val datos = Bundle()
+            if (idEvidencia != null) {
+                datos.putInt(ARG_ID, idEvidencia)
+            }
+            datos.putInt(ARG_ID_ACTIVIDAD, idActividad)
+            datos.putString(ARG_NOMBRE, nombreActividad)
+            return datos
         }
-
-        private fun hoy(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-
-        private fun fechaLegible(iso: String): String =
-            runCatching {
-                val entrada = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                val salida = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-                salida.format(entrada.parse(iso)!!)
-            }.getOrDefault(iso)
     }
 }

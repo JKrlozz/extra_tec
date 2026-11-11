@@ -11,23 +11,26 @@ object Autenticacion_Modelo {
         alTerminar: (Resultado_Modelo<SesionIniciada>) -> Unit,
     ) {
         BaseDatos.consultar({ db ->
-            val fila = db.rawQuery(
+            val cursor = db.rawQuery(
                 """SELECT id, nombres, apellido_paterno, apellido_materno, correo, rol, contrasena_hash
                      FROM usuarios WHERE correo = ? AND activo = 1""",
                 arrayOf(correo.trim()),
-            ).use { c ->
-                if (!c.moveToFirst()) null else FilaLogin(
-                    Usuario(
-                        c.entero("id"), c.texto("nombres"), c.texto("apellido_paterno"),
-                        c.texto("apellido_materno"), c.texto("correo"), c.texto("rol"),
-                    ),
-                    c.texto("contrasena_hash"),
+            )
+            var usuario: Usuario? = null
+            var hash = ""
+            if (cursor.moveToFirst()) {
+                usuario = Usuario(
+                    cursor.entero("id"), cursor.texto("nombres"), cursor.texto("apellido_paterno"),
+                    cursor.texto("apellido_materno"), cursor.texto("correo"), cursor.texto("rol"),
                 )
+                hash = cursor.texto("contrasena_hash")
             }
-            if (fila == null || fila.usuario.rol != rol || !Clave.verificar(contrasena, fila.hash)) {
+            cursor.close()
+
+            if (usuario == null || usuario.rol != rol || !Clave.verificar(contrasena, hash)) {
                 throw ErrorDatos("Correo, contraseña o tipo de usuario incorrectos.")
             }
-            SesionIniciada(fila.usuario)
+            SesionIniciada(usuario)
         }, alTerminar)
     }
 
@@ -44,33 +47,51 @@ object Autenticacion_Modelo {
     ) {
         BaseDatos.escribir({ db ->
             val numeroControl = NumeroControl.normalizar(matricula)
-            if (nombres.isBlank() || apellidoPaterno.isBlank() || correo.isBlank() || contrasena.isEmpty()) {
-                throw ErrorDatos("Completa todos los datos obligatorios.")
+            var error = Limites.revisarPersona(nombres, apellidoPaterno, apellidoMaterno, correo)
+            if (error == null) {
+                error = Limites.revisarClave(contrasena, false)
             }
-            if (!NumeroControl.esValido(numeroControl)) throw ErrorDatos(NumeroControl.MENSAJE)
-            if (semestre !in 1..9) throw ErrorDatos("El semestre debe estar entre 1 y 9.")
+            if (error != null) {
+                throw ErrorDatos(error)
+            }
+            if (!NumeroControl.esValido(numeroControl)) {
+                throw ErrorDatos(NumeroControl.MENSAJE)
+            }
+            val errorCorreo = Limites.revisarCorreoAlumno(correo, numeroControl)
+            if (errorCorreo != null) {
+                throw ErrorDatos(errorCorreo)
+            }
+            if (semestre < 1 || semestre > Limites.SEMESTRE_MAX) {
+                throw ErrorDatos("El semestre debe estar entre 1 y 8.")
+            }
 
-            val id = db.insertOrThrow("usuarios", null, ContentValues().apply {
-                put("nombres", nombres.trim())
-                put("apellido_paterno", apellidoPaterno.trim())
-                if (apellidoMaterno.isBlank()) putNull("apellido_materno") else put("apellido_materno", apellidoMaterno.trim())
-                put("correo", correo.trim())
-                put("contrasena_hash", Clave.generar(contrasena))
-                put("rol", "alumno")
-            })
-            db.insertOrThrow("alumnos", null, ContentValues().apply {
-                put("id_usuario", id)
-                put("matricula", numeroControl)
-                put("id_carrera", idCarrera)
-                put("semestre", semestre)
-            })
+            val usuario = ContentValues()
+            usuario.put("nombres", nombres.trim())
+            usuario.put("apellido_paterno", apellidoPaterno.trim())
+            if (apellidoMaterno.isBlank()) {
+                usuario.putNull("apellido_materno")
+            } else {
+                usuario.put("apellido_materno", apellidoMaterno.trim())
+            }
+            usuario.put("correo", correo.trim().lowercase())
+            usuario.put("contrasena_hash", Clave.generar(contrasena))
+            usuario.put("rol", "alumno")
+            val id = db.insertOrThrow("usuarios", null, usuario)
+
+            val alumno = ContentValues()
+            alumno.put("id_usuario", id)
+            alumno.put("matricula", numeroControl)
+            alumno.put("id_carrera", idCarrera)
+            alumno.put("semestre", semestre)
+            db.insertOrThrow("alumnos", null, alumno)
             Unit
         }, alTerminar)
     }
 
+    // carreras en orden de la escuela
     fun carreras(alTerminar: (Resultado_Modelo<List<Carrera>>) -> Unit) {
         BaseDatos.consultar({ db ->
-            db.rawQuery(
+            val cursor = db.rawQuery(
                 """SELECT id, nombre FROM carreras
                     ORDER BY CASE nombre
                         WHEN 'Ingeniería Industrial' THEN 1
@@ -85,13 +106,13 @@ object Autenticacion_Modelo {
                         WHEN 'Licenciatura en Gastronomía' THEN 10
                         ELSE 99 END, nombre""",
                 null,
-            ).use { c ->
-                buildList {
-                    while (c.moveToNext()) add(Carrera(c.entero("id"), c.texto("nombre")))
-                }
+            )
+            val lista = mutableListOf<Carrera>()
+            while (cursor.moveToNext()) {
+                lista.add(Carrera(cursor.entero("id"), cursor.texto("nombre")))
             }
+            cursor.close()
+            lista
         }, alTerminar)
     }
-
-    private data class FilaLogin(val usuario: Usuario, val hash: String)
 }

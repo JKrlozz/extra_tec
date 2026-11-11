@@ -11,20 +11,36 @@ import itsm.extra_tec.vistas.Comun.Accion_Vista
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.agregarTarjeta
 
-class Constancia_Vista : Base_Vista<ConstanciaVistaBinding>() {
+class Constancia_Vista : Base_Vista() {
+    private var _binding: ConstanciaVistaBinding? = null
+    private val binding get() = _binding!!
     private val modelo: Constancia_ModeloVista by viewModels()
 
-    override fun crearBinding(inflador: LayoutInflater, contenedor: ViewGroup?) =
-        ConstanciaVistaBinding.inflate(inflador, contenedor, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = ConstanciaVistaBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         escuchar(modelo)
         modelo.constancias.observe(viewLifecycleOwner) { constancias ->
             estadoLista(binding.tvVacio, constancias, "Aún no estás inscrito en ninguna actividad.")
             binding.listaContenido.removeAllViews()
-            constancias?.forEach { c ->
-                val estado = if (c.disponible) "Disponible" else "No disponible, se requiere 80 % de asistencia"
-                agregarTarjeta(binding.listaContenido, c.nombre,
+            if (constancias == null) {
+                return@observe
+            }
+            for (c in constancias) {
+                var estado = "No disponible, se requiere 80 % de asistencia"
+                var accion: Accion_Vista? = null
+                if (c.disponible) {
+                    estado = "Disponible"
+                    accion = Accion_Vista("Descargar PDF") {
+                        modelo.descargar(c.idActividad, requireContext().applicationContext)
+                    }
+                }
+                agregarTarjeta(
+                    binding.listaContenido,
+                    c.nombre,
                     detalles = listOf(
                         "Periodo" to c.periodo,
                         "Estado" to estado,
@@ -32,10 +48,14 @@ class Constancia_Vista : Base_Vista<ConstanciaVistaBinding>() {
                         "Sesiones" to "${c.asistencias} de ${c.sesiones}",
                     ),
                     progreso = c.porcentaje.toInt(),
-                    a = if (c.disponible) {
-                        Accion_Vista("Descargar PDF") { modelo.descargar(c.idActividad, requireContext().applicationContext) }
-                    } else null)
+                    a = accion,
+                )
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

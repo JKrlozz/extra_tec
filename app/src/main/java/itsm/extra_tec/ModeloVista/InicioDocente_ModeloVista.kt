@@ -10,6 +10,8 @@ class InicioDocente_ModeloVista : Base_ModeloVista() {
     val clases: LiveData<List<Actividad>?> = _clases
 
     init {
-        Actividades_Modelo.misClases { resultado -> atender(resultado) { _clases.value = it } }
+        Actividades_Modelo.misClases { resultado ->
+            atender(resultado) { lista -> _clases.value = lista }
+        }
     }
 }

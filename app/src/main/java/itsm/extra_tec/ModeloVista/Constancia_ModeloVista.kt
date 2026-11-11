@@ -12,15 +12,20 @@ class Constancia_ModeloVista : Base_ModeloVista() {
     val constancias: LiveData<List<Constancia>?> = _constancias
 
     init {
-        Actividades_Modelo.constancias { resultado -> atender(resultado) { _constancias.value = it } }
+        Actividades_Modelo.constancias { resultado ->
+            atender(resultado) { lista -> _constancias.value = lista }
+        }
     }
 
     fun descargar(idActividad: Int, contexto: Context) {
         Actividades_Modelo.descargarConstancia(idActividad) { resultado ->
             atender(resultado) { archivo ->
-                runCatching { Archivos_Modelo.guardarEnDescargas(contexto, archivo.nombre, "application/pdf", archivo.bytes) }
-                    .onSuccess { avisar("Constancia guardada en $it") }
-                    .onFailure { avisar("No se pudo guardar el PDF: ${it.message}") }
+                try {
+                    val ruta = Archivos_Modelo.guardarEnDescargas(contexto, archivo.nombre, "application/pdf", archivo.bytes)
+                    avisar("Constancia guardada en $ruta")
+                } catch (e: Exception) {
+                    avisar("No se pudo guardar el PDF: " + e.message)
+                }
             }
         }
     }

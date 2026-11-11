@@ -5,7 +5,7 @@ import java.util.Locale
 
 object Reportes_Modelo {
 
-    // Cada fila es un mapa de columna a valor
+    // cada fila es columna y valor
     fun generar(
         tipo: String,
         desde: String,
@@ -13,12 +13,17 @@ object Reportes_Modelo {
         alTerminar: (Resultado_Modelo<List<Map<String, String>>>) -> Unit,
     ) {
         BaseDatos.consultar({ db ->
-            val inicio = desde.ifEmpty { "1000-01-01" }
-            val fin = hasta.ifEmpty { "9999-12-31" }
-            if (inicio > fin) throw ErrorDatos("La fecha inicial es posterior a la final.")
+            var inicio = desde
+            var fin = hasta
+            if (inicio.isEmpty()) inicio = "1000-01-01"
+            if (fin.isEmpty()) fin = "9999-12-31"
+            if (inicio > fin) {
+                throw ErrorDatos("La fecha inicial es posterior a la final.")
+            }
 
-            when (tipo) {
-                "actividad" -> db.rawQuery(
+            val filas = mutableListOf<Map<String, String>>()
+            if (tipo == "actividad") {
+                val cursor = db.rawQuery(
                     """SELECT a.id, a.nombre AS actividad,
                               TRIM(COALESCE(d.nombres, '') || ' ' || COALESCE(d.apellido_paterno, '') || ' ' ||
                                    COALESCE(d.apellido_materno, '')) AS docente,
@@ -35,23 +40,20 @@ object Reportes_Modelo {
                         GROUP BY a.id
                         ORDER BY a.nombre""",
                     arrayOf(inicio, fin),
-                ).use { c ->
-                    buildList {
-                        while (c.moveToNext()) add(
-                            linkedMapOf(
-                                "id" to c.texto("id"),
-                                "actividad" to c.texto("actividad"),
-                                "docente" to c.texto("docente"),
-                                "cupo" to c.texto("cupo"),
-                                "inscritos" to c.texto("inscritos"),
-                                "sesiones" to c.texto("sesiones"),
-                                "asistencia_pct" to c.porcentaje("asistencia_pct"),
-                            )
-                        )
-                    }
+                )
+                while (cursor.moveToNext()) {
+                    val fila = linkedMapOf<String, String>()
+                    fila["actividad"] = cursor.texto("actividad")
+                    fila["docente"] = cursor.texto("docente")
+                    fila["cupo"] = cursor.texto("cupo")
+                    fila["inscritos"] = cursor.texto("inscritos")
+                    fila["sesiones"] = cursor.texto("sesiones")
+                    fila["asistencia_pct"] = porcentaje(cursor)
+                    filas.add(fila)
                 }
-
-                "alumno" -> db.rawQuery(
+                cursor.close()
+            } else if (tipo == "alumno") {
+                val cursor = db.rawQuery(
                     """SELECT u.id,
                               TRIM(COALESCE(u.nombres, '') || ' ' || COALESCE(u.apellido_paterno, '') || ' ' ||
                                    COALESCE(u.apellido_materno, '')) AS alumno,
@@ -67,28 +69,25 @@ object Reportes_Modelo {
                         GROUP BY u.id
                         ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres""",
                     arrayOf(inicio, fin),
-                ).use { c ->
-                    buildList {
-                        while (c.moveToNext()) add(
-                            linkedMapOf(
-                                "id" to c.texto("id"),
-                                "alumno" to c.texto("alumno"),
-                                "matricula" to c.texto("matricula"),
-                                "actividades" to c.texto("actividades"),
-                                "asistencia_pct" to c.porcentaje("asistencia_pct"),
-                            )
-                        )
-                    }
+                )
+                while (cursor.moveToNext()) {
+                    val fila = linkedMapOf<String, String>()
+                    fila["alumno"] = cursor.texto("alumno")
+                    fila["matricula"] = cursor.texto("matricula")
+                    fila["actividades"] = cursor.texto("actividades")
+                    fila["asistencia_pct"] = porcentaje(cursor)
+                    filas.add(fila)
                 }
-
-                "docente" -> db.rawQuery(
+                cursor.close()
+            } else if (tipo == "docente") {
+                val cursor = db.rawQuery(
                     """SELECT u.id,
                               TRIM(COALESCE(u.nombres, '') || ' ' || COALESCE(u.apellido_paterno, '') || ' ' ||
                                    COALESCE(u.apellido_materno, '')) AS docente,
                               COUNT(DISTINCT a.id) AS actividades,
                               COUNT(DISTINCT s.id) AS sesiones_impartidas,
                               (SELECT COUNT(*) FROM evidencias e
-                                WHERE e.id_docente = u.id AND DATE(e.creada_en) BETWEEN ? AND ?) AS evidencias
+                                WHERE e.id_docente = u.id AND e.fecha BETWEEN ? AND ?) AS evidencias
                          FROM docentes d
                          JOIN usuarios u ON u.id = d.id_usuario
                          LEFT JOIN actividades a ON a.id_docente = d.id_usuario AND a.activa = 1
@@ -97,31 +96,33 @@ object Reportes_Modelo {
                         GROUP BY u.id
                         ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres""",
                     arrayOf(inicio, fin, inicio, fin),
-                ).use { c ->
-                    buildList {
-                        while (c.moveToNext()) add(
-                            linkedMapOf(
-                                "id" to c.texto("id"),
-                                "docente" to c.texto("docente"),
-                                "actividades" to c.texto("actividades"),
-                                "sesiones_impartidas" to c.texto("sesiones_impartidas"),
-                                "evidencias" to c.texto("evidencias"),
-                            )
-                        )
-                    }
+                )
+                while (cursor.moveToNext()) {
+                    val fila = linkedMapOf<String, String>()
+                    fila["docente"] = cursor.texto("docente")
+                    fila["actividades"] = cursor.texto("actividades")
+                    fila["sesiones_impartidas"] = cursor.texto("sesiones_impartidas")
+                    fila["evidencias"] = cursor.texto("evidencias")
+                    filas.add(fila)
                 }
-
-                else -> throw ErrorDatos("El reporte debe ser por actividad, alumno o docente.")
+                cursor.close()
+            } else {
+                throw ErrorDatos("El reporte debe ser por actividad, alumno o docente.")
             }
+            filas
         }, alTerminar)
     }
 
-    // Porcentaje con un decimal o vacio si no hay datos
-    private fun Cursor.porcentaje(columna: String): String {
-        val indice = getColumnIndex(columna)
-        if (indice < 0 || isNull(indice)) return ""
-        val valor = getDouble(indice)
-        return if (valor % 1.0 == 0.0) valor.toInt().toString()
-        else String.format(Locale.US, "%.1f", valor)
+    // porcentaje con un decimal o vacio
+    private fun porcentaje(cursor: Cursor): String {
+        val indice = cursor.getColumnIndex("asistencia_pct")
+        if (indice < 0 || cursor.isNull(indice)) {
+            return ""
+        }
+        val valor = cursor.getDouble(indice)
+        if (valor % 1.0 == 0.0) {
+            return valor.toInt().toString()
+        }
+        return String.format(Locale.US, "%.1f", valor)
     }
 }
