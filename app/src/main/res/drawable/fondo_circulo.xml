@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- circulo verde claro de la bienvenida -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="@color/itsm_primary_light" />
-    <stroke
-        android:width="3dp"
-        android:color="@color/itsm_primary" />
-</shape>

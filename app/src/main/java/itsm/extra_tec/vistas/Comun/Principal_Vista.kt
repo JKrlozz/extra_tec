@@ -2,6 +2,9 @@
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.ScrollView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -9,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import itsm.extra_tec.ModeloVista.Sesion_ModeloVista
 import itsm.extra_tec.databinding.PrincipalVistaBinding
 import itsm.extra_tec.vistas.Administrador.FormularioActividad_Vista
@@ -30,15 +34,17 @@ import itsm.extra_tec.vistas.Docente.HistorialEvidencia_Vista
 import itsm.extra_tec.vistas.Docente.InicioDocente_Vista
 
 // pantalla anterior para el boton volver
-class Paso_Vista(val pantalla: Pantalla_Vista, val argumentos: Bundle?)
+class Paso_Vista(val pantalla: Pantalla_Vista, val argumentos: Bundle?, val scroll: Int)
 
 // unica activity que cambia los fragmentos
 class Principal_Vista : AppCompatActivity(), Navegador_Vista {
     private lateinit var binding: PrincipalVistaBinding
     private val sesion: Sesion_ModeloVista by viewModels()
-    private var pantallaActual = Pantalla_Vista.BIENVENIDA
+    private var pantallaActual = Pantalla_Vista.INICIO_SESION
     private var argumentosActuales: Bundle? = null
     private val historial = mutableListOf<Paso_Vista>()
+    // posicion de la lista al volver
+    private var scrollPendiente = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,13 +71,22 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
         })
 
         conectarBarras()
+        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentViewCreated(fm: FragmentManager, f: Fragment, v: View, savedInstanceState: Bundle?) {
+                if (scrollPendiente > 0) {
+                    val destino = scrollPendiente
+                    scrollPendiente = 0
+                    restaurarScroll(v, destino)
+                }
+            }
+        }, false)
 
         val haySesion = sesion.restaurar()
         if (savedInstanceState == null) {
             if (haySesion) {
                 irAlInicio()
             } else {
-                irRaiz(Pantalla_Vista.BIENVENIDA, null)
+                irRaiz(Pantalla_Vista.INICIO_SESION, null)
             }
         } else {
             // al girar se recupera la barra
@@ -91,7 +106,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
 
     override fun ir(pantalla: Pantalla_Vista, argumentos: Bundle?) {
         if (pantalla != pantallaActual) {
-            historial.add(Paso_Vista(pantallaActual, argumentosActuales))
+            historial.add(Paso_Vista(pantallaActual, argumentosActuales, scrollActual()))
         }
         mostrar(pantalla, argumentos)
     }
@@ -107,6 +122,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
             return
         }
         val paso = historial.removeAt(historial.size - 1)
+        scrollPendiente = paso.scroll
         mostrar(paso.pantalla, paso.argumentos)
     }
 
@@ -138,7 +154,6 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
 
     private fun crearFragmento(pantalla: Pantalla_Vista): Fragment {
         return when (pantalla) {
-            Pantalla_Vista.BIENVENIDA -> Bienvenida_Vista()
             Pantalla_Vista.INICIO_SESION -> InicioSesion_Vista()
             Pantalla_Vista.REGISTRO -> Registro_Vista()
             Pantalla_Vista.INICIO_ALUMNO -> InicioAlumno_Vista()
@@ -166,8 +181,46 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
         }
     }
 
+    private fun buscarScroll(vista: View?): ScrollView? {
+        if (vista is ScrollView) {
+            return vista
+        }
+        if (vista is ViewGroup) {
+            for (i in 0 until vista.childCount) {
+                val encontrado = buscarScroll(vista.getChildAt(i))
+                if (encontrado != null) return encontrado
+            }
+        }
+        return null
+    }
+
+    private fun scrollActual(): Int {
+        val actual = supportFragmentManager.findFragmentById(binding.contenedor.id)
+        return buscarScroll(actual?.view)?.scrollY ?: 0
+    }
+
+    // la lista carga despues, se espera a que crezca
+    private fun restaurarScroll(raiz: View, destino: Int) {
+        val scroll = buscarScroll(raiz) ?: return
+        val limite = System.currentTimeMillis() + 2500
+        scroll.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                val contenido = scroll.getChildAt(0)
+                val maximo = if (contenido == null) 0 else contenido.height - scroll.height
+                if (maximo >= destino || System.currentTimeMillis() > limite) {
+                    scroll.scrollTo(0, minOf(destino, maxOf(maximo, 0)))
+                    if (scroll.viewTreeObserver.isAlive) {
+                        scroll.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    }
+                }
+            }
+        })
+    }
+
     private fun actualizarBotonAtras() {
-        if (historial.isEmpty()) {
+        // inicio de sesion y registro ya tienen sus botones
+        val propias = pantallaActual == Pantalla_Vista.INICIO_SESION || pantallaActual == Pantalla_Vista.REGISTRO
+        if (historial.isEmpty() || propias) {
             binding.contenedorVolver.visibility = View.GONE
         } else {
             binding.contenedorVolver.visibility = View.VISIBLE

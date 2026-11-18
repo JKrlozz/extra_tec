@@ -70,8 +70,6 @@ class HorarioAlumno_Vista : Base_Vista() {
         // hoy se marca en verde
         if (dia.esHoy) {
             tarjeta.root.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.itsm_primary_light))
-            tarjeta.root.strokeColor = ContextCompat.getColor(requireContext(), R.color.itsm_primary)
-            tarjeta.root.strokeWidth = resources.getDimensionPixelSize(R.dimen.borde_hoy)
         }
 
         for (bloque in dia.bloques) {

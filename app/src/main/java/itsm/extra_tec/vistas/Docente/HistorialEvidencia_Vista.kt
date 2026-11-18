@@ -53,6 +53,10 @@ class HistorialEvidencia_Vista : Base_Vista() {
             }
         }
 
+        // el administrador solo consulta, edita y elimina
+        if (sesion.rol == "admin") {
+            binding.btnNuevaEvidencia.visibility = View.GONE
+        }
         binding.btnNuevaEvidencia.setOnClickListener {
             navegador.ir(pantallaEvidencia(), Evidencia_Vista.argumentos(null, idActividad, nombreActividad))
         }

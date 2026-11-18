@@ -84,7 +84,8 @@
                 <Spinner
                     android:id="@+id/spinnerCarrera"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="52dp"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
@@ -98,15 +99,16 @@
                 <Spinner
                     android:id="@+id/spinnerSemestre"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="52dp"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContrasena"
                 style="@style/Itsm.Field"
-                android:hint="Contraseña inicial (opcional)"
-                app:helperText="De 8 a 30 caracteres. Si la dejas vacía se genera una"
+                android:hint="Contraseña inicial"
+                app:helperText="Opcional. De 8 a 30 caracteres. Si la dejas vacía se genera una"
                 app:endIconMode="password_toggle">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContrasena"

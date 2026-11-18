@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# apk generado y datos de herramientas
+/extra_tec.apk
+/.atl/

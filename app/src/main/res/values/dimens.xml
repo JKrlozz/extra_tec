@@ -5,5 +5,4 @@
     <dimen name="ancho_etiqueta">104dp</dimen>
     <dimen name="tamano_titulo">22sp</dimen>
     <dimen name="tamano_miniatura">72dp</dimen>
-    <dimen name="borde_hoy">2dp</dimen>
 </resources>

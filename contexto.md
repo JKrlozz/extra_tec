@@ -111,6 +111,23 @@ _Pendiente de definir._
   - Verificado: compila, 13 pruebas pasan, el esquema se probó con SQLite (40 casos) y en el emulador se revisaron bienvenida, inicio de sesión, inicio del docente, historial con fotos, visor y vista horizontal. Falta probar a mano el zoom con dos dedos y el resto de pantallas.
 - 2026-11-10: La app queda fija en vertical (evita perder el historial del botón Volver al girar). Semestres de primero a octavo. Todos los correos deben ser @itsm.edu.mx y el del alumno debe ser su número de control (por ejemplo 193t0183@itsm.edu.mx); se valida en la app y en la base (versión 5). El campo de número de control solo deja escribir la forma 000T0000. Las cuentas de prueba de alumno ahora entran con correos como 232t0182@itsm.edu.mx.
 
+- 2026-11-17: Se quitó la pantalla de bienvenida (logo ITSM y botón Entrar); la app abre directo en el inicio de sesión.
+  - Se eliminaron `Bienvenida_Vista`, su layout, `fondo_circulo` y la pantalla `BIENVENIDA`.
+  - Pruebas en el emulador con datos válidos e inválidos: inicio de sesión (vacío, sin formato, otro dominio, contraseña mala, rol incorrecto), registro de alumno, alumno (baja, inscripción, cupo, horario, constancia), docente (pase de lista, evidencias con y sin fotos, editar, eliminar), administrador (actividad, docente, búsqueda en Personas, reportes y PDF).
+  - Correcciones: el formulario de actividad ahora valida primero nombre y descripción y luego horarios; la búsqueda sin resultados en Personas dice "Sin resultados para la búsqueda." en lugar de "No hay alumnos registrados."
+
+- 2026-11-17: Ajustes de navegación, reportes, bordes y textos.
+  - El botón Volver de la barra inferior ya no aparece en inicio de sesión ni en registro; el botón físico Atrás sigue funcionando.
+  - Al volver con Volver o Atrás, la lista queda en la posición donde estaba (`Principal_Vista` guarda el scroll en el historial y lo restaura cuando la lista termina de cargar).
+  - Reportes del administrador rediseñados para decidir: por actividad (ocupación, última sesión, alumnos por debajo del 80 %, sesiones sin evidencia, alertas), por alumno (en riesgo, sin actividad, faltas, estado de su constancia) y por docente (sesiones sin evidencia, asistencia de sus grupos). Las filas con problemas salen primero y arriba hay un resumen con totales. El PDF usa el mismo contenido.
+  - Sin bordes: se quitó el contorno al enfocar campos, el contorno del día actual en el horario, la línea de la barra inferior y los separadores internos.
+  - Textos: listas desplegables, pestañas y botón Volver crecen con el texto (ya no tienen altura fija); se acortaron los textos guía largos y lo opcional pasó a texto de ayuda. Se corrigieron los campos Especialidad y Lugar, que se veían aplastados. Probado con letra al 160 %.
+  - El administrador ya no puede subir evidencias nuevas desde una actividad; solo consulta, edita y elimina.
+
+- 2026-11-17: Ícono de la app con el logo del ITSM en dorado oscuro.
+  - `logoitsm.png` (raíz) se tiñó con un duotono dorado oscuro (`#6B4C00` a `#B8860B`) y se guardó como `logoitsm_dorado.png`. El original no se modificó.
+  - El ícono adaptativo usa el logo dorado sobre fondo crema `#FAF3DC` (`drawable-nodpi/ic_launcher_foreground.png`, color `ic_launcher_background`) y una silueta para el modo monocromo. Los íconos clásicos (`mipmap-*/ic_launcher*.webp`) se regeneraron en todas las densidades, cuadrados y redondos. Se quitaron los vectores del robot de Android.
+
 ## Cómo levantar todo
 1. Abrir el proyecto en Android Studio y compilar la app, o usar el APK ya generado `extra_tec.apk` de la raíz.
 2. Instalar en el emulador o en el teléfono. No hace falta encender MySQL, la API ni configurar la red.

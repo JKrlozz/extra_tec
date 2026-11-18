@@ -6,7 +6,6 @@ enum class Barra_Vista { NINGUNA, ALUMNO, DOCENTE, ADMIN }
 // todas las pantallas de la app
 // el fragmento se crea en principal_vista
 enum class Pantalla_Vista(val barra: Barra_Vista) {
-    BIENVENIDA(Barra_Vista.NINGUNA),
     INICIO_SESION(Barra_Vista.NINGUNA),
     REGISTRO(Barra_Vista.NINGUNA),
 

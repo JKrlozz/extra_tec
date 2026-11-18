@@ -22,4 +22,6 @@
     <color name="itsm_danger_light">#F9E3E1</color>
     <color name="itsm_success">#1E7B45</color>
     <color name="itsm_success_light">#E3F2E8</color>
+    <!-- fondo del icono de la app -->
+    <color name="ic_launcher_background">#FAF3DC</color>
 </resources>

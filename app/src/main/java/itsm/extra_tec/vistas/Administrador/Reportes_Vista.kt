@@ -36,7 +36,7 @@ class Reportes_Vista : Base_Vista() {
             }
             binding.encabezadoReporte.visibility = View.VISIBLE
             binding.tvTituloReporte.text = "Reporte " + reporte.etiqueta.lowercase()
-            binding.tvResumenReporte.text = reporte.rango + "\n" + reporte.filas.size + " registros"
+            binding.tvResumenReporte.text = reporte.rango + "\n" + reporte.resumen
             if (reporte.filas.isEmpty()) {
                 binding.tvVacioReporte.visibility = View.VISIBLE
                 binding.tvVacioReporte.text = "No hay registros en ese periodo."

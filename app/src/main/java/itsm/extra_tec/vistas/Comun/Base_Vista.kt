@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import itsm.extra_tec.ModeloVista.Base_ModeloVista
+import itsm.extra_tec.R
 import itsm.extra_tec.ModeloVista.Fechas_ModeloVista
 import itsm.extra_tec.ModeloVista.Sesion_ModeloVista
 import java.util.Calendar
@@ -63,7 +64,8 @@ open class Base_Vista : Fragment() {
     }
 
     protected fun llenarSpinner(spinner: Spinner, textos: List<String>) {
-        val adaptador = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, textos)
+        val adaptador = ArrayAdapter(requireContext(), R.layout.item_spinner, textos)
+        adaptador.setDropDownViewResource(R.layout.item_spinner)
         spinner.adapter = adaptador
     }
 

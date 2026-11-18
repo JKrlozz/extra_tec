@@ -13,6 +13,7 @@ import itsm.extra_tec.R
 import itsm.extra_tec.databinding.PersonasVistaBinding
 import itsm.extra_tec.vistas.Comun.Accion_Vista
 import itsm.extra_tec.vistas.Comun.Base_Vista
+import itsm.extra_tec.vistas.Comun.texto
 import itsm.extra_tec.vistas.Comun.Pantalla_Vista
 import itsm.extra_tec.vistas.Comun.agregarTarjeta
 
@@ -72,10 +73,12 @@ class Personas_Vista : Base_Vista() {
         pintarPestana(binding.btnTabAlumnos, esAlumno)
         pintarPestana(binding.btnTabDocentes, !esAlumno)
         if (esAlumno) {
-            binding.tilBuscar.hint = "Buscar por nombre o número de control"
+            binding.tilBuscar.hint = "Buscar"
+            binding.tilBuscar.helperText = "Por nombre o número de control"
             binding.btnNuevo.text = "Nuevo alumno"
         } else {
-            binding.tilBuscar.hint = "Buscar por nombre o correo"
+            binding.tilBuscar.hint = "Buscar"
+            binding.tilBuscar.helperText = "Por nombre o correo"
             binding.btnNuevo.text = "Nuevo docente"
         }
     }
@@ -94,11 +97,19 @@ class Personas_Vista : Base_Vista() {
         }
     }
 
+    // mensaje distinto si hay busqueda
+    private fun textoVacio(plural: String): String {
+        if (binding.etBuscar.texto().isNotEmpty()) {
+            return "Sin resultados para la búsqueda."
+        }
+        return "No hay $plural registrados."
+    }
+
     private fun pintarLista() {
         binding.listaContenido.removeAllViews()
         if (esAlumno) {
             val alumnos = modelo.alumnos.value
-            estadoLista(binding.tvVacio, alumnos, "No hay alumnos registrados.")
+            estadoLista(binding.tvVacio, alumnos, textoVacio("alumnos"))
             if (alumnos == null) return
             for (alumno in alumnos) {
                 var semestre = alumno.semestre.toString()
@@ -124,7 +135,7 @@ class Personas_Vista : Base_Vista() {
             }
         } else {
             val docentes = modelo.docentes.value
-            estadoLista(binding.tvVacio, docentes, "No hay docentes registrados.")
+            estadoLista(binding.tvVacio, docentes, textoVacio("docentes"))
             if (docentes == null) return
             for (docente in docentes) {
                 agregarTarjeta(

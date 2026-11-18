@@ -97,6 +97,14 @@ class FormularioActividad_Vista : Base_Vista() {
             }
         }
         binding.btnGuardar.setOnClickListener {
+            // primero nombre y descripcion, luego horarios
+            val errorTextos = Limites.revisarActividad(
+                binding.etNombre.texto(), binding.etDescripcion.texto(), Limites.CUPO_MIN,
+            )
+            if (errorTextos != null) {
+                aviso(errorTextos)
+                return@setOnClickListener
+            }
             val horarios = leerHorarios()
             if (horarios != null) {
                 modelo.guardar(

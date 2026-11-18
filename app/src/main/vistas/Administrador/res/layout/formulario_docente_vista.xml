@@ -64,19 +64,24 @@
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Especialidad (opcional)">
-                <AutoCompleteTextView
+                android:hint="Especialidad"
+                app:helperText="Opcional">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/etEspecialidad"
                     android:maxLength="50"
                     android:completionThreshold="1"
+                    android:paddingStart="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="16dp"
                     android:inputType="textCapSentences"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Itsm.Field"
-                android:hint="Teléfono (opcional)"
-                app:helperText="10 dígitos">
+                android:hint="Teléfono"
+                app:helperText="Opcional. 10 dígitos">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etTelefono"
                     android:maxLength="10"
@@ -88,8 +93,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContrasena"
                 style="@style/Itsm.Field"
-                android:hint="Contraseña inicial (opcional)"
-                app:helperText="De 8 a 30 caracteres. Si la dejas vacía se genera una"
+                android:hint="Contraseña inicial"
+                app:helperText="Opcional. De 8 a 30 caracteres. Si la dejas vacía se genera una"
                 app:endIconMode="password_toggle">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContrasena"
