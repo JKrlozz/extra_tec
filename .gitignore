@@ -17,3 +17,6 @@ local.properties
 # apk generado y datos de herramientas
 /extra_tec.apk
 /.atl/
+
+# archivos temporales de Word
+~$*

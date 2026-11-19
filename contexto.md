@@ -140,3 +140,21 @@ _Pendiente de definir._
 ## Notas
 - La base local se borra al desinstalar la app o al limpiar sus datos; al abrirla de nuevo se vuelve a crear con los datos de prueba.
 - Si se cambia el esquema, subir la versión de `BaseDatos`. La versión 2 migra las evidencias de la versión 1 y la versión 3 actualiza el catálogo de carreras; otros cambios vuelven a crear las tablas.
+
+## Migración a Azure SQL (2026-11-17)
+- La app ya no usa SQLite. `Modelo/Red.kt` llama por HTTPS a la API (`api/`, Node + Express + `mssql`), que guarda en Azure SQL (`servidor-extratec` / `extratec-bd`). Se borraron `BaseDatos.kt`, `BaseDatos_Esquema.kt` y `Clave.kt`.
+- Los `*_Modelo.kt` conservan las mismas funciones públicas, así que Vista y ModeloVista no cambiaron. Las reglas de negocio (cupo, una actividad por alumno, 80 % de asistencia, permisos por rol) ahora viven en la API; la base solo tiene restricciones, índices únicos filtrados y vistas.
+- Esquema T-SQL: `database/azure/schema.sql`. Datos de prueba: `api/scripts/crear_bd.js` (`npm run bd`). Pasos de Azure y publicación: `api/README.md`.
+- Las fotos de evidencias viven en la base (`VARBINARY`). La app las achica a 1600 px antes de subirlas y las guarda en caché (`cacheDir/evidencias`) al verlas; se borran al cerrar sesión.
+- La sesión guarda un token (JWT, 30 días). La URL de la API sale de `API_URL` en `gradle.properties` (`BuildConfig.API_URL`).
+- `database/schema.sql`, `schema.sqlite.sql`, `seed.sql` y `servidor_legado/` quedaron obsoletos.
+- Sin probar contra Azure todavía: falta crear las tablas con `npm run bd` y recorrer los flujos en el emulador.
+
+
+## Semestre y archivo (2026-11-19)
+- Admin: pantalla `Semestre_Vista` (fechas inicio/fin, cerrar y archivar, lista de semestres archivados). API: `GET/PUT /api/semestre`, `POST /api/semestre/cerrar` (`api/src/routes/semestre.js`, lógica en `api/src/semestre.js`).
+- Archivar = `periodos.activo=0` + `cerrado_en`, `actividades.activa=0` + `archivada_en`, `inscripciones.estado='archivada'`. Nada se borra; las consultas existentes ya filtran `activa=1` / `estado='activa'`, por eso desaparece de la app.
+- Se archiva solo (middleware, revisión cada 30 s) cuando `fin < hoy` (hora de México). Inscribir, pasar lista y crear/editar evidencias exigen semestre vigente (`exigirVigente`).
+- Iniciar un semestre nuevo copia las actividades archivadas del anterior (docente activo, cupo, horarios), sin alumnos.
+- `v_asistencia_alumno` incluye inscripciones archivadas para que las constancias sigan disponibles.
+- BD existente: `npm run migrar` (idempotente). BD nueva: `npm run bd`.
