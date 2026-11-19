@@ -1,0 +1,24 @@
+{
+  "name": "extra-tec-api",
+  "version": "1.0.0",
+  "description": "API de ITSM Extraescolares sobre Azure SQL",
+  "main": "src/index.js",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "bd": "node scripts/crear_bd.js",
+    "migrar": "node scripts/migrar_semestre.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "express-rate-limit": "7.5.0",
+    "helmet": "8.0.0",
+    "jsonwebtoken": "9.0.2",
+    "mssql": "11.0.1",
+    "multer": "^2.5.0"
+  }
+}
