@@ -5,6 +5,10 @@ object Sesion_Actual {
     @Volatile
     var usuario: Usuario? = null
 
+    // llave que manda el servidor al iniciar sesion
+    @Volatile
+    var token: String? = null
+
     fun id(): Int {
         val actual = usuario
         if (actual == null) {

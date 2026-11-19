@@ -1,13 +1,13 @@
 package itsm.extra_tec.Modelo
 
-import android.content.ContentValues
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 object Evidencias_Modelo {
     // valor guardado y texto visible
@@ -19,43 +19,18 @@ object Evidencias_Modelo {
 
     private val TIPOS_VALIDOS = listOf("image/jpeg", "image/png", "image/webp")
 
+    // las fotos de camara se achican antes de subirlas
+    private const val LADO_MAXIMO = 1600
+    private const val PESO_SIN_REDUCIR = 1_200_000
+
     fun historial(idActividad: Int, alTerminar: (Resultado_Modelo<List<Evidencia>>) -> Unit) {
-        BaseDatos.consultar({ db ->
-            exigirTitular(db, idActividad)
-            val cursor = db.rawQuery(
-                """SELECT id, id_actividad, fecha, creada_en, actualizada_en, estado,
-                          COALESCE(descripcion, '') AS descripcion
-                     FROM evidencias
-                    WHERE id_actividad = ?
-                    ORDER BY fecha DESC, creada_en DESC, id DESC""",
-                arrayOf(idActividad.toString()),
-            )
-            val lista = mutableListOf<Evidencia>()
-            while (cursor.moveToNext()) {
-                lista.add(leerEvidencia(db, cursor))
-            }
-            cursor.close()
-            lista
+        Red.trabajo({
+            Red.solicitud("GET", "/actividades/$idActividad/evidencias").arreglo().lista { evidenciaDe(it) }
         }, alTerminar)
     }
 
     fun detalle(id: Int, alTerminar: (Resultado_Modelo<Evidencia>) -> Unit) {
-        BaseDatos.consultar({ db ->
-            val cursor = db.rawQuery(
-                """SELECT id, id_actividad, fecha, creada_en, actualizada_en, estado,
-                          COALESCE(descripcion, '') AS descripcion
-                     FROM evidencias WHERE id = ?""",
-                arrayOf(id.toString()),
-            )
-            if (!cursor.moveToFirst()) {
-                cursor.close()
-                throw ErrorDatos("Evidencia no encontrada.")
-            }
-            val evidencia = leerEvidencia(db, cursor)
-            cursor.close()
-            exigirTitular(db, evidencia.idActividad)
-            evidencia
-        }, alTerminar)
+        Red.trabajo({ evidenciaDe(Red.solicitud("GET", "/evidencias/$id").objeto()) }, alTerminar)
     }
 
     // crea o cambia una evidencia
@@ -70,17 +45,7 @@ object Evidencias_Modelo {
         quitar: List<Int>,
         alTerminar: (Resultado_Modelo<Unit>) -> Unit,
     ) {
-        BaseDatos.escribir({ db ->
-            val docenteTitular = exigirTitular(db, idActividad)
-            revisar(Limites.revisarFecha(fecha))
-            revisar(Limites.revisarDescripcionEvidencia(descripcion))
-            var estadoValido = false
-            for (opcion in ESTADOS) {
-                if (opcion[0] == estado) estadoValido = true
-            }
-            if (!estadoValido) {
-                throw ErrorDatos("Selecciona un estado válido para la evidencia.")
-            }
+        Red.trabajo({
             for (foto in nuevas) {
                 if (!TIPOS_VALIDOS.contains(foto.tipoMime)) {
                     throw ErrorDatos("Solo se aceptan imágenes JPG, PNG o WebP.")
@@ -88,204 +53,108 @@ object Evidencias_Modelo {
                 if (foto.datos.isEmpty()) {
                     throw ErrorDatos("Falta una fotografía.")
                 }
-                if (foto.datos.size > Limites.FOTO_BYTES_MAX) {
-                    throw ErrorDatos("Una fotografía supera 8 MB.")
-                }
             }
+            val datos = JSONObject()
+            datos.put("fecha", fecha)
+            datos.put("estado", estado)
+            datos.put("descripcion", descripcion)
+            val ids = JSONArray()
+            for (id in quitar) {
+                ids.put(id)
+            }
+            datos.put("quitar", ids)
 
-            var existentes = listOf<EvidenciaFoto>()
-            if (idEvidencia != null) {
-                val pertenece = db.rawQuery(
-                    "SELECT 1 FROM evidencias WHERE id = ? AND id_actividad = ?",
-                    arrayOf(idEvidencia.toString(), idActividad.toString()),
-                )
-                val existe = pertenece.moveToFirst()
-                pertenece.close()
-                if (!existe) {
-                    throw ErrorDatos("Evidencia no encontrada.")
-                }
-                existentes = fotosDe(db, idEvidencia)
+            val listas = mutableListOf<FotoNueva>()
+            for (foto in nuevas) {
+                listas.add(reducir(foto))
             }
-
-            // cuantas fotos quedan al final
-            val aQuitar = mutableListOf<EvidenciaFoto>()
-            for (foto in existentes) {
-                if (quitar.contains(foto.id)) aQuitar.add(foto)
-            }
-            val quedan = existentes.size - aQuitar.size + nuevas.size
-            if (estado == "realizada" && quedan == 0) {
-                throw ErrorDatos("Selecciona al menos una fotografía para una actividad realizada.")
-            }
-            if (quedan > Limites.FOTOS_MAX) {
-                throw ErrorDatos("Puedes guardar hasta ${Limites.FOTOS_MAX} fotografías por evidencia.")
-            }
-
-            val valores = ContentValues()
-            valores.put("fecha", fecha)
-            valores.put("estado", estado)
-            if (descripcion.isBlank()) {
-                valores.putNull("descripcion")
+            if (idEvidencia == null) {
+                Red.multiparte("POST", "/actividades/$idActividad/evidencias", datos, listas)
             } else {
-                valores.put("descripcion", descripcion.trim())
+                Red.multiparte("PUT", "/evidencias/$idEvidencia", datos, listas)
             }
-
-            val creados = mutableListOf<File>()
-            try {
-                var id = 0
-                if (idEvidencia == null) {
-                    valores.put("id_actividad", idActividad)
-                    if (docenteTitular == null) {
-                        valores.putNull("id_docente")
-                    } else {
-                        valores.put("id_docente", docenteTitular)
-                    }
-                    id = db.insertOrThrow("evidencias", null, valores).toInt()
-                } else {
-                    valores.put("actualizada_en", ahora())
-                    db.update("evidencias", valores, "id = ?", arrayOf(idEvidencia.toString()))
-                    id = idEvidencia
-                }
-
-                for (foto in aQuitar) {
-                    db.delete("evidencia_fotos", "id = ?", arrayOf(foto.id.toString()))
-                }
-
-                // las fotos nuevas van al final
-                var orden = 0
-                val cursor = db.rawQuery(
-                    "SELECT COALESCE(MAX(orden), -1) + 1 FROM evidencia_fotos WHERE id_evidencia = ?",
-                    arrayOf(id.toString()),
-                )
-                if (cursor.moveToFirst()) {
-                    orden = cursor.getInt(0)
-                }
-                cursor.close()
-
-                for (foto in nuevas) {
-                    val archivo = guardarArchivo(foto)
-                    creados.add(archivo)
-                    val fila = ContentValues()
-                    fila.put("id_evidencia", id)
-                    fila.put("archivo", archivo.name)
-                    fila.put("orden", orden)
-                    db.insertOrThrow("evidencia_fotos", null, fila)
-                    orden = orden + 1
-                }
-            } catch (e: Exception) {
-                // si falla se borran archivos
-                for (archivo in creados) {
-                    archivo.delete()
-                }
-                throw e
-            }
-
-            for (foto in aQuitar) {
-                File(foto.ruta).delete()
-            }
+            Unit
         }, alTerminar)
     }
 
     fun eliminar(id: Int, alTerminar: (Resultado_Modelo<Unit>) -> Unit) {
-        BaseDatos.escribir({ db ->
-            val cursor = db.rawQuery("SELECT id_actividad FROM evidencias WHERE id = ?", arrayOf(id.toString()))
-            var idActividad = 0
-            if (cursor.moveToFirst()) {
-                idActividad = cursor.getInt(0)
-            }
-            cursor.close()
-            if (idActividad == 0) {
-                throw ErrorDatos("Evidencia no encontrada.")
-            }
-            exigirTitular(db, idActividad)
-
-            val fotos = fotosDe(db, id)
-            db.delete("evidencias", "id = ?", arrayOf(id.toString()))
-            for (foto in fotos) {
-                File(foto.ruta).delete()
-            }
+        Red.trabajo({
+            Red.solicitud("DELETE", "/evidencias/$id")
+            Unit
         }, alTerminar)
     }
 
-    private fun leerEvidencia(db: SQLiteDatabase, cursor: Cursor): Evidencia {
-        val id = cursor.entero("id")
-        var actualizada: String? = cursor.texto("actualizada_en")
+    // las fotos se bajan una vez y quedan en el telefono
+    private fun evidenciaDe(o: JSONObject): Evidencia {
+        val fotos = o.getJSONArray("fotos").lista { EvidenciaFoto(it.entero("id"), Red.archivoFoto(it.entero("id"))) }
+        var actualizada: String? = o.texto("actualizadaEn")
         if (actualizada == "") {
             actualizada = null
         }
         return Evidencia(
-            id = id,
-            idActividad = cursor.entero("id_actividad"),
-            fecha = cursor.texto("fecha"),
-            creadaEn = cursor.texto("creada_en"),
+            id = o.entero("id"),
+            idActividad = o.entero("idActividad"),
+            fecha = o.texto("fecha"),
+            creadaEn = o.texto("creadaEn"),
             actualizadaEn = actualizada,
-            estado = cursor.texto("estado"),
-            descripcion = cursor.texto("descripcion"),
-            fotos = fotosDe(db, id),
+            estado = o.texto("estado"),
+            descripcion = o.texto("descripcion"),
+            fotos = fotos,
         )
     }
 
-    // la ruta se arma aqui
-    private fun fotosDe(db: SQLiteDatabase, idEvidencia: Int): List<EvidenciaFoto> {
-        val cursor = db.rawQuery(
-            "SELECT id, archivo FROM evidencia_fotos WHERE id_evidencia = ? ORDER BY orden, id",
-            arrayOf(idEvidencia.toString()),
-        )
-        val lista = mutableListOf<EvidenciaFoto>()
-        while (cursor.moveToNext()) {
-            val ruta = File(carpetaFotos(), cursor.getString(1)).absolutePath
-            lista.add(EvidenciaFoto(cursor.getInt(0), ruta))
+    // foto mas ligera: lado de 1600 px y jpeg, con su giro corregido
+    private fun reducir(foto: FotoNueva): FotoNueva {
+        if (foto.datos.size <= PESO_SIN_REDUCIR) {
+            return foto
         }
-        cursor.close()
-        return lista
-    }
+        try {
+            val medidas = BitmapFactory.Options()
+            medidas.inJustDecodeBounds = true
+            BitmapFactory.decodeByteArray(foto.datos, 0, foto.datos.size, medidas)
+            if (medidas.outWidth <= 0 || medidas.outHeight <= 0) {
+                return foto
+            }
+            var escala = 1
+            while (maxOf(medidas.outWidth, medidas.outHeight) / (escala * 2) >= LADO_MAXIMO) {
+                escala *= 2
+            }
+            val opciones = BitmapFactory.Options()
+            opciones.inSampleSize = escala
+            var imagen = BitmapFactory.decodeByteArray(foto.datos, 0, foto.datos.size, opciones) ?: return foto
 
-    private fun carpetaFotos(): File {
-        val carpeta = File(BaseDatos.contexto.filesDir, "evidencias")
-        if (!carpeta.exists()) {
-            carpeta.mkdirs()
-        }
-        return carpeta
-    }
-
-    private fun guardarArchivo(foto: FotoNueva): File {
-        var extension = "jpg"
-        if (foto.tipoMime == "image/png") extension = "png"
-        if (foto.tipoMime == "image/webp") extension = "webp"
-        val archivo = File(carpetaFotos(), UUID.randomUUID().toString() + "." + extension)
-        archivo.writeBytes(foto.datos)
-        return archivo
-    }
-
-    // revisa que la actividad exista
-    // el docente solo ve sus actividades
-    private fun exigirTitular(db: SQLiteDatabase, idActividad: Int): Int? {
-        val cursor = db.rawQuery(
-            "SELECT id_docente FROM actividades WHERE id = ? AND activa = 1",
-            arrayOf(idActividad.toString()),
-        )
-        if (!cursor.moveToFirst()) {
-            cursor.close()
-            throw ErrorDatos("Actividad no encontrada.")
-        }
-        var docente: Int? = null
-        if (!cursor.isNull(0)) {
-            docente = cursor.getInt(0)
-        }
-        cursor.close()
-        if (Sesion_Actual.rol() == "docente" && docente != Sesion_Actual.id()) {
-            throw ErrorDatos("No eres el docente de esta actividad.")
-        }
-        return docente
-    }
-
-    private fun revisar(error: String?) {
-        if (error != null) {
-            throw ErrorDatos(error)
+            val lado = maxOf(imagen.width, imagen.height)
+            if (lado > LADO_MAXIMO) {
+                val factor = LADO_MAXIMO.toFloat() / lado
+                imagen = Bitmap.createScaledBitmap(
+                    imagen, (imagen.width * factor).toInt().coerceAtLeast(1),
+                    (imagen.height * factor).toInt().coerceAtLeast(1), true,
+                )
+            }
+            val giro = giroExif(foto.datos)
+            if (giro != 0f) {
+                val matriz = Matrix()
+                matriz.postRotate(giro)
+                imagen = Bitmap.createBitmap(imagen, 0, 0, imagen.width, imagen.height, matriz, true)
+            }
+            val salida = ByteArrayOutputStream()
+            imagen.compress(Bitmap.CompressFormat.JPEG, 82, salida)
+            return FotoNueva(foto.nombre, "image/jpeg", salida.toByteArray())
+        } catch (e: Exception) {
+            return foto
         }
     }
 
-    private fun ahora(): String {
-        val formato = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
-        return formato.format(Date())
+    private fun giroExif(datos: ByteArray): Float {
+        try {
+            val exif = ExifInterface(ByteArrayInputStream(datos))
+            val orientacion = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            if (orientacion == ExifInterface.ORIENTATION_ROTATE_90) return 90f
+            if (orientacion == ExifInterface.ORIENTATION_ROTATE_180) return 180f
+            if (orientacion == ExifInterface.ORIENTATION_ROTATE_270) return 270f
+        } catch (e: Exception) {
+            // sin datos de giro
+        }
+        return 0f
     }
 }

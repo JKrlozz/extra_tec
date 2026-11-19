@@ -2,6 +2,7 @@ package itsm.extra_tec.ModeloVista
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import itsm.extra_tec.Modelo.Red
 import itsm.extra_tec.Modelo.SesionIniciada
 import itsm.extra_tec.Modelo.Sesion_Actual
 import itsm.extra_tec.Modelo.Sesion_Modelo
@@ -32,18 +33,22 @@ class Sesion_ModeloVista(aplicacion: Application) : AndroidViewModel(aplicacion)
         }
         usuario = guardada.usuario
         Sesion_Actual.usuario = guardada.usuario
+        Sesion_Actual.token = guardada.token
         return true
     }
 
     fun iniciar(sesion: SesionIniciada) {
         usuario = sesion.usuario
         Sesion_Actual.usuario = sesion.usuario
+        Sesion_Actual.token = sesion.token
         almacen.guardar(sesion)
     }
 
     fun cerrar() {
         almacen.borrar()
         Sesion_Actual.usuario = null
+        Sesion_Actual.token = null
+        Red.limpiarFotos()
         usuario = null
         claseId = null
         claseNombre = ""

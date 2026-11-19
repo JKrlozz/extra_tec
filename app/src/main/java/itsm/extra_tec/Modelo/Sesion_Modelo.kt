@@ -15,6 +15,7 @@ class Sesion_Modelo(contexto: Context) {
         editor.putString("apellido_materno", usuario.apellidoMaterno)
         editor.putString("correo", usuario.correo)
         editor.putString("rol", usuario.rol)
+        editor.putString("token", sesionIniciada.token)
         editor.apply()
     }
 
@@ -24,7 +25,8 @@ class Sesion_Modelo(contexto: Context) {
             return null
         }
         val rol = sesion.getString("rol", "") ?: ""
-        if (rol != "alumno" && rol != "docente" && rol != "admin") {
+        val token = sesion.getString("token", "") ?: ""
+        if (token.isEmpty() || (rol != "alumno" && rol != "docente" && rol != "admin")) {
             borrar()
             return null
         }
@@ -36,7 +38,7 @@ class Sesion_Modelo(contexto: Context) {
             sesion.getString("correo", "") ?: "",
             rol,
         )
-        return SesionIniciada(usuario)
+        return SesionIniciada(usuario, token)
     }
 
     fun borrar() {

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Itsm.Screen">
+
+    <LinearLayout style="@style/Itsm.Header">
+        <TextView style="@style/Itsm.HeaderOverline" />
+        <TextView
+            style="@style/Itsm.HeaderTitle"
+            android:text="Semestre" />
+        <TextView
+            style="@style/Itsm.HeaderSub"
+            android:text="Fechas en que se usa la aplicación" />
+    </LinearLayout>
+    <View style="@style/Itsm.AccentBar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout style="@style/Itsm.Content">
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Semestre actual" />
+            <TextView
+                android:id="@+id/tvEstadoSemestre"
+                style="@style/Itsm.Text.Body"
+                android:layout_marginBottom="12dp"
+                android:text="Cargando..." />
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:text="Fechas" />
+            <TextView
+                android:id="@+id/tvAyudaSemestre"
+                style="@style/Itsm.Text.Secondary"
+                android:layout_marginBottom="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilInicio"
+                style="@style/Itsm.Field"
+                android:hint="Fecha de inicio"
+                app:endIconDrawable="@drawable/ic_calendario"
+                app:endIconMode="custom">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etInicio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilFin"
+                style="@style/Itsm.Field"
+                android:hint="Fecha de fin"
+                app:endIconDrawable="@drawable/ic_calendario"
+                app:endIconMode="custom">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etFin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuardarSemestre"
+                style="@style/Itsm.Button.Primary"
+                android:layout_marginBottom="8dp"
+                android:text="Guardar fechas" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCerrarSemestre"
+                style="@style/Itsm.Button.Danger"
+                android:text="Cerrar y archivar ahora" />
+
+            <TextView
+                style="@style/Itsm.Text.Section"
+                android:layout_marginTop="20dp"
+                android:text="Semestres archivados" />
+            <TextView
+                android:id="@+id/tvVacioArchivados"
+                style="@style/Itsm.Text.Secondary"
+                android:text="Todavía no hay semestres archivados." />
+            <LinearLayout
+                android:id="@+id/listaArchivados"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

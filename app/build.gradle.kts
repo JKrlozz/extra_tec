@@ -15,6 +15,10 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // direccion de la api en Azure; se cambia en gradle.properties (API_URL)
+        val apiUrl = providers.gradleProperty("API_URL").getOrElse("https://extratec-api-movil-h9fyaka4d3eagta6.westus3-01.azurewebsites.net")
+        buildConfigField("String", "API_URL", "\"$apiUrl\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -32,6 +36,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     sourceSets {

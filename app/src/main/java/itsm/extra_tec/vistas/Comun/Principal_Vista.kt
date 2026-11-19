@@ -22,6 +22,7 @@ import itsm.extra_tec.vistas.Administrador.GestionarActividades_Vista
 import itsm.extra_tec.vistas.Administrador.InicioAdmin_Vista
 import itsm.extra_tec.vistas.Administrador.Personas_Vista
 import itsm.extra_tec.vistas.Administrador.Reportes_Vista
+import itsm.extra_tec.vistas.Administrador.Semestre_Vista
 import itsm.extra_tec.vistas.Alumno.ActividadesAlumno_Vista
 import itsm.extra_tec.vistas.Alumno.Constancia_Vista
 import itsm.extra_tec.vistas.Alumno.HorarioAlumno_Vista
@@ -178,6 +179,7 @@ class Principal_Vista : AppCompatActivity(), Navegador_Vista {
             Pantalla_Vista.GESTIONAR_ALUMNOS -> Personas_Vista()
             Pantalla_Vista.FORMULARIO_ALUMNO -> FormularioAlumno_Vista()
             Pantalla_Vista.REPORTES -> Reportes_Vista()
+            Pantalla_Vista.SEMESTRE -> Semestre_Vista()
         }
     }
 

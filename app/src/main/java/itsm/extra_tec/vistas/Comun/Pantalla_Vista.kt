@@ -33,4 +33,5 @@ enum class Pantalla_Vista(val barra: Barra_Vista) {
     GESTIONAR_ALUMNOS(Barra_Vista.ADMIN),
     FORMULARIO_ALUMNO(Barra_Vista.NINGUNA),
     REPORTES(Barra_Vista.ADMIN),
+    SEMESTRE(Barra_Vista.ADMIN),
 }

@@ -27,6 +27,7 @@ class InicioAdmin_Vista : Base_Vista() {
             navegador.ir(Pantalla_Vista.GESTIONAR_ALUMNOS, Personas_Vista.argumentos("alumno"))
         }
         binding.btnIrReportes.setOnClickListener { navegador.ir(Pantalla_Vista.REPORTES, null) }
+        binding.btnIrSemestre.setOnClickListener { navegador.ir(Pantalla_Vista.SEMESTRE, null) }
         binding.btnCerrarSesion.setOnClickListener { cerrarSesion() }
     }
 

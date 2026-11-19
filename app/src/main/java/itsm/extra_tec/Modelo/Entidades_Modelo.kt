@@ -21,7 +21,7 @@ data class Usuario(
         get() = nombreCompleto(nombres, apellidoPaterno, apellidoMaterno)
 }
 
-data class SesionIniciada(val usuario: Usuario)
+data class SesionIniciada(val usuario: Usuario, val token: String)
 
 data class Carrera(val id: Int, val nombre: String)
 

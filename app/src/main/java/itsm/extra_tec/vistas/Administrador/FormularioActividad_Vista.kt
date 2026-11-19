@@ -182,7 +182,17 @@ class FormularioActividad_Vista : Base_Vista() {
         for (lugar in lugares) {
             nombresLugares.add(lugar.nombre)
         }
+        // con otro se escribe un lugar nuevo
+        nombresLugares.add(OPCION_OTRO)
         fila.etLugar.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, nombresLugares))
+        fila.etLugar.setOnItemClickListener { lista, _, posicion, _ ->
+            // la posicion es la de la lista filtrada
+            if (lista.getItemAtPosition(posicion).toString() == OPCION_OTRO) {
+                fila.etLugar.setText("")
+                fila.etLugar.hint = "Escribe el nombre del lugar"
+                fila.etLugar.requestFocus()
+            }
+        }
     }
 
     // reloj para elegir la hora
@@ -231,9 +241,10 @@ class FormularioActividad_Vista : Base_Vista() {
                 aviso("La hora de fin debe ser posterior a la de inicio.")
                 return null
             }
-            var lugar = fila.etLugar.text.toString().trim()
-            if (lugar.isEmpty()) {
-                lugar = "ITSM"
+            val lugar = fila.etLugar.text.toString().trim()
+            if (lugar.isEmpty() || lugar.equals(OPCION_OTRO, true)) {
+                aviso("Elige un lugar o escribe el nombre del nuevo lugar.")
+                return null
             }
             val error = Limites.revisarLugar(lugar)
             if (error != null) {
@@ -255,6 +266,7 @@ class FormularioActividad_Vista : Base_Vista() {
     }
 
     companion object {
+        private const val OPCION_OTRO = "Otro"
         private const val ARG_ID = "id"
 
         fun argumentos(id: Int): Bundle {
