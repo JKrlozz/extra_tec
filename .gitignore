@@ -20,3 +20,6 @@ local.properties
 
 # archivos temporales de Word
 ~$*
+
+# reporte de la practica, no va al repositorio
+reporteu4.docx
