@@ -1,10 +1,13 @@
 package itsm.extra_tec.vistas.Docente
 
+import android.content.ActivityNotFoundException
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.viewModels
 import itsm.extra_tec.Modelo.Evidencias_Modelo
 import itsm.extra_tec.ModeloVista.Evidencia_ModeloVista
@@ -16,6 +19,7 @@ import itsm.extra_tec.databinding.ItemFotoEvidenciaVistaBinding
 import itsm.extra_tec.vistas.Comun.Base_Vista
 import itsm.extra_tec.vistas.Comun.Fotos_Vista
 import itsm.extra_tec.vistas.Comun.texto
+import java.io.File
 
 class Evidencia_Vista : Base_Vista() {
     private var _binding: EvidenciaVistaBinding? = null
@@ -30,6 +34,51 @@ class Evidencia_Vista : Base_Vista() {
     private val elegirFotos = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (uris.isNotEmpty()) {
             modelo.agregarFotos(uris)
+        }
+    }
+
+    // la foto que se esta tomando con la camara
+    private var uriCamara: Uri? = null
+
+    private val tomarFoto = registerForActivityResult(ActivityResultContracts.TakePicture()) { tomada ->
+        val uri = uriCamara
+        uriCamara = null
+        if (tomada && uri != null) {
+            modelo.agregarFotos(listOf(uri))
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val guardada = savedInstanceState?.getString(ESTADO_URI_CAMARA)
+        if (guardada != null) {
+            uriCamara = Uri.parse(guardada)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        uriCamara?.let { outState.putString(ESTADO_URI_CAMARA, it.toString()) }
+    }
+
+    private fun abrirCamara() {
+        if (!modelo.puedeAgregarFoto()) {
+            return
+        }
+        // archivo temporal en cache para la foto
+        val carpeta = File(requireContext().cacheDir, "camara")
+        carpeta.mkdirs()
+        val archivo = File(carpeta, "foto_" + System.currentTimeMillis() + ".jpg")
+        val uri = FileProvider.getUriForFile(
+            requireContext(), requireContext().packageName + ".archivos", archivo,
+        )
+        uriCamara = uri
+        try {
+            tomarFoto.launch(uri)
+        } catch (e: ActivityNotFoundException) {
+            uriCamara = null
+            archivo.delete()
+            modelo.avisarSinCamara()
         }
     }
 
@@ -117,6 +166,7 @@ class Evidencia_Vista : Base_Vista() {
             }
         }
         binding.btnElegirFotos.setOnClickListener { elegirFotos.launch("image/*") }
+        binding.btnTomarFoto.setOnClickListener { abrirCamara() }
         binding.btnGuardarEvidencia.setOnClickListener {
             val posicionEstado = binding.spinnerEstado.selectedItemPosition
             modelo.guardar(
@@ -173,7 +223,17 @@ class Evidencia_Vista : Base_Vista() {
         _binding = null
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // las fotos temporales se borran al salir de la pantalla
+        val actividad = activity
+        if (isRemoving || actividad == null || actividad.isFinishing) {
+            File(requireContext().cacheDir, "camara").deleteRecursively()
+        }
+    }
+
     companion object {
+        private const val ESTADO_URI_CAMARA = "uri_camara"
         private const val ARG_ID = "id_evidencia"
         private const val ARG_ID_ACTIVIDAD = "id_actividad"
         private const val ARG_NOMBRE = "nombre_actividad"

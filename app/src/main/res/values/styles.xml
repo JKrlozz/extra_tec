@@ -167,8 +167,8 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">15sp</item>
-        <item name="backgroundTint">@color/itsm_primary</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="backgroundTint">@color/boton_primario_fondo</item>
+        <item name="android:textColor">@color/boton_primario_texto</item>
         <item name="cornerRadius">10dp</item>
     </style>
 
@@ -178,8 +178,8 @@
         <item name="android:minHeight">48dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/itsm_primary_dark</item>
-        <item name="backgroundTint">@color/itsm_primary_light</item>
+        <item name="android:textColor">@color/boton_secundario_texto</item>
+        <item name="backgroundTint">@color/boton_secundario_fondo</item>
         <item name="cornerRadius">10dp</item>
     </style>
 
@@ -189,8 +189,8 @@
         <item name="android:minHeight">48dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/itsm_danger</item>
-        <item name="backgroundTint">@color/itsm_danger_light</item>
+        <item name="android:textColor">@color/boton_peligro_texto</item>
+        <item name="backgroundTint">@color/boton_peligro_fondo</item>
         <item name="cornerRadius">10dp</item>
     </style>
 

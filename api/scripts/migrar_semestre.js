@@ -1,7 +1,11 @@
-// Agrega a una base ya creada lo necesario para archivar semestres.
-// No borra datos. Se puede ejecutar varias veces.
-// Uso: npm run migrar
-try { process.loadEnvFile(); } catch (_) { /* variables ya definidas */ }
+// prepara la base para archivar semestres
+// no borra datos y se repite
+// uso npm run migrar
+try {
+  process.loadEnvFile();
+} catch (e) {
+  // variables ya definidas
+}
 const { obtener } = require('../src/db');
 
 const pasos = [
@@ -13,7 +17,7 @@ const pasos = [
     `IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('inscripciones') AND name = 'estado' AND max_length < 9)
         OR EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'ck_inscripciones_estado' AND definition NOT LIKE '%archivada%')
      BEGIN
-       -- el indice, el default y el check dependen de la columna
+       -- estos dependen de la columna
        IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'ux_inscripcion_activa' AND object_id = OBJECT_ID('inscripciones'))
          DROP INDEX ux_inscripcion_activa ON inscripciones;
        ALTER TABLE inscripciones DROP CONSTRAINT ck_inscripciones_estado;
@@ -36,15 +40,19 @@ const pasos = [
      GROUP BY i.id, i.id_alumno, i.id_actividad`],
 ];
 
-(async () => {
+async function principal() {
   const pool = await obtener();
-  for (const [nombre, sentencia] of pasos) {
+  for (let i = 0; i < pasos.length; i++) {
+    const nombre = pasos[i][0];
+    const sentencia = pasos[i][1];
     await pool.request().batch(sentencia);
     console.log(`Listo: ${nombre}`);
   }
   await pool.close();
   console.log('Migración terminada.');
-})().catch((e) => {
+}
+
+principal().catch(function (e) {
   console.error('Falló:', e.message);
   process.exit(1);
 });

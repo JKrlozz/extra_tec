@@ -1,4 +1,4 @@
-// fechas del semestre y archivo de semestres terminados (solo administrador)
+// fechas del semestre y semestres archivados
 const express = require('express');
 const { consulta } = require('../db');
 const { solo } = require('../auth');
@@ -9,10 +9,15 @@ const semestre = require('../semestre');
 const router = express.Router();
 
 async function estado() {
-  const activo = (await consulta(
+  const filasActivo = await consulta(
     `SELECT id, nombre, CONVERT(VARCHAR(10), inicio, 23) AS inicio, CONVERT(VARCHAR(10), fin, 23) AS fin
        FROM v_periodos WHERE activo = 1`,
-  ))[0] || null;
+  );
+  let activo = null;
+  if (filasActivo.length > 0) {
+    const f = filasActivo[0];
+    activo = { id: f.id, nombre: f.nombre, inicio: f.inicio, fin: f.fin };
+  }
   const archivados = await consulta(
     `SELECT p.id, p.nombre, CONVERT(VARCHAR(10), p.inicio, 23) AS inicio, CONVERT(VARCHAR(10), p.fin, 23) AS fin,
             CONVERT(VARCHAR(10), pe.cerrado_en, 23) AS cerrado,
@@ -26,13 +31,17 @@ async function estado() {
        FROM periodos pe JOIN v_periodos p ON p.id = pe.id
       WHERE pe.activo = 0 ORDER BY pe.id DESC`,
   );
-  return {
-    hoy: hoy(),
-    activo: activo && { id: activo.id, nombre: activo.nombre, inicio: activo.inicio, fin: activo.fin },
-    archivados: archivados.map((f) => ({
+  const lista = [];
+  for (const f of archivados) {
+    lista.push({
       id: f.id, nombre: f.nombre, inicio: f.inicio, fin: f.fin, cerrado: f.cerrado || '',
       actividades: f.actividades, inscripciones: f.inscripciones, sesiones: f.sesiones, evidencias: f.evidencias,
-    })),
+    });
+  }
+  return {
+    hoy: hoy(),
+    activo: activo,
+    archivados: lista,
   };
 }
 
@@ -41,7 +50,7 @@ router.get('/semestre', solo('admin'), ruta(async (req, res) => {
   res.json(await estado());
 }));
 
-// con semestre activo cambia sus fechas; sin semestre inicia uno nuevo
+// cambia fechas o inicia un semestre
 router.put('/semestre', solo('admin'), ruta(async (req, res) => {
   const inicio = V.texto(req.body.inicio).trim();
   const fin = V.texto(req.body.fin).trim();
@@ -54,10 +63,12 @@ router.put('/semestre', solo('admin'), ruta(async (req, res) => {
   } else {
     copiadas = await semestre.iniciar(inicio, fin);
   }
-  res.json({ ...(await estado()), copiadas });
+  const respuesta = await estado();
+  respuesta.copiadas = copiadas;
+  res.json(respuesta);
 }));
 
-// termina el semestre antes de su fecha final
+// termina el semestre antes de tiempo
 router.post('/semestre/cerrar', solo('admin'), ruta(async (req, res) => {
   await semestre.cerrarActivo();
   res.json(await estado());

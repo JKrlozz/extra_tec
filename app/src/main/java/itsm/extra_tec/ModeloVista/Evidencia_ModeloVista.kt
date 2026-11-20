@@ -97,6 +97,20 @@ class Evidencia_ModeloVista : Base_ModeloVista() {
         _fotos.value = lista
     }
 
+    // revisa si cabe otra foto antes de abrir la camara
+    fun puedeAgregarFoto(): Boolean {
+        val cantidad = _fotos.value?.size ?: 0
+        if (cantidad >= Limites.FOTOS_MAX) {
+            avisar("Puedes seleccionar hasta ${Limites.FOTOS_MAX} fotografías.")
+            return false
+        }
+        return true
+    }
+
+    fun avisarSinCamara() {
+        avisar("No hay una aplicación de cámara disponible.")
+    }
+
     fun quitarFoto(posicion: Int) {
         val lista = mutableListOf<FotoFormulario>()
         lista.addAll(_fotos.value ?: listOf())

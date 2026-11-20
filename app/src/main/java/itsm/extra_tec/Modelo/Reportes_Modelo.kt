@@ -12,6 +12,7 @@ object Reportes_Modelo {
         tipo: String,
         desde: String,
         hasta: String,
+        filtros: Map<String, String> = emptyMap(),
         alTerminar: (Resultado_Modelo<List<Map<String, String>>>) -> Unit,
     ) {
         Red.trabajo({
@@ -20,7 +21,11 @@ object Reportes_Modelo {
             }
             val ruta = "/reportes?tipo=" + URLEncoder.encode(tipo, "UTF-8") +
                 "&desde=" + URLEncoder.encode(desde, "UTF-8") +
-                "&hasta=" + URLEncoder.encode(hasta, "UTF-8")
+                "&hasta=" + URLEncoder.encode(hasta, "UTF-8") +
+                // filtros opcionales, vacios no se mandan
+                filtros.filter { it.value.isNotBlank() }.entries.joinToString("") {
+                    "&" + it.key + "=" + URLEncoder.encode(it.value.trim(), "UTF-8")
+                }
             val filas = mutableListOf<Map<String, String>>()
             val arreglo = Red.solicitud("GET", ruta).arreglo()
             for (i in 0 until arreglo.length()) {

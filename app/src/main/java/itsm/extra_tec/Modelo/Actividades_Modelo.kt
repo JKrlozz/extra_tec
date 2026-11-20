@@ -87,9 +87,27 @@ object Actividades_Modelo {
         }, alTerminar)
     }
 
-    fun darDeBaja(idActividad: Int, alTerminar: (Resultado_Modelo<Unit>) -> Unit) {
+    // actividad actual del alumno, null si no tiene
+    fun inscripcionDeAlumno(idAlumno: Int, alTerminar: (Resultado_Modelo<Int?>) -> Unit) {
         Red.trabajo({
-            Red.solicitud("DELETE", "/actividades/$idActividad/inscripcion")
+            val respuesta = Red.solicitud("GET", "/alumnos/$idAlumno/inscripcion").objeto()
+            if (respuesta.isNull("idActividad")) null else respuesta.getInt("idActividad")
+        }, alTerminar)
+    }
+
+    // inscribe o cambia de actividad
+    fun inscribirAlumno(idAlumno: Int, idActividad: Int, alTerminar: (Resultado_Modelo<Unit>) -> Unit) {
+        Red.trabajo({
+            val cuerpo = JSONObject()
+            cuerpo.put("idActividad", idActividad)
+            Red.solicitud("POST", "/alumnos/$idAlumno/inscripcion", cuerpo)
+            Unit
+        }, alTerminar)
+    }
+
+    fun darDeBajaAlumno(idAlumno: Int, alTerminar: (Resultado_Modelo<Unit>) -> Unit) {
+        Red.trabajo({
+            Red.solicitud("DELETE", "/alumnos/$idAlumno/inscripcion")
             Unit
         }, alTerminar)
     }

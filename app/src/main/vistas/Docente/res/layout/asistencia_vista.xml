@@ -32,23 +32,12 @@
 
                 <TextView
                     style="@style/Itsm.Text.Section"
-                    android:text="Actividad y fecha" />
+                    android:text="Fecha" />
                 <TextView
                     style="@style/Itsm.Text.Secondary"
                     android:layout_marginBottom="8dp"
-                    android:text="Elige la actividad y la fecha antes de marcar la lista." />
+                    android:text="Elige la fecha antes de marcar la lista." />
 
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Itsm.Card"
-                    android:layout_marginBottom="10dp">
-                    <Spinner
-                        android:id="@+id/spinnerActividadAsistencia"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                    android:minHeight="52dp"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp" />
-                </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnFechaAsistencia"

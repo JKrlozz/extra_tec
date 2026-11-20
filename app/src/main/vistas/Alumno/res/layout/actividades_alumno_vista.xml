@@ -22,7 +22,7 @@
             <TextView
                 style="@style/Itsm.Text.Secondary"
                 android:layout_marginBottom="12dp"
-                android:text="Solo puedes estar inscrito en una actividad a la vez. Si quieres cambiar, da de baja la actual." />
+                android:text="Solo puedes inscribirte a una actividad y se mantiene todo el semestre. Para cambiarla, acude con el administrador." />
 
             <LinearLayout
                 android:id="@+id/listaContenido"

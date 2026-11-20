@@ -1,6 +1,10 @@
-// Crea las tablas en Azure SQL y carga los datos de prueba.
-// Uso: npm run bd        (borra todo y lo crea de nuevo)
-try { process.loadEnvFile(); } catch (_) { /* variables ya definidas */ }
+// crea tablas y datos de prueba
+// uso npm run bd borra todo
+try {
+  process.loadEnvFile();
+} catch (e) {
+  // variables ya definidas
+}
 const fs = require('fs');
 const path = require('path');
 const { sql, obtener, transaccion } = require('../src/db');
@@ -10,15 +14,23 @@ const CLAVE_DEMO = 'itsm1234';
 
 async function esquema(pool) {
   const archivo = path.join(__dirname, '..', '..', 'database', 'azure', 'schema.sql');
-  const lotes = fs.readFileSync(archivo, 'utf8').split(/^\s*GO\s*$/im).map((l) => l.trim()).filter(Boolean);
-  for (const lote of lotes) {
-    await pool.request().batch(lote);
+  const contenido = fs.readFileSync(archivo, 'utf8');
+  const partes = contenido.split(/^\s*GO\s*$/im);
+  for (let i = 0; i < partes.length; i++) {
+    const lote = partes[i].trim();
+    if (lote) {
+      await pool.request().batch(lote);
+    }
   }
 }
 
 async function datos() {
-  await transaccion(async (q) => {
-    const id = async (tabla, columna, valor) => (await q(`SELECT id FROM ${tabla} WHERE ${columna} = @v`, { v: valor }))[0].id;
+  await transaccion(async function (q) {
+    // busca el id de un registro
+    async function id(tabla, columna, valor) {
+      const filas = await q(`SELECT id FROM ${tabla} WHERE ${columna} = @v`, { v: valor });
+      return filas[0].id;
+    }
 
     const carreras = [
       'Ingeniería en Sistemas Computacionales', 'Ingeniería Industrial', 'Ingeniería en Gestión Empresarial',
@@ -26,7 +38,9 @@ async function datos() {
       'Ingeniería en Tecnologías de la Información y Comunicaciones', 'Ingeniería Ambiental',
       'Ingeniería Petrolera', 'Licenciatura en Gastronomía',
     ];
-    for (const n of carreras) await q('INSERT INTO carreras (nombre) VALUES (@n)', { n });
+    for (let i = 0; i < carreras.length; i++) {
+      await q('INSERT INTO carreras (nombre) VALUES (@n)', { n: carreras[i] });
+    }
 
     await q("INSERT INTO periodos (inicio, fin, activo) VALUES ('2026-08-17', '2026-12-18', 1)");
 
@@ -39,18 +53,25 @@ async function datos() {
       'Cancha del Tecnológico', 'Domo del Tecnológico', 'Campo de fútbol del Tecnológico',
       'Auditorio Deportivo COMUDE', 'Unidad Deportiva',
     ];
-    for (const n of lugares) await q('INSERT INTO lugares (nombre) VALUES (@n)', { n });
-    for (const n of ['Deportes', 'Ajedrez', 'Música']) await q('INSERT INTO especialidades (nombre) VALUES (@n)', { n });
+    for (let i = 0; i < lugares.length; i++) {
+      await q('INSERT INTO lugares (nombre) VALUES (@n)', { n: lugares[i] });
+    }
+    const especialidades = ['Deportes', 'Ajedrez', 'Música'];
+    for (let i = 0; i < especialidades.length; i++) {
+      await q('INSERT INTO especialidades (nombre) VALUES (@n)', { n: especialidades[i] });
+    }
 
     const hash = generarHash(CLAVE_DEMO);
-    const usuario = (nombres, paterno, materno, correo, rol) => q(
-      `INSERT INTO usuarios (nombres, apellido_paterno, apellido_materno, correo, contrasena_hash, rol)
-       VALUES (@nombres, @paterno, @materno, @correo, @hash, @rol)`,
-      { nombres, paterno, materno, correo, hash, rol },
-    );
+    function usuario(nombres, paterno, materno, correo, rol) {
+      return q(
+        `INSERT INTO usuarios (nombres, apellido_paterno, apellido_materno, correo, contrasena_hash, rol)
+         VALUES (@nombres, @paterno, @materno, @correo, @hash, @rol)`,
+        { nombres: nombres, paterno: paterno, materno: materno, correo: correo, hash: hash, rol: rol },
+      );
+    }
     await usuario('Administrador', 'ITSM', null, 'admin@itsm.edu.mx', 'admin');
 
-    // docentes de actividades extraescolares: nombres, paterno, materno, correo, especialidad, telefono
+    // docentes con especialidad y telefono
     const docentes = [
       ['Jasciel', 'Jiménez', 'Cortes', 'jjimenez@itsm.edu.mx', 'Deportes', '2351000001'],
       ['Ricardo Ángel', 'Hidalgo', 'Ponce', 'rhidalgo@itsm.edu.mx', 'Deportes', '2351000002'],
@@ -59,13 +80,17 @@ async function datos() {
       ['Emiliano', 'Sesma', null, 'esesma@itsm.edu.mx', 'Música', '2351000005'],
       ['Zair', 'Rodríguez', null, 'zrodriguez@itsm.edu.mx', 'Ajedrez', '2351000006'],
     ];
-    for (const [nombres, paterno, materno, correo, esp, tel] of docentes) {
-      await usuario(nombres, paterno, materno, correo, 'docente');
+    for (let i = 0; i < docentes.length; i++) {
+      const d = docentes[i];
+      const correo = d[3];
+      await usuario(d[0], d[1], d[2], correo, 'docente');
+      const idUsuario = await id('usuarios', 'correo', correo);
+      const idEspecialidad = await id('especialidades', 'nombre', d[4]);
       await q('INSERT INTO docentes (id_usuario, id_especialidad, telefono) VALUES (@u, @e, @t)',
-        { u: await id('usuarios', 'correo', correo), e: await id('especialidades', 'nombre', esp), t: tel });
+        { u: idUsuario, e: idEspecialidad, t: d[5] });
     }
 
-    // alumnos: nombres, paterno, materno, matricula, carrera (id), semestre, actividad
+    // alumnos con carrera semestre y actividad
     const alumnos = [
       ['Milton David', 'Ramírez', 'Romero', '231T0412', 1, 7, 'Fútbol matutino'],
       ['Joselin', 'Suárez', 'Mayo', '241T0233', 2, 5, 'Baloncesto matutino'],
@@ -85,41 +110,55 @@ async function datos() {
       ['Héctor', 'Uribe', 'Herrera', '241T0481', 5, 5, 'Ajedrez'],
       ['Josué', 'Quiñónez', 'Reyes', '261T0059', 9, 1, 'Banda de guerra'],
     ];
-    for (const [nombres, paterno, materno, matricula, carrera, semestre] of alumnos) {
-      const correo = `${matricula.toLowerCase()}@itsm.edu.mx`;
-      await usuario(nombres, paterno, materno, correo, 'alumno');
+    for (let i = 0; i < alumnos.length; i++) {
+      const a = alumnos[i];
+      const matricula = a[3];
+      const correo = matricula.toLowerCase() + '@itsm.edu.mx';
+      await usuario(a[0], a[1], a[2], correo, 'alumno');
+      const idUsuario = await id('usuarios', 'correo', correo);
       await q('INSERT INTO alumnos (id_usuario, matricula, id_carrera, semestre) VALUES (@u, @m, @c, @s)',
-        { u: await id('usuarios', 'correo', correo), m: matricula, c: carrera, s: semestre });
+        { u: idUsuario, m: matricula, c: a[4], s: a[5] });
     }
 
-    // actividad: nombre, cupo, docente, horarios [dia, inicio, fin], lugar
-    const MAT = ['07:00', '09:00'];
-    const VES = ['16:00', '18:00'];
+    // actividad con cupo docente horarios lugar
+    const M1 = '07:00';
+    const M2 = '09:00';
+    const V1 = '16:00';
+    const V2 = '18:00';
     const actividades = [
-      ['Fútbol matutino', 25, 'jjimenez@itsm.edu.mx', [['Lunes', ...MAT], ['Miércoles', ...MAT]], 'Campo de fútbol del Tecnológico'],
-      ['Fútbol vespertino', 25, 'jjimenez@itsm.edu.mx', [['Martes', ...VES], ['Jueves', ...VES]], 'Campo de fútbol del Tecnológico'],
-      ['Baloncesto matutino', 25, 'rhidalgo@itsm.edu.mx', [['Martes', ...MAT], ['Jueves', ...MAT]], 'Cancha del Tecnológico'],
-      ['Baloncesto vespertino', 25, 'rhidalgo@itsm.edu.mx', [['Lunes', ...VES], ['Miércoles', ...VES]], 'Cancha del Tecnológico'],
-      ['Voleibol matutino', 25, 'cdrodriguez@itsm.edu.mx', [['Lunes', ...MAT], ['Miércoles', ...MAT]], 'Domo del Tecnológico'],
-      ['Voleibol vespertino', 25, 'cmendez@itsm.edu.mx', [['Martes', ...VES], ['Jueves', ...VES]], 'Domo del Tecnológico'],
+      ['Fútbol matutino', 25, 'jjimenez@itsm.edu.mx', [['Lunes', M1, M2], ['Miércoles', M1, M2]], 'Campo de fútbol del Tecnológico'],
+      ['Fútbol vespertino', 25, 'jjimenez@itsm.edu.mx', [['Martes', V1, V2], ['Jueves', V1, V2]], 'Campo de fútbol del Tecnológico'],
+      ['Baloncesto matutino', 25, 'rhidalgo@itsm.edu.mx', [['Martes', M1, M2], ['Jueves', M1, M2]], 'Cancha del Tecnológico'],
+      ['Baloncesto vespertino', 25, 'rhidalgo@itsm.edu.mx', [['Lunes', V1, V2], ['Miércoles', V1, V2]], 'Cancha del Tecnológico'],
+      ['Voleibol matutino', 25, 'cdrodriguez@itsm.edu.mx', [['Lunes', M1, M2], ['Miércoles', M1, M2]], 'Domo del Tecnológico'],
+      ['Voleibol vespertino', 25, 'cmendez@itsm.edu.mx', [['Martes', V1, V2], ['Jueves', V1, V2]], 'Domo del Tecnológico'],
       ['Banda de guerra', 30, 'esesma@itsm.edu.mx', [['Lunes', '17:00', '19:00'], ['Miércoles', '17:00', '19:00']], 'Unidad Deportiva'],
-      ['Ajedrez', 20, 'zrodriguez@itsm.edu.mx', [['Viernes', ...VES]], 'Auditorio Deportivo COMUDE'],
+      ['Ajedrez', 20, 'zrodriguez@itsm.edu.mx', [['Viernes', V1, V2]], 'Auditorio Deportivo COMUDE'],
     ];
-    for (const [nombre, cupo, docente, horarios, lugar] of actividades) {
-      const idAct = (await q(
+    for (let i = 0; i < actividades.length; i++) {
+      const act = actividades[i];
+      const horarios = act[3];
+      const idDocente = await id('usuarios', 'correo', act[2]);
+      const filas = await q(
         'INSERT INTO actividades (nombre, cupo, id_docente, id_periodo) OUTPUT INSERTED.id VALUES (@n, @c, @d, 1)',
-        { n: nombre, c: cupo, d: await id('usuarios', 'correo', docente) },
-      ))[0].id;
-      for (const [dia, inicio, fin] of horarios) {
+        { n: act[0], c: act[1], d: idDocente },
+      );
+      const idAct = filas[0].id;
+      for (let j = 0; j < horarios.length; j++) {
+        const h = horarios[j];
+        const idDia = await id('dias_semana', 'nombre', h[0]);
+        const idLugar = await id('lugares', 'nombre', act[4]);
         await q(
           'INSERT INTO horarios (id_actividad, id_dia, hora_inicio, hora_fin, id_lugar) VALUES (@a, @d, @i, @f, @l)',
-          { a: idAct, d: await id('dias_semana', 'nombre', dia), i: inicio, f: fin, l: await id('lugares', 'nombre', lugar) },
+          { a: idAct, d: idDia, i: h[1], f: h[2], l: idLugar },
         );
       }
     }
 
     // cada alumno en su actividad
-    for (const [, , , matricula, , , actividad] of alumnos) {
+    for (let i = 0; i < alumnos.length; i++) {
+      const matricula = alumnos[i][3];
+      const actividad = alumnos[i][6];
       await q(
         `INSERT INTO inscripciones (id_alumno, id_actividad)
          SELECT a.id_usuario, act.id FROM alumnos a, actividades act WHERE a.matricula = @m AND act.nombre = @n`,
@@ -127,22 +166,44 @@ async function datos() {
       );
     }
 
-    // tres sesiones por actividad (septiembre de 2026), con algunas faltas
+    // tres sesiones por actividad con faltas
     const FALTAS = { '231T0589': [2], '231T0203': [2, 3], '241T0233': [3], '251T0271': [2] };
     const DIAS = { Lunes: 7, Martes: 8, Miércoles: 9, Jueves: 10, Viernes: 11 };
-    for (const [nombre, , , horarios] of actividades) {
+    for (let k = 0; k < actividades.length; k++) {
+      const nombre = actividades[k][0];
+      const horarios = actividades[k][3];
       const idAct = await id('actividades', 'nombre', nombre);
       const dia1 = DIAS[horarios[0][0]];
-      // dos dias por semana: lunes, miercoles y lunes siguiente; un dia: tres semanas seguidas
-      const dias = horarios[1] ? [dia1, DIAS[horarios[1][0]], dia1 + 7] : [dia1, dia1 + 7, dia1 + 14];
-      const fechas = dias.map((d) => `2026-09-${String(d).padStart(2, '0')}`);
+      // dos dias o tres semanas seguidas
+      let dias;
+      if (horarios[1]) {
+        dias = [dia1, DIAS[horarios[1][0]], dia1 + 7];
+      } else {
+        dias = [dia1, dia1 + 7, dia1 + 14];
+      }
+      const fechas = [];
+      for (let d = 0; d < dias.length; d++) {
+        fechas.push('2026-09-' + String(dias[d]).padStart(2, '0'));
+      }
       for (let i = 0; i < fechas.length; i++) {
-        const sesion = (await q(
+        const filasSesion = await q(
           'INSERT INTO sesiones (id_actividad, fecha) OUTPUT INSERTED.id VALUES (@a, @f)', { a: idAct, f: fechas[i] },
-        ))[0].id;
-        for (const [, , , matricula, , , actividad] of alumnos) {
-          if (actividad !== nombre) continue;
-          const presente = (FALTAS[matricula] || []).includes(i + 1) ? 0 : 1;
+        );
+        const sesion = filasSesion[0].id;
+        for (let j = 0; j < alumnos.length; j++) {
+          const matricula = alumnos[j][3];
+          const actividad = alumnos[j][6];
+          if (actividad !== nombre) {
+            continue;
+          }
+          let faltas = FALTAS[matricula];
+          if (!faltas) {
+            faltas = [];
+          }
+          let presente = 1;
+          if (faltas.includes(i + 1)) {
+            presente = 0;
+          }
           await q(
             `INSERT INTO asistencias (id_sesion, id_alumno, presente)
              SELECT @s, id_usuario, @p FROM alumnos WHERE matricula = @m`,
@@ -154,16 +215,19 @@ async function datos() {
   });
 }
 
-(async () => {
+async function principal() {
   const pool = await obtener();
   console.log('Conectado. Creando tablas...');
   await esquema(pool);
   console.log('Cargando datos de prueba...');
   await datos();
-  const [r] = (await pool.request().query('SELECT COUNT(*) AS n FROM usuarios')).recordset;
+  const resultado = await pool.request().query('SELECT COUNT(*) AS n FROM usuarios');
+  const r = resultado.recordset[0];
   console.log(`Listo: ${r.n} usuarios. Contraseña de prueba: ${CLAVE_DEMO}`);
   await pool.close();
-})().catch((e) => {
+}
+
+principal().catch(function (e) {
   console.error('Falló:', e.message);
   process.exit(1);
 });

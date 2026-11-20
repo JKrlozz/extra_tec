@@ -1,6 +1,5 @@
 package itsm.extra_tec.vistas.Comun
 
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -107,11 +106,11 @@ private fun configurar(boton: MaterialButton, accion: Accion_Vista?, principal: 
     boton.visibility = View.VISIBLE
     val contexto = boton.context
     if (accion.peligrosa) {
-        boton.setTextColor(ContextCompat.getColor(contexto, R.color.itsm_danger))
-        boton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(contexto, R.color.itsm_danger_light))
+        boton.setTextColor(ContextCompat.getColorStateList(contexto, R.color.boton_peligro_texto))
+        boton.backgroundTintList = ContextCompat.getColorStateList(contexto, R.color.boton_peligro_fondo)
     } else if (principal) {
-        boton.setTextColor(ContextCompat.getColor(contexto, R.color.white))
-        boton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(contexto, R.color.itsm_primary))
+        boton.setTextColor(ContextCompat.getColorStateList(contexto, R.color.boton_primario_texto))
+        boton.backgroundTintList = ContextCompat.getColorStateList(contexto, R.color.boton_primario_fondo)
     }
     boton.setOnClickListener { accion.alPulsar() }
 }

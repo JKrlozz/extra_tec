@@ -64,9 +64,8 @@ class ActividadesAlumno_Vista : Base_Vista() {
 
             var accion: Accion_Vista
             if (a.inscrito) {
-                accion = Accion_Vista("Darme de baja", true, true) {
-                    confirmar("¿Darte de baja de ${a.nombre}?") { modelo.darDeBaja(a.id) }
-                }
+                // la baja solo la hace el administrador
+                accion = Accion_Vista("Inscrito este semestre", false) {}
             } else {
                 var texto = "Inscribirme"
                 if (yaInscrito) {
@@ -75,7 +74,13 @@ class ActividadesAlumno_Vista : Base_Vista() {
                     texto = "Cupo lleno"
                 }
                 val disponible = !a.lleno && !yaInscrito
-                accion = Accion_Vista(texto, disponible) { modelo.inscribir(a.id) }
+                accion = Accion_Vista(texto, disponible) {
+                    confirmar(
+                        "¿Inscribirte a ${a.nombre}?\n\n" +
+                            "Solo puedes inscribirte a una actividad extraescolar y la inscripción " +
+                            "se mantiene durante todo el semestre."
+                    ) { modelo.inscribir(a.id) }
+                }
             }
             agregarTarjeta(
                 binding.listaContenido,

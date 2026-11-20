@@ -19,6 +19,7 @@ class FormularioAlumno_Vista : Base_Vista() {
 
     // sin id es alumno nuevo
     private var idAlumno: Int? = null
+    private var actividadElegida = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FormularioAlumnoVistaBinding.inflate(inflater, container, false)
@@ -35,6 +36,8 @@ class FormularioAlumno_Vista : Base_Vista() {
             binding.tvTituloForm.text = "Editar alumno"
             // al editar no cambia la clave
             binding.tilContrasena.visibility = View.GONE
+            binding.grupoActividad.visibility = View.VISIBLE
+            modelo.cargarActividad(idAlumno!!)
             if (savedInstanceState == null) {
                 binding.etNombres.setText(datos.getString(ARG_NOMBRES))
                 binding.etApellidoPaterno.setText(datos.getString(ARG_PATERNO))
@@ -61,6 +64,15 @@ class FormularioAlumno_Vista : Base_Vista() {
                 if (carreras[i].id == idCarrera) binding.spinnerCarrera.setSelection(i)
             }
         }
+        modelo.actividades.observe(viewLifecycleOwner) { actividades ->
+            val nombres = mutableListOf("Sin actividad")
+            for (actividad in actividades) {
+                nombres.add(actividad.nombre)
+            }
+            llenarSpinner(binding.spinnerActividad, nombres)
+            elegirActividadActual()
+        }
+        modelo.actividadActual.observe(viewLifecycleOwner) { elegirActividadActual() }
         modelo.guardado.observe(viewLifecycleOwner) { evento ->
             val guardado = evento.obtener()
             if (guardado != null) {
@@ -71,19 +83,41 @@ class FormularioAlumno_Vista : Base_Vista() {
         }
 
         binding.btnGuardar.setOnClickListener {
-            modelo.guardar(
-                idAlumno,
-                binding.etNombres.texto(),
-                binding.etApellidoPaterno.texto(),
-                binding.etApellidoMaterno.texto(),
-                binding.etCorreo.texto(),
-                binding.etMatricula.texto(),
-                binding.spinnerSemestre.selectedItemPosition,
-                binding.spinnerCarrera.selectedItemPosition,
-                binding.etContrasena.text.toString(),
-            )
+            val aviso = if (idAlumno == null) null else modelo.avisoDeCambio(binding.spinnerActividad.selectedItemPosition)
+            if (aviso == null) {
+                guardar()
+            } else {
+                confirmar(aviso) { guardar() }
+            }
         }
         binding.btnCancelar.setOnClickListener { navegador.atras() }
+    }
+
+    // marca la actividad que ya tiene el alumno
+    private fun elegirActividadActual() {
+        if (actividadElegida) return
+        val actividades = modelo.actividades.value ?: return
+        if (binding.spinnerActividad.adapter == null || !modelo.actividadCargada()) return
+        val actual = modelo.actividadActual.value
+        actividadElegida = true
+        for (i in actividades.indices) {
+            if (actividades[i].id == actual) binding.spinnerActividad.setSelection(i + 1)
+        }
+    }
+
+    private fun guardar() {
+        modelo.guardar(
+            idAlumno,
+            binding.etNombres.texto(),
+            binding.etApellidoPaterno.texto(),
+            binding.etApellidoMaterno.texto(),
+            binding.etCorreo.texto(),
+            binding.etMatricula.texto(),
+            binding.spinnerSemestre.selectedItemPosition,
+            binding.spinnerCarrera.selectedItemPosition,
+            binding.etContrasena.text.toString(),
+            binding.spinnerActividad.selectedItemPosition,
+        )
     }
 
     override fun onDestroyView() {

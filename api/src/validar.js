@@ -1,5 +1,5 @@
-// mismas reglas que la app (Limites.kt y NumeroControl.kt)
-// todas regresan el texto del error o null
+// mismas reglas que la app
+// regresan texto de error o null
 const { hoy } = require('./util');
 
 const L = {
@@ -19,23 +19,50 @@ const matriculaRe = /^[0-9]{3}T[0-9]{4}$/;
 
 const MENSAJE_MATRICULA = 'El número de control debe tener el formato 000T0000, por ejemplo 232T0182.';
 
-const texto = (v) => (typeof v === 'string' ? v : v == null ? '' : String(v));
+function texto(v) {
+  if (typeof v === 'string') {
+    return v;
+  }
+  if (v === null || v === undefined) {
+    return '';
+  }
+  return String(v);
+}
 
 function revisarNombre(campo, valor, maximo, obligatorio) {
   const t = texto(valor).trim();
-  if (!t) return obligatorio ? `Escribe ${campo}.` : null;
-  if (t.length < L.NOMBRE_MIN) return `${campo} debe tener al menos ${L.NOMBRE_MIN} letras.`;
-  if (t.length > maximo) return `${campo} puede tener hasta ${maximo} caracteres.`;
-  if (!letras.test(t)) return `${campo} solo puede tener letras.`;
+  if (!t) {
+    if (obligatorio) {
+      return `Escribe ${campo}.`;
+    }
+    return null;
+  }
+  if (t.length < L.NOMBRE_MIN) {
+    return `${campo} debe tener al menos ${L.NOMBRE_MIN} letras.`;
+  }
+  if (t.length > maximo) {
+    return `${campo} puede tener hasta ${maximo} caracteres.`;
+  }
+  if (!letras.test(t)) {
+    return `${campo} solo puede tener letras.`;
+  }
   return null;
 }
 
 function revisarCorreo(valor) {
   const t = texto(valor).trim();
-  if (!t) return 'Escribe el correo.';
-  if (t.length > L.CORREO_MAX) return `El correo puede tener hasta ${L.CORREO_MAX} caracteres.`;
-  if (!correoRe.test(t)) return 'Escribe un correo válido, por ejemplo nombre@itsm.edu.mx.';
-  if (!t.toLowerCase().endsWith(L.DOMINIO)) return `El correo debe terminar en ${L.DOMINIO}.`;
+  if (!t) {
+    return 'Escribe el correo.';
+  }
+  if (t.length > L.CORREO_MAX) {
+    return `El correo puede tener hasta ${L.CORREO_MAX} caracteres.`;
+  }
+  if (!correoRe.test(t)) {
+    return 'Escribe un correo válido, por ejemplo nombre@itsm.edu.mx.';
+  }
+  if (!t.toLowerCase().endsWith(L.DOMINIO)) {
+    return `El correo debe terminar en ${L.DOMINIO}.`;
+  }
   return null;
 }
 
@@ -45,7 +72,9 @@ function normalizarMatricula(valor) {
 
 function revisarCorreoAlumno(valor, matricula) {
   const error = revisarCorreo(valor);
-  if (error) return error;
+  if (error) {
+    return error;
+  }
   if (texto(valor).trim().toLowerCase() !== texto(matricula).trim().toLowerCase() + L.DOMINIO) {
     return `El correo del alumno debe ser su número de control, por ejemplo 193t0183${L.DOMINIO}.`;
   }
@@ -54,27 +83,42 @@ function revisarCorreoAlumno(valor, matricula) {
 
 function revisarClave(valor, puedeIrVacia) {
   const v = texto(valor);
-  if (!v && puedeIrVacia) return null;
+  if (!v && puedeIrVacia) {
+    return null;
+  }
   if (v.length < L.CLAVE_MIN || v.length > L.CLAVE_MAX) {
     return `La contraseña debe tener de ${L.CLAVE_MIN} a ${L.CLAVE_MAX} caracteres.`;
   }
-  if (v.includes(' ')) return 'La contraseña no puede tener espacios.';
+  if (v.includes(' ')) {
+    return 'La contraseña no puede tener espacios.';
+  }
   return null;
 }
 
 function revisarPersona(nombres, paterno, materno, correo) {
-  return (
-    revisarNombre('Nombre(s)', nombres, L.NOMBRES_MAX, true) ||
-    revisarNombre('Apellido paterno', paterno, L.APELLIDO_MAX, true) ||
-    revisarNombre('Apellido materno', materno, L.APELLIDO_MAX, false) ||
-    revisarCorreo(correo)
-  );
+  let error = revisarNombre('Nombre(s)', nombres, L.NOMBRES_MAX, true);
+  if (error) {
+    return error;
+  }
+  error = revisarNombre('Apellido paterno', paterno, L.APELLIDO_MAX, true);
+  if (error) {
+    return error;
+  }
+  error = revisarNombre('Apellido materno', materno, L.APELLIDO_MAX, false);
+  if (error) {
+    return error;
+  }
+  return revisarCorreo(correo);
 }
 
 function revisarTelefono(valor) {
   const t = texto(valor).trim();
-  if (!t) return null;
-  if (t.length !== L.TELEFONO || !digitos.test(t)) return `El teléfono debe tener ${L.TELEFONO} dígitos.`;
+  if (!t) {
+    return null;
+  }
+  if (t.length !== L.TELEFONO || !digitos.test(t)) {
+    return `El teléfono debe tener ${L.TELEFONO} dígitos.`;
+  }
   return null;
 }
 
@@ -113,31 +157,54 @@ function revisarDescripcionEvidencia(valor) {
 
 // existe en el calendario
 function esFechaReal(v) {
-  if (!fechaRe.test(v)) return false;
+  if (!fechaRe.test(v)) {
+    return false;
+  }
   const d = new Date(v + 'T00:00:00Z');
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  if (Number.isNaN(d.getTime())) {
+    return false;
+  }
+  return d.toISOString().slice(0, 10) === v;
 }
 
-// fecha real, sin futuras
+// fecha real y no futura
 function revisarFecha(valor) {
   const v = texto(valor);
-  if (!esFechaReal(v)) return 'La fecha debe tener el formato AAAA-MM-DD.';
-  if (v > hoy()) return 'La fecha no puede ser posterior a hoy.';
+  if (!esFechaReal(v)) {
+    return 'La fecha debe tener el formato AAAA-MM-DD.';
+  }
+  if (v > hoy()) {
+    return 'La fecha no puede ser posterior a hoy.';
+  }
   return null;
 }
 
-// dias entre dos fechas AAAA-MM-DD
-const diasEntre = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000);
+// dias entre dos fechas
+function diasEntre(a, b) {
+  const primera = new Date(a + 'T00:00:00Z');
+  const segunda = new Date(b + 'T00:00:00Z');
+  return Math.round((segunda - primera) / 86400000);
+}
 
-// fechas del semestre: reales, fin despues de inicio, no mas de un ano y fin que no haya pasado
+// revisa las fechas del semestre
 function revisarSemestre(inicio, fin, hoyTexto = hoy()) {
   const a = texto(inicio).trim();
   const b = texto(fin).trim();
-  if (!esFechaReal(a)) return 'La fecha de inicio debe tener el formato AAAA-MM-DD.';
-  if (!esFechaReal(b)) return 'La fecha de fin debe tener el formato AAAA-MM-DD.';
-  if (b <= a) return 'La fecha de fin debe ser posterior a la de inicio.';
-  if (diasEntre(a, b) > 366) return 'El semestre no puede durar más de un año.';
-  if (b < hoyTexto) return 'La fecha de fin no puede ser anterior a hoy. Para terminar el semestre usa «Cerrar y archivar».';
+  if (!esFechaReal(a)) {
+    return 'La fecha de inicio debe tener el formato AAAA-MM-DD.';
+  }
+  if (!esFechaReal(b)) {
+    return 'La fecha de fin debe tener el formato AAAA-MM-DD.';
+  }
+  if (b <= a) {
+    return 'La fecha de fin debe ser posterior a la de inicio.';
+  }
+  if (diasEntre(a, b) > 366) {
+    return 'El semestre no puede durar más de un año.';
+  }
+  if (b < hoyTexto) {
+    return 'La fecha de fin no puede ser anterior a hoy. Para terminar el semestre usa «Cerrar y archivar».';
+  }
   return null;
 }
 

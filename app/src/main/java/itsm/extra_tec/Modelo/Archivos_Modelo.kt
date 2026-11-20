@@ -163,8 +163,7 @@ object Archivos_Modelo {
         var pagina = doc.startPage(PdfDocument.PageInfo.Builder(ANCHO, ALTO, numero).create())
         var lienzo = pagina.canvas
 
-        cabeceraReporte(lienzo, titulo, subtitulo, false)
-        var y = 126f
+        var y = cabeceraReporte(lienzo, titulo, subtitulo, false)
 
         val pTitulo = pincel(12f, true, NEGRO)
         val pEtiqueta = pincel(9f, true, VERDE)
@@ -187,8 +186,7 @@ object Archivos_Modelo {
                 numero++
                 pagina = doc.startPage(PdfDocument.PageInfo.Builder(ANCHO, ALTO, numero).create())
                 lienzo = pagina.canvas
-                cabeceraReporte(lienzo, titulo, subtitulo, true)
-                y = 126f
+                y = cabeceraReporte(lienzo, titulo, subtitulo, true)
             }
 
             val fondo = RectF(MARGEN, y, ANCHO - MARGEN, y + altoTarjeta)
@@ -218,8 +216,19 @@ object Archivos_Modelo {
         return salida.toByteArray()
     }
 
-    private fun cabeceraReporte(lienzo: Canvas, titulo: String, subtitulo: String, continuacion: Boolean) {
-        val fondo = RectF(MARGEN, 34f, ANCHO - MARGEN, 104f)
+    // la altura crece con las lineas del subtitulo; regresa donde empieza el contenido
+    private fun cabeceraReporte(lienzo: Canvas, titulo: String, subtitulo: String, continuacion: Boolean): Float {
+        val pSub = pincel(9f, false, VERDE_TEXTO)
+        val pEscuela = pincel(7.5f, false, Color.WHITE)
+        pEscuela.textAlign = Paint.Align.RIGHT
+        val escuela = "Instituto Tecnológico Superior de Misantla"
+        val anchoSub = ANCHO - 2 * MARGEN - 36f - pEscuela.measureText(escuela) - 12f
+        val lineas = mutableListOf<String>()
+        for (linea in subtitulo.split("\n")) {
+            lineas.addAll(ajustar(linea, pSub, anchoSub))
+        }
+        val abajo = maxOf(104f, 80f + lineas.size * 12f)
+        val fondo = RectF(MARGEN, 34f, ANCHO - MARGEN, abajo)
         lienzo.drawRoundRect(fondo, 12f, 12f, pincelRelleno(VERDE))
         val pTitulo = pincel(16f, true, Color.WHITE)
         var textoTitulo = titulo
@@ -227,15 +236,13 @@ object Archivos_Modelo {
             textoTitulo = "$titulo continuación"
         }
         lienzo.drawText(textoTitulo, MARGEN + 18f, 62f, pTitulo)
-        val pSub = pincel(9f, false, VERDE_TEXTO)
         var subY = 80f
-        for (linea in subtitulo.split("\n")) {
+        for (linea in lineas) {
             lienzo.drawText(linea, MARGEN + 18f, subY, pSub)
             subY += 12f
         }
-        val pEscuela = pincel(7.5f, false, Color.WHITE)
-        pEscuela.textAlign = Paint.Align.RIGHT
-        lienzo.drawText("Instituto Tecnológico Superior de Misantla", ANCHO - MARGEN - 18f, 96f, pEscuela)
+        lienzo.drawText(escuela, ANCHO - MARGEN - 18f, abajo - 8f, pEscuela)
+        return abajo + 22f
     }
 
     private fun piePagina(lienzo: Canvas, numero: Int) {

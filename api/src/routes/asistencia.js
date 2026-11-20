@@ -29,9 +29,13 @@ router.get('/actividades/:id(\\d+)/asistencia', permiso, ruta(async (req, res) =
       ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres`,
     { fecha: dia, actividad: idActividad },
   );
+  const alumnos = [];
+  for (const f of filas) {
+    alumnos.push({ idAlumno: f.idAlumno, nombre: f.nombre, matricula: f.matricula, presente: f.presente === 1 });
+  }
   res.json({
     fecha: dia,
-    alumnos: filas.map((f) => ({ idAlumno: f.idAlumno, nombre: f.nombre, matricula: f.matricula, presente: f.presente === 1 })),
+    alumnos: alumnos,
   });
 }));
 
@@ -46,14 +50,20 @@ router.put('/actividades/:id(\\d+)/asistencia', permiso, ruta(async (req, res) =
     revisar(V.revisarFecha(fecha));
 
     // solo alumnos inscritos en la actividad
-    const inscritos = new Set(
-      (await q('SELECT id_alumno FROM inscripciones WHERE id_actividad = @id', { id: idActividad })).map((f) => f.id_alumno),
-    );
+    const filasInscritos = await q('SELECT id_alumno FROM inscripciones WHERE id_actividad = @id', { id: idActividad });
+    const inscritos = new Set();
+    for (const f of filasInscritos) {
+      inscritos.add(f.id_alumno);
+    }
     const limpias = new Map();
     for (const m of marcas) {
       const idAlumno = Number(m.idAlumno);
       if (!inscritos.has(idAlumno)) throw new ErrorApi('El alumno no está inscrito en la actividad.');
-      limpias.set(idAlumno, m.presente ? 1 : 0);
+      let presente = 0;
+      if (m.presente) {
+        presente = 1;
+      }
+      limpias.set(idAlumno, presente);
     }
 
     // crea la sesion si no existe
@@ -66,7 +76,11 @@ router.put('/actividades/:id(\\d+)/asistencia', permiso, ruta(async (req, res) =
       { actividad: idActividad, fecha });
     if (sesion.length === 0) throw new ErrorApi('No se pudo abrir la sesión.');
 
-    const json = JSON.stringify([...limpias].map(([idAlumno, presente]) => ({ idAlumno, presente })));
+    const lista = [];
+    for (const [idAlumno, presente] of limpias) {
+      lista.push({ idAlumno: idAlumno, presente: presente });
+    }
+    const json = JSON.stringify(lista);
     const columnas = "WITH (idAlumno INT '$.idAlumno', presente INT '$.presente')";
     await q(
       `UPDATE x SET presente = m.presente
@@ -101,15 +115,25 @@ router.get('/actividades/:id(\\d+)/asistencia/historial', permiso, ruta(async (r
       ORDER BY u.apellido_paterno, u.apellido_materno, u.nombres`,
     { id: idActividad },
   );
-  res.json(sesiones.map((s) => {
-    const alumnos = detalle
-      .filter((d) => d.idSesion === s.id)
-      .map((d) => ({ nombre: d.nombre, matricula: d.matricula, presente: d.presente === 1 }));
-    return {
-      id: s.id, fecha: s.fecha, presentes: alumnos.filter((a) => a.presente).length,
-      total: alumnos.length, alumnos,
-    };
-  }));
+  const resultado = [];
+  for (const s of sesiones) {
+    const alumnos = [];
+    let presentes = 0;
+    for (const d of detalle) {
+      if (d.idSesion === s.id) {
+        const presente = d.presente === 1;
+        if (presente) {
+          presentes++;
+        }
+        alumnos.push({ nombre: d.nombre, matricula: d.matricula, presente: presente });
+      }
+    }
+    resultado.push({
+      id: s.id, fecha: s.fecha, presentes: presentes,
+      total: alumnos.length, alumnos: alumnos,
+    });
+  }
+  res.json(resultado);
 }));
 
 module.exports = router;

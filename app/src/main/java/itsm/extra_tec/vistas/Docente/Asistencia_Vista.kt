@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import androidx.fragment.app.viewModels
-import itsm.extra_tec.Modelo.Actividad
 import itsm.extra_tec.Modelo.ListaAsistencia
 import itsm.extra_tec.ModeloVista.Asistencia_ModeloVista
 import itsm.extra_tec.ModeloVista.Fechas_ModeloVista
@@ -36,6 +34,7 @@ class Asistencia_Vista : Base_Vista() {
             prepararEdicion(idEdicion)
         } else {
             prepararSeleccion()
+            if (idActividad <= 0) return
         }
 
         modelo.lista.observe(viewLifecycleOwner) { lista -> mostrarLista(lista) }
@@ -58,7 +57,14 @@ class Asistencia_Vista : Base_Vista() {
     }
 
     private fun prepararSeleccion() {
-        binding.tvSubtitulo.text = "Elige la actividad y la fecha"
+        // solo la actividad elegida antes
+        idActividad = sesion.claseId ?: -1
+        nombreActividad = sesion.claseNombre
+        if (idActividad <= 0) {
+            navegador.irAlInicio()
+            return
+        }
+        binding.tvSubtitulo.text = nombreActividad
         actualizarFecha()
         binding.btnFechaAsistencia.setOnClickListener {
             elegirFecha(fecha, true) { nueva ->
@@ -67,46 +73,6 @@ class Asistencia_Vista : Base_Vista() {
                 cargarLista()
             }
         }
-
-        modelo.clases.observe(viewLifecycleOwner) { clases ->
-            val nombres = mutableListOf<String>()
-            for (clase in clases) {
-                nombres.add(clase.nombre)
-            }
-            llenarSpinner(binding.spinnerActividadAsistencia, nombres)
-            if (clases.isEmpty()) {
-                binding.contenedorLista.visibility = View.GONE
-                binding.tvVacio.visibility = View.VISIBLE
-                binding.tvVacio.text = "No tienes clases asignadas."
-                return@observe
-            }
-            binding.contenedorLista.visibility = View.VISIBLE
-
-            // se elige la clase abierta
-            var posicion = 0
-            for (i in clases.indices) {
-                if (clases[i].id == sesion.claseId) posicion = i
-            }
-            binding.spinnerActividadAsistencia.setSelection(posicion)
-            elegirClase(clases[posicion])
-
-            binding.spinnerActividadAsistencia.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(padre: AdapterView<*>?, vista: View?, posicionNueva: Int, id: Long) {
-                    if (posicionNueva >= 0 && posicionNueva < clases.size) {
-                        elegirClase(clases[posicionNueva])
-                    }
-                }
-
-                override fun onNothingSelected(padre: AdapterView<*>?) {}
-            }
-        }
-    }
-
-    private fun elegirClase(clase: Actividad) {
-        idActividad = clase.id
-        nombreActividad = clase.nombre
-        sesion.claseId = clase.id
-        sesion.claseNombre = clase.nombre
         cargarLista()
     }
 

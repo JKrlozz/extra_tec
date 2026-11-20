@@ -57,6 +57,8 @@ cd api
 tar -a -c -f api.zip src package.json package-lock.json
 ```
 
+Ese `tar` es el de Windows (PowerShell o cmd). El `tar` de Git Bash crea un `.tar` aunque el nombre diga `.zip` y Kudu no lo acepta; desde Git Bash usa `/c/Windows/System32/tar.exe`.
+
 Sube `api.zip` en `https://<nombre-del-app-service>.scm.<region>.azurewebsites.net/ZipDeployUI`. No incluyas `.env` ni `node_modules`. Las variables de entorno se conservan en el App Service. Más detalle en [`api/README.md`](api/README.md).
 
 ## Pruebas automáticas

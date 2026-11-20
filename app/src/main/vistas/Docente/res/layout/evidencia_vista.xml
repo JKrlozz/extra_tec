@@ -85,10 +85,24 @@
             <TextView
                 style="@style/Itsm.Text.Section"
                 android:text="Fotografías" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnElegirFotos"
-                style="@style/Itsm.Button.Secondary"
-                android:text="Seleccionar fotografías" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnElegirFotos"
+                    style="@style/Itsm.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Galería" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTomarFoto"
+                    style="@style/Itsm.Button.Secondary"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="Tomar foto" />
+            </LinearLayout>
             <TextView
                 android:id="@+id/tvSinFotos"
                 style="@style/Itsm.Text.Secondary"

@@ -27,13 +27,4 @@ class ActividadesAlumno_ModeloVista : Base_ModeloVista() {
             }
         }
     }
-
-    fun darDeBaja(idActividad: Int) {
-        Actividades_Modelo.darDeBaja(idActividad) { resultado ->
-            atender(resultado) {
-                avisar("Baja realizada.")
-                cargar()
-            }
-        }
-    }
 }

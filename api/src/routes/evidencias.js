@@ -17,7 +17,7 @@ const subir = multer({
   limits: { fileSize: V.L.FOTO_BYTES_MAX, files: V.L.FOTOS_MAX, fields: 5, fieldSize: 64 * 1024 },
 }).array('fotos', V.L.FOTOS_MAX);
 
-// el tipo sale de los bytes, no de lo que diga el telefono
+// el tipo sale de los bytes
 function tipoDe(b) {
   if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
   if (b.length > 8 && b[0] === 0x89 && b.toString('latin1', 1, 4) === 'PNG') return 'image/png';
@@ -33,15 +33,29 @@ const CAMPOS = `e.id, e.id_actividad AS idActividad, CONVERT(VARCHAR(10), e.fech
 async function conFotos(filas) {
   if (filas.length === 0) return [];
   // los ids vienen de la base
+  const ids = [];
+  for (const f of filas) {
+    ids.push(Number(f.id));
+  }
   const fotos = await consulta(
     `SELECT id, id_evidencia AS idEvidencia FROM evidencia_fotos
-      WHERE id_evidencia IN (${filas.map((f) => Number(f.id)).join(',')}) ORDER BY orden, id`,
+      WHERE id_evidencia IN (${ids.join(',')}) ORDER BY orden, id`,
   );
-  return filas.map((f) => ({
-    id: f.id, idActividad: f.idActividad, fecha: f.fecha, creadaEn: f.creadaEn,
-    actualizadaEn: f.actualizadaEn || null, estado: f.estado, descripcion: f.descripcion,
-    fotos: fotos.filter((x) => x.idEvidencia === f.id).map((x) => ({ id: x.id })),
-  }));
+  const resultado = [];
+  for (const f of filas) {
+    const fotosDeEsta = [];
+    for (const x of fotos) {
+      if (x.idEvidencia === f.id) {
+        fotosDeEsta.push({ id: x.id });
+      }
+    }
+    resultado.push({
+      id: f.id, idActividad: f.idActividad, fecha: f.fecha, creadaEn: f.creadaEn,
+      actualizadaEn: f.actualizadaEn || null, estado: f.estado, descripcion: f.descripcion,
+      fotos: fotosDeEsta,
+    });
+  }
+  return resultado;
 }
 
 router.get('/actividades/:id(\\d+)/evidencias', permiso, ruta(async (req, res) => {
@@ -58,10 +72,11 @@ router.get('/evidencias/:id(\\d+)', permiso, ruta(async (req, res) => {
   const filas = await consulta(`SELECT ${CAMPOS} FROM evidencias e WHERE e.id = @id`, { id: idDe(req.params.id) });
   if (filas.length === 0) throw new ErrorApi('Evidencia no encontrada.', 404);
   await exigirTitular(req, filas[0].idActividad);
-  res.json((await conFotos(filas))[0]);
+  const lista = await conFotos(filas);
+  res.json(lista[0]);
 }));
 
-// crea o cambia una evidencia, guarda y borra fotos
+// crea o cambia una evidencia
 async function guardar(req, idActividad, idEvidencia) {
   let datos;
   try {
@@ -72,8 +87,16 @@ async function guardar(req, idActividad, idEvidencia) {
   const fecha = V.texto(datos.fecha);
   const estado = V.texto(datos.estado);
   const descripcion = V.texto(datos.descripcion).trim();
-  const quitar = Array.isArray(datos.quitar) ? datos.quitar.map(Number) : [];
-  const nuevas = req.files || [];
+  const quitar = [];
+  if (Array.isArray(datos.quitar)) {
+    for (const x of datos.quitar) {
+      quitar.push(Number(x));
+    }
+  }
+  let nuevas = req.files;
+  if (!nuevas) {
+    nuevas = [];
+  }
 
   await transaccion(async (q) => {
     const titular = await exigirTitular(req, idActividad, q);
@@ -92,11 +115,19 @@ async function guardar(req, idActividad, idEvidencia) {
       const pertenece = await q('SELECT 1 AS x FROM evidencias WHERE id = @id AND id_actividad = @actividad',
         { id: idEvidencia, actividad: idActividad });
       if (pertenece.length === 0) throw new ErrorApi('Evidencia no encontrada.', 404);
-      existentes = (await q('SELECT id FROM evidencia_fotos WHERE id_evidencia = @id', { id: idEvidencia })).map((f) => f.id);
+      const filasFotos = await q('SELECT id FROM evidencia_fotos WHERE id_evidencia = @id', { id: idEvidencia });
+      for (const f of filasFotos) {
+        existentes.push(f.id);
+      }
     }
 
     // cuantas fotos quedan al final
-    const aQuitar = existentes.filter((id) => quitar.includes(id));
+    const aQuitar = [];
+    for (const idFoto of existentes) {
+      if (quitar.includes(idFoto)) {
+        aQuitar.push(idFoto);
+      }
+    }
     const quedan = existentes.length - aQuitar.length + nuevas.length;
     if (estado === 'realizada' && quedan === 0) {
       throw new ErrorApi('Selecciona al menos una fotografía para una actividad realizada.');
@@ -124,7 +155,8 @@ async function guardar(req, idActividad, idEvidencia) {
     }
 
     // las fotos nuevas van al final
-    let orden = (await q('SELECT COALESCE(MAX(orden), -1) + 1 AS n FROM evidencia_fotos WHERE id_evidencia = @id', { id }))[0].n;
+    const filaOrden = await q('SELECT COALESCE(MAX(orden), -1) + 1 AS n FROM evidencia_fotos WHERE id_evidencia = @id', { id });
+    let orden = filaOrden[0].n;
     for (const foto of nuevas) {
       await q(
         'INSERT INTO evidencia_fotos (id_evidencia, tipo, contenido, orden) VALUES (@evidencia, @tipo, @contenido, @orden)',
@@ -157,7 +189,7 @@ router.delete('/evidencias/:id(\\d+)', permiso, ruta(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// la imagen se pide aparte para no cargar todo junto
+// la imagen se pide aparte
 router.get('/fotos/:id(\\d+)', permiso, ruta(async (req, res) => {
   const filas = await consulta(
     `SELECT f.tipo, f.contenido, e.id_actividad AS idActividad

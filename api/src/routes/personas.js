@@ -1,4 +1,4 @@
-// alumnos y docentes (solo administrador)
+// alumnos y docentes solo administrador
 const express = require('express');
 const { consulta, transaccion } = require('../db');
 const { solo, generarHash, claveInicial } = require('../auth');
@@ -50,15 +50,21 @@ router.get('/docentes', ruta(async (req, res) => {
 // catalogo para sugerir especialidades
 router.get('/especialidades', ruta(async (req, res) => {
   const filas = await consulta('SELECT nombre FROM especialidades ORDER BY nombre');
-  res.json(filas.map((f) => f.nombre));
+  const nombres = [];
+  for (const f of filas) {
+    nombres.push(f.nombre);
+  }
+  res.json(nombres);
 }));
 
-const datosUsuario = (b) => ({
-  nombres: V.texto(b.nombres).trim(),
-  paterno: V.texto(b.apellidoPaterno).trim(),
-  materno: V.texto(b.apellidoMaterno).trim() || null,
-  correo: V.texto(b.correo).trim().toLowerCase(),
-});
+function datosUsuario(b) {
+  return {
+    nombres: V.texto(b.nombres).trim(),
+    paterno: V.texto(b.apellidoPaterno).trim(),
+    materno: V.texto(b.apellidoMaterno).trim() || null,
+    correo: V.texto(b.correo).trim().toLowerCase(),
+  };
+}
 
 // busca la especialidad o la crea
 async function buscarEspecialidad(q, nombre) {
@@ -66,10 +72,11 @@ async function buscarEspecialidad(q, nombre) {
   if (!t) return null;
   const filas = await q('SELECT id FROM especialidades WHERE nombre = @n', { n: t });
   if (filas.length > 0) return filas[0].id;
-  return (await q('INSERT INTO especialidades (nombre) OUTPUT INSERTED.id VALUES (@n)', { n: t }))[0].id;
+  const nueva = await q('INSERT INTO especialidades (nombre) OUTPUT INSERTED.id VALUES (@n)', { n: t });
+  return nueva[0].id;
 }
 
-// regresa la clave solo si se genero
+// regresa la clave si se genero
 async function guardarAlumno(b, id) {
   const matricula = V.normalizarMatricula(b.matricula);
   revisar(V.revisarPersona(b.nombres, b.apellidoPaterno, b.apellidoMaterno, b.correo));
@@ -84,7 +91,8 @@ async function guardarAlumno(b, id) {
   if (id === null) revisar(V.revisarClave(contrasena, true));
 
   return transaccion(async (q) => {
-    if ((await q('SELECT 1 AS x FROM carreras WHERE id = @id', { id: idCarrera })).length === 0) {
+    const carrera = await q('SELECT 1 AS x FROM carreras WHERE id = @id', { id: idCarrera });
+    if (carrera.length === 0) {
       throw new ErrorApi('Selecciona una carrera válida.');
     }
     const u = datosUsuario(b);
@@ -93,18 +101,21 @@ async function guardarAlumno(b, id) {
       const nuevo = await q(
         `INSERT INTO usuarios (nombres, apellido_paterno, apellido_materno, correo, contrasena_hash, rol)
          OUTPUT INSERTED.id VALUES (@nombres, @paterno, @materno, @correo, @hash, 'alumno')`,
-        { ...u, hash: generarHash(clave) },
+        { nombres: u.nombres, paterno: u.paterno, materno: u.materno, correo: u.correo, hash: generarHash(clave) },
       );
       await q(
         'INSERT INTO alumnos (id_usuario, matricula, id_carrera, semestre) VALUES (@id, @matricula, @carrera, @semestre)',
         { id: nuevo[0].id, matricula, carrera: idCarrera, semestre },
       );
-      return contrasena ? null : clave;
+      if (contrasena) {
+        return null;
+      }
+      return clave;
     }
     const filas = await q(
       `UPDATE usuarios SET nombres = @nombres, apellido_paterno = @paterno, apellido_materno = @materno, correo = @correo
         WHERE id = @id AND rol = 'alumno' AND activo = 1`,
-      { ...u, id },
+      { nombres: u.nombres, paterno: u.paterno, materno: u.materno, correo: u.correo, id: id },
     );
     if (filas.afectadas === 0) throw new ErrorApi('Alumno no encontrado.', 404);
     await q('UPDATE alumnos SET matricula = @matricula, id_carrera = @carrera, semestre = @semestre WHERE id_usuario = @id',
@@ -129,16 +140,19 @@ async function guardarDocente(b, id) {
       const nuevo = await q(
         `INSERT INTO usuarios (nombres, apellido_paterno, apellido_materno, correo, contrasena_hash, rol)
          OUTPUT INSERTED.id VALUES (@nombres, @paterno, @materno, @correo, @hash, 'docente')`,
-        { ...u, hash: generarHash(clave) },
+        { nombres: u.nombres, paterno: u.paterno, materno: u.materno, correo: u.correo, hash: generarHash(clave) },
       );
       await q('INSERT INTO docentes (id_usuario, id_especialidad, telefono) VALUES (@id, @esp, @tel)',
         { id: nuevo[0].id, esp: idEspecialidad, tel: telefono });
-      return contrasena ? null : clave;
+      if (contrasena) {
+        return null;
+      }
+      return clave;
     }
     const filas = await q(
       `UPDATE usuarios SET nombres = @nombres, apellido_paterno = @paterno, apellido_materno = @materno, correo = @correo
         WHERE id = @id AND rol = 'docente' AND activo = 1`,
-      { ...u, id },
+      { nombres: u.nombres, paterno: u.paterno, materno: u.materno, correo: u.correo, id: id },
     );
     if (filas.afectadas === 0) throw new ErrorApi('Docente no encontrado.', 404);
     await q('UPDATE docentes SET id_especialidad = @esp, telefono = @tel WHERE id_usuario = @id',

@@ -2,34 +2,19 @@ package itsm.extra_tec.ModeloVista
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import itsm.extra_tec.Modelo.Actividad
-import itsm.extra_tec.Modelo.Actividades_Modelo
 import itsm.extra_tec.Modelo.Asistencia_Modelo
 import itsm.extra_tec.Modelo.Limites
 import itsm.extra_tec.Modelo.ListaAsistencia
 import itsm.extra_tec.Modelo.MarcaAsistencia
-import itsm.extra_tec.Modelo.Sesion_Actual
 
 class Asistencia_ModeloVista : Base_ModeloVista() {
     private val _lista = MutableLiveData<ListaAsistencia?>(null)
     val lista: LiveData<ListaAsistencia?> = _lista
 
-    private val _clases = MutableLiveData<List<Actividad>>(listOf())
-    val clases: LiveData<List<Actividad>> = _clases
-
     private val _guardada = MutableLiveData<Evento_ModeloVista<Boolean>>()
     val guardada: LiveData<Evento_ModeloVista<Boolean>> = _guardada
 
     private var idActividad = -1
-
-    init {
-        // el docente solo ve las suyas
-        if (Sesion_Actual.rol() == "admin") {
-            Actividades_Modelo.todas { resultado -> atender(resultado) { lista -> _clases.value = lista } }
-        } else {
-            Actividades_Modelo.misClases { resultado -> atender(resultado) { lista -> _clases.value = lista } }
-        }
-    }
 
     fun cargar(id: Int, fecha: String) {
         val error = Limites.revisarFecha(fecha)

@@ -35,6 +35,98 @@
                     android:paddingEnd="8dp" />
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- filtros que cambian segun el tipo -->
+            <LinearLayout
+                android:id="@+id/grupoFiltros"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/Itsm.Text.Section"
+                    android:text="Filtros" />
+
+                <TextView
+                    android:id="@+id/tvAyudaFiltros"
+                    style="@style/Itsm.Text.Secondary"
+                    android:layout_marginBottom="8dp"
+                    android:text="Todos son opcionales. Con número de control o nombre se muestra el detalle por sesión." />
+
+                <LinearLayout
+                    android:id="@+id/grupoFiltrosAlumno"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Itsm.Field"
+                        android:hint="Número de control">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etMatriculaReporte"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapCharacters"
+                            android:maxLength="8" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Itsm.Field"
+                        android:hint="Nombre del alumno">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreReporte"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName"
+                            android:maxLength="100" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Itsm.Card"
+                        android:layout_marginBottom="8dp">
+                        <Spinner
+                            android:id="@+id/spinnerCarreraReporte"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="52dp"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp" />
+                    </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Itsm.Card"
+                        android:layout_marginBottom="8dp">
+                        <Spinner
+                            android:id="@+id/spinnerSemestreReporte"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="52dp"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp" />
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilDocenteReporte"
+                    style="@style/Itsm.Field"
+                    android:hint="Nombre o correo del docente">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDocenteReporte"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:maxLength="100" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Itsm.Card"
+                    android:layout_marginBottom="16dp">
+                    <Spinner
+                        android:id="@+id/spinnerActividadReporte"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="52dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
             <TextView
                 style="@style/Itsm.Text.Section"
                 android:text="Periodo" />
@@ -42,7 +134,7 @@
             <TextView
                 style="@style/Itsm.Text.Secondary"
                 android:layout_marginBottom="8dp"
-                android:text="Puedes limitar el periodo con las fechas. Si las dejas vacías se usa todo el historial." />
+                android:text="Puedes limitar el periodo con las fechas. Si las dejas vacías se usa todo el historial. Para un solo día usa la misma fecha en ambas." />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDesde"
                 style="@style/Itsm.Field"

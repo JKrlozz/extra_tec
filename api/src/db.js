@@ -1,4 +1,4 @@
-// conexion a Azure SQL
+// conexion a azure sql
 const sql = require('mssql');
 const { ErrorApi } = require('./util');
 
@@ -6,15 +6,18 @@ let pool = null;
 let conectando = null;
 
 function configuracion() {
-  const { DB_SERVER, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
-  if (!DB_SERVER || !DB_NAME || !DB_USER || !DB_PASSWORD) {
+  const servidor = process.env.DB_SERVER;
+  const base = process.env.DB_NAME;
+  const usuario = process.env.DB_USER;
+  const clave = process.env.DB_PASSWORD;
+  if (!servidor || !base || !usuario || !clave) {
     throw new Error('Faltan DB_SERVER, DB_NAME, DB_USER o DB_PASSWORD en el entorno.');
   }
   return {
-    server: DB_SERVER,
-    database: DB_NAME,
-    user: DB_USER,
-    password: DB_PASSWORD,
+    server: servidor,
+    database: base,
+    user: usuario,
+    password: clave,
     options: { encrypt: true, trustServerCertificate: false },
     connectionTimeout: 30000,
     requestTimeout: 60000,
@@ -22,79 +25,132 @@ function configuracion() {
   };
 }
 
-const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+function esperar(ms) {
+  return new Promise(function (resolver) {
+    setTimeout(resolver, ms);
+  });
+}
 
-// la base gratuita se pausa sola: el primer intento puede tardar
+// la base gratuita tarda en despertar
 async function conectar() {
-  let ultimo;
+  let ultimoError;
   for (let intento = 1; intento <= 4; intento++) {
     try {
       const nuevo = new sql.ConnectionPool(configuracion());
-      nuevo.on('error', () => { pool = null; });
+      nuevo.on('error', function () {
+        pool = null;
+      });
       await nuevo.connect();
       return nuevo;
     } catch (e) {
-      ultimo = e;
+      ultimoError = e;
       console.error(`Conexión a la base fallida (intento ${intento}):`, e.message);
       await esperar(5000);
     }
   }
-  throw ultimo;
+  throw ultimoError;
 }
 
 async function obtener() {
-  if (pool && pool.connected) return pool;
+  if (pool && pool.connected) {
+    return pool;
+  }
   if (!conectando) {
     conectando = conectar()
-      .then((p) => { pool = p; return p; })
-      .finally(() => { conectando = null; });
+      .then(function (p) {
+        pool = p;
+        return p;
+      })
+      .finally(function () {
+        conectando = null;
+      });
   }
   return conectando;
 }
 
 function preparar(request, params) {
-  for (const [nombre, v] of Object.entries(params || {})) {
-    if (Buffer.isBuffer(v)) request.input(nombre, sql.VarBinary(sql.MAX), v);
-    else if (typeof v === 'number') request.input(nombre, Number.isInteger(v) ? sql.Int : sql.Float, v);
-    else if (typeof v === 'boolean') request.input(nombre, sql.TinyInt, v ? 1 : 0);
-    else request.input(nombre, sql.NVarChar(sql.MAX), v == null ? null : String(v));
+  if (!params) {
+    return;
+  }
+  const nombres = Object.keys(params);
+  for (let i = 0; i < nombres.length; i++) {
+    const nombre = nombres[i];
+    const valor = params[nombre];
+    if (Buffer.isBuffer(valor)) {
+      request.input(nombre, sql.VarBinary(sql.MAX), valor);
+    } else if (typeof valor === 'number') {
+      if (Number.isInteger(valor)) {
+        request.input(nombre, sql.Int, valor);
+      } else {
+        request.input(nombre, sql.Float, valor);
+      }
+    } else if (typeof valor === 'boolean') {
+      if (valor) {
+        request.input(nombre, sql.TinyInt, 1);
+      } else {
+        request.input(nombre, sql.TinyInt, 0);
+      }
+    } else if (valor === null || valor === undefined) {
+      request.input(nombre, sql.NVarChar(sql.MAX), null);
+    } else {
+      request.input(nombre, sql.NVarChar(sql.MAX), String(valor));
+    }
   }
 }
 
 async function correr(request, texto, params) {
   preparar(request, params);
-  const r = await request.query(texto);
-  const filas = r.recordset || [];
-  filas.afectadas = (r.rowsAffected || []).reduce((a, b) => a + b, 0);
+  const resultado = await request.query(texto);
+  let filas = resultado.recordset;
+  if (!filas) {
+    filas = [];
+  }
+  let total = 0;
+  const cambios = resultado.rowsAffected || [];
+  for (let i = 0; i < cambios.length; i++) {
+    total = total + cambios[i];
+  }
+  filas.afectadas = total;
   return filas;
 }
 
-// consulta sola
+// una consulta sola
 async function consulta(texto, params) {
   const p = await obtener();
   return correr(p.request(), texto, params);
 }
 
-// todo o nada: fn recibe q(texto, params)
+// todo o nada con q
 async function transaccion(fn) {
   const p = await obtener();
   const tx = new sql.Transaction(p);
   await tx.begin();
   try {
-    const q = (texto, params) => correr(new sql.Request(tx), texto, params);
+    const q = function (texto, params) {
+      return correr(new sql.Request(tx), texto, params);
+    };
     const resultado = await fn(q);
     await tx.commit();
     return resultado;
   } catch (e) {
-    try { await tx.rollback(); } catch (_) { /* ya estaba cerrada */ }
+    try {
+      await tx.rollback();
+    } catch (otro) {
+      // ya estaba cerrada
+    }
     throw e;
   }
 }
 
 // errores de sql a mensajes claros
 function mensajeSql(e) {
-  if (e instanceof ErrorApi) return null;
-  const t = (e && e.message) || '';
+  if (e instanceof ErrorApi) {
+    return null;
+  }
+  let t = '';
+  if (e && e.message) {
+    t = e.message;
+  }
   const pares = [
     ['uq_usuarios_correo', 'Ese correo ya está registrado.'],
     ['uq_alumnos_matricula', 'Ese número de control ya está registrado.'],
@@ -105,12 +161,19 @@ function mensajeSql(e) {
     ['uq_lugares_nombre', 'Ese lugar ya existe.'],
     ['uq_especialidades_nombre', 'Esa especialidad ya existe.'],
   ];
-  for (const [clave, mensaje] of pares) {
-    if (t.includes(clave)) return mensaje;
+  for (let i = 0; i < pares.length; i++) {
+    if (t.includes(pares[i][0])) {
+      return pares[i][1];
+    }
   }
-  if (e && (e.number === 2627 || e.number === 2601)) return 'Ya existe un registro con esos datos.';
+  if (e && (e.number === 2627 || e.number === 2601)) {
+    return 'Ya existe un registro con esos datos.';
+  }
   if (e && e.number === 547) {
-    return t.includes('DELETE') ? 'El registro depende de otro que ya no existe.' : 'Los datos no cumplen el formato permitido.';
+    if (t.includes('DELETE')) {
+      return 'El registro depende de otro que ya no existe.';
+    }
+    return 'Los datos no cumplen el formato permitido.';
   }
   return null;
 }

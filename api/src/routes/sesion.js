@@ -1,4 +1,4 @@
-// inicio de sesion, registro y carreras
+// inicio de sesion registro y carreras
 const express = require('express');
 const { consulta, transaccion } = require('../db');
 const { generarHash, verificarHash, firmar } = require('../auth');
@@ -7,7 +7,7 @@ const V = require('../validar');
 
 const router = express.Router();
 
-// hash de relleno para que el tiempo no delate si el correo existe
+// hash de relleno para correos inexistentes
 const HASH_FALSO = generarHash('relleno-no-valido');
 
 router.post('/login', ruta(async (req, res) => {
@@ -20,7 +20,11 @@ router.post('/login', ruta(async (req, res) => {
     { correo },
   );
   const u = filas[0];
-  const clave = verificarHash(contrasena, u ? u.contrasena_hash : HASH_FALSO);
+  let hashGuardado = HASH_FALSO;
+  if (u) {
+    hashGuardado = u.contrasena_hash;
+  }
+  const clave = verificarHash(contrasena, hashGuardado);
   if (!u || u.rol !== rol || !clave) {
     throw new ErrorApi('Correo, contraseña o tipo de usuario incorrectos.', 401);
   }
